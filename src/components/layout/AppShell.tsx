@@ -15,6 +15,7 @@ import { SurPetiControl } from '@/components/surpeti/SurPetiControl';
 import { SwarMandalPanel } from '@/components/swarmandal/SwarMandalPanel';
 import { TunerPanel } from '@/components/tuner/TunerPanel';
 import { PresetPanel } from '@/components/presets/PresetPanel';
+import { RecorderPanel } from '@/components/recorder/RecorderPanel';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 type Tab = 'mixer' | 'controls' | 'presets' | 'swarmandal' | 'more';
@@ -50,7 +51,10 @@ export function AppShell() {
               <SwarMandalPanel />
             </div>
           </div>
-          <TunerPanel />
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <TunerPanel />
+            <RecorderPanel />
+          </div>
           <PresetPanel />
         </main>
       </div>
@@ -80,7 +84,10 @@ export function AppShell() {
             <SwarMandalPanel />
           )}
           {activeTab === 'more' && (
-            <TunerPanel />
+            <>
+              <TunerPanel />
+              <RecorderPanel />
+            </>
           )}
         </main>
 

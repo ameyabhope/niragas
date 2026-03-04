@@ -101,6 +101,13 @@ export function setChannelMute(id: InstrumentId, muted: boolean): void {
 }
 
 /**
+ * Get the master volume node (for recording tap).
+ */
+export function getMasterNode(): Tone.Volume | null {
+  return masterVolume;
+}
+
+/**
  * Dispose all mixer nodes (cleanup).
  */
 export function disposeMixer(): void {
