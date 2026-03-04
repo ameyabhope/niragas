@@ -1,19 +1,18 @@
 /**
  * Tanpura engine.
  *
- * Uses Tone.js to simulate a 5-string tanpura with cyclic plucking.
- * Currently uses synthesized tones as placeholders until real samples are provided.
+ * Simulates a 5-string tanpura with cyclic plucking using synthesis.
+ * The sound chain per tanpura:
+ *   PolySynth(FMSynth) → Chorus (shimmer) → Resonance filter → Reverb → Mixer Channel
  *
- * When real samples are available:
- * - Replace the Tone.Synth with Tone.Sampler
- * - Load multi-pitched WAV/OGG samples
- * - Tone.Sampler handles pitch interpolation automatically
+ * This approximates the tanpura's characteristic "jivari" buzzing by using:
+ * - FM synthesis with high modulation index for harmonic richness
+ * - Chorus to create the shimmering overtone beating effect
+ * - A resonant lowpass filter to simulate the wooden body
+ * - Reverb for natural room ambiance
  *
- * Architecture:
- *   Each tanpura instance has:
- *   - A synth (or sampler) for sound generation
- *   - A Tone.Loop that cycles through the 5 strings
- *   - Connection to the mixer channel
+ * When real samples are available, replace createTanpuraSynth() with Tone.Sampler
+ * and remove the effects chain (real samples already contain these characteristics).
  */
 
 import * as Tone from 'tone';
@@ -22,17 +21,14 @@ import { swarToToneNote } from '@/lib/notes';
 import { getChannelInput } from './mixer';
 
 interface TanpuraInstance {
-  /** Synth used for placeholder sounds. Will be replaced by Tone.Sampler. */
   synth: Tone.PolySynth;
-  /** Loop that triggers string plucks in sequence */
+  chorus: Tone.Chorus;
+  filter: Tone.Filter;
+  reverb: Tone.Reverb;
   loop: Tone.Loop | null;
-  /** Current string index in the plucking sequence */
   currentStringIndex: number;
-  /** Whether this instance is actively playing */
   playing: boolean;
-  /** The current configuration */
   config: TanpuraConfig;
-  /** Current Sa reference for note calculations */
   saNote: NoteName;
   saOctave: number;
 }
@@ -40,37 +36,70 @@ interface TanpuraInstance {
 const instances: Map<string, TanpuraInstance> = new Map();
 
 /**
- * Create a placeholder synth that approximates a tanpura sound.
- * Uses FM synthesis with a long release for a drone-like quality.
- *
- * TODO: Replace with Tone.Sampler when real samples are available.
+ * Create the tanpura synthesis chain.
+ * The FM synth generates a harmonically rich tone, then the chorus adds the
+ * characteristic shimmering quality, the filter shapes the body resonance,
+ * and reverb adds natural space.
  */
-function createTanpuraSynth(): Tone.PolySynth {
+function createTanpuraChain(channelInput: Tone.Volume): {
+  synth: Tone.PolySynth;
+  chorus: Tone.Chorus;
+  filter: Tone.Filter;
+  reverb: Tone.Reverb;
+} {
+  // Reverb: natural room ambiance
+  const reverb = new Tone.Reverb({
+    decay: 4,
+    wet: 0.25,
+    preDelay: 0.01,
+  }).connect(channelInput);
+
+  // Resonant lowpass filter: simulates wooden body
+  const filter = new Tone.Filter({
+    type: 'lowpass',
+    frequency: 2500,
+    rolloff: -12,
+    Q: 2,
+  }).connect(reverb);
+
+  // Chorus: creates the shimmering overtone beating (jivari-like)
+  const chorus = new Tone.Chorus({
+    frequency: 0.8,
+    delayTime: 3.5,
+    depth: 0.6,
+    wet: 0.4,
+    spread: 180,
+  }).connect(filter);
+  chorus.start();
+
+  // FM synth: harmonically rich tone
   const synth = new Tone.PolySynth(Tone.FMSynth);
-  synth.maxPolyphony = 6;
+  synth.maxPolyphony = 8;
   synth.set({
-    harmonicity: 3,
-    modulationIndex: 10,
+    harmonicity: 2,
+    modulationIndex: 12,
     oscillator: {
       type: 'sine',
     },
     envelope: {
-      attack: 0.3,
-      decay: 0.5,
-      sustain: 0.6,
-      release: 3.0,
+      attack: 0.15,
+      decay: 1.0,
+      sustain: 0.5,
+      release: 4.0,
     },
     modulation: {
       type: 'triangle',
     },
     modulationEnvelope: {
-      attack: 0.5,
-      decay: 0.3,
-      sustain: 0.4,
-      release: 2.0,
+      attack: 0.3,
+      decay: 0.8,
+      sustain: 0.3,
+      release: 3.0,
     },
   });
-  return synth;
+  synth.connect(chorus);
+
+  return { synth, chorus, filter, reverb };
 }
 
 /**
@@ -82,15 +111,16 @@ export function createTanpura(
   saNote: NoteName,
   saOctave: number
 ): void {
-  // Dispose existing instance if any
   disposeTanpura(id);
 
-  const synth = createTanpuraSynth();
   const channelInput = getChannelInput(id);
-  synth.connect(channelInput);
+  const { synth, chorus, filter, reverb } = createTanpuraChain(channelInput);
 
   const instance: TanpuraInstance = {
     synth,
+    chorus,
+    filter,
+    reverb,
     loop: null,
     currentStringIndex: 0,
     playing: false,
@@ -105,6 +135,7 @@ export function createTanpura(
 
 /**
  * Start the tanpura plucking loop.
+ * Strings are plucked in sequence with slight timing humanization.
  */
 export function startTanpura(id: string): void {
   const instance = instances.get(id);
@@ -113,16 +144,13 @@ export function startTanpura(id: string): void {
   const enabledStrings = instance.config.strings.filter((s) => s.enabled);
   if (enabledStrings.length === 0) return;
 
-  // Time between each string pluck
   const pluckInterval = instance.config.cycleSpeed / enabledStrings.length;
-
   instance.currentStringIndex = 0;
 
   instance.loop = new Tone.Loop((time) => {
     const stringConfig = enabledStrings[instance.currentStringIndex];
     if (!stringConfig) return;
 
-    // Calculate the note for this string
     const toneNote = swarToToneNote(
       instance.saNote,
       instance.saOctave,
@@ -131,11 +159,18 @@ export function startTanpura(id: string): void {
       stringConfig.octaveOffset
     );
 
-    // Trigger the note with a natural-sounding duration
-    const noteDuration = Math.min(pluckInterval * 1.5, 3);
-    instance.synth.triggerAttackRelease(toneNote, noteDuration, time);
+    // Longer sustain for overlapping strings (characteristic tanpura sound)
+    const noteDuration = Math.min(pluckInterval * 2.5, 5);
 
-    // Advance to next string
+    // Slight velocity variation for natural feel
+    const velocity = 0.55 + Math.random() * 0.15;
+
+    // Slight timing humanization (±20ms)
+    const humanize = (Math.random() - 0.5) * 0.04;
+    const triggerTime = Math.max(time + humanize, time);
+
+    instance.synth.triggerAttackRelease(toneNote, noteDuration, triggerTime, velocity);
+
     instance.currentStringIndex =
       (instance.currentStringIndex + 1) % enabledStrings.length;
   }, pluckInterval);
@@ -143,13 +178,13 @@ export function startTanpura(id: string): void {
   instance.loop.start(0);
   instance.playing = true;
 
-  // Start the Tone.js transport if not already running
-  // (Tanpura uses its own loop timing, not the transport BPM)
   if (Tone.getTransport().state !== 'started') {
     Tone.getTransport().start();
   }
 
-  console.log(`[Tanpura] Started ${id}: ${enabledStrings.length} strings, ${pluckInterval.toFixed(2)}s interval`);
+  console.log(
+    `[Tanpura] Started ${id}: ${enabledStrings.length} strings, ${pluckInterval.toFixed(2)}s interval`
+  );
 }
 
 /**
@@ -170,8 +205,7 @@ export function stopTanpura(id: string): void {
 }
 
 /**
- * Update the tanpura configuration (string tuning, cycle speed, etc.).
- * Restarts the loop if currently playing.
+ * Update the tanpura configuration. Restarts the loop if currently playing.
  */
 export function updateTanpura(
   id: 'tanpura1' | 'tanpura2',
@@ -183,12 +217,8 @@ export function updateTanpura(
   if (!instance) return;
 
   const wasPlaying = instance.playing;
+  if (wasPlaying) stopTanpura(id);
 
-  if (wasPlaying) {
-    stopTanpura(id);
-  }
-
-  // Update config
   instance.config = { ...instance.config, ...config };
   if (saNote !== undefined) instance.saNote = saNote;
   if (saOctave !== undefined) instance.saOctave = saOctave;
@@ -226,7 +256,7 @@ export function isTanpuraPlaying(id: string): boolean {
 }
 
 /**
- * Dispose a tanpura instance and free resources.
+ * Dispose a tanpura instance and free all audio nodes.
  */
 export function disposeTanpura(id: string): void {
   const instance = instances.get(id);
@@ -234,6 +264,9 @@ export function disposeTanpura(id: string): void {
 
   stopTanpura(id);
   instance.synth.dispose();
+  instance.chorus.dispose();
+  instance.filter.dispose();
+  instance.reverb.dispose();
   instances.delete(id);
 
   console.log(`[Tanpura] Disposed ${id}`);
