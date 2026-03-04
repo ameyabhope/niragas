@@ -11,11 +11,16 @@ import { MixerPanel } from '@/components/mixer/MixerPanel';
 import { TanpuraPanel } from '@/components/tanpura/TanpuraPanel';
 import { TablaPanel } from '@/components/tabla/TablaPanel';
 import { SurPetiControl } from '@/components/surpeti/SurPetiControl';
+import { SwarMandalPanel } from '@/components/swarmandal/SwarMandalPanel';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 type Tab = 'mixer' | 'controls' | 'presets' | 'swarmandal' | 'more';
 
 export function AppShell() {
   const [activeTab, setActiveTab] = useState<Tab>('controls');
+
+  // Register global keyboard shortcuts
+  useKeyboardShortcuts();
 
   return (
     <div className="flex flex-col h-dvh bg-surface">
@@ -31,18 +36,15 @@ export function AppShell() {
 
         {/* Right panel: Controls */}
         <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
-          <TanpuraPanel />
-          <SurPetiControl />
-          <TablaPanel />
-
-          {/* Placeholder for future panels */}
-          <div className="rounded-xl border border-white/5 bg-surface-card p-4">
-            <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold mb-2">
-              Swar Mandal
-            </h2>
-            <p className="text-text-muted text-sm">
-              Swar Mandal controls will be added in the next phase.
-            </p>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-6">
+              <TanpuraPanel />
+              <SurPetiControl />
+            </div>
+            <div className="flex flex-col gap-6">
+              <TablaPanel />
+              <SwarMandalPanel />
+            </div>
           </div>
         </main>
       </div>
@@ -65,10 +67,10 @@ export function AppShell() {
             </>
           )}
           {activeTab === 'presets' && (
-            <p className="text-text-muted text-sm">Presets coming in Phase 12.</p>
+            <p className="text-text-muted text-sm">Presets coming soon.</p>
           )}
           {activeTab === 'swarmandal' && (
-            <p className="text-text-muted text-sm">Swar Mandal coming in Phase 5.</p>
+            <SwarMandalPanel />
           )}
           {activeTab === 'more' && (
             <p className="text-text-muted text-sm">Tuner, Recorder, Settings coming soon.</p>
