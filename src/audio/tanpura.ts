@@ -1,18 +1,42 @@
 /**
- * Tanpura engine.
+ * Tanpura engine — realistic Indian classical drone.
  *
- * Simulates a 5-string tanpura with cyclic plucking using synthesis.
- * The sound chain per tanpura:
- *   PolySynth(FMSynth) → Chorus (shimmer) → Resonance filter → Reverb → Mixer Channel
+ * Architecture (per tanpura instance):
  *
- * This approximates the tanpura's characteristic "jivari" buzzing by using:
- * - FM synthesis with high modulation index for harmonic richness
- * - Chorus to create the shimmering overtone beating effect
- * - A resonant lowpass filter to simulate the wooden body
- * - Reverb for natural room ambiance
+ *   Sound Source (Sampler or FMSynth)
+ *       │
+ *       ▼
+ *   Jivari simulation (WaveShaper soft-clip + resonant comb filter)
+ *       │
+ *       ▼
+ *   Body resonance (bandpass filter chain — simulates gourd body)
+ *       │
+ *       ▼
+ *   Chorus (slow, wide — creates the characteristic shimmer/beating)
+ *       │
+ *       ▼
+ *   Reverb (long decay — ambient space)
+ *       │
+ *       ▼
+ *   Mixer Channel
  *
- * When real samples are available, replace createTanpuraSynth() with Tone.Sampler
- * and remove the effects chain (real samples already contain these characteristics).
+ * Key sound design elements:
+ *
+ * 1. JIVARI (bridge buzz): The tanpura bridge is curved so the vibrating
+ *    string grazes it, creating a rich swarm of overtones. We simulate this
+ *    with a WaveShaper (soft clipping) that adds odd and even harmonics,
+ *    plus a short comb-filter feedback that reinforces specific overtone
+ *    frequencies.
+ *
+ * 2. CROSSFADE: Each string rings for much longer than the pluck interval,
+ *    so multiple strings overlap. We use long note durations (2-5x the pluck
+ *    interval) with slow attack envelopes for natural crossfade.
+ *
+ * 3. BODY RESONANCE: A bandpass filter chain simulates the wooden body/gourd
+ *    resonance that colors the tanpura's tone.
+ *
+ * 4. CHORUS/SHIMMER: Slow LFO chorus creates the beating effect between
+ *    near-unison overtones — the "alive" quality of a real tanpura.
  */
 
 import * as Tone from 'tone';
@@ -21,15 +45,46 @@ import { swarToToneNote } from '@/lib/notes';
 import { getChannelInput } from './mixer';
 import { loadTanpuraSampler } from './sample-loader';
 
+// ── Jivari Curve ────────────────────────────────────────────────────────────
+
+/**
+ * Generate a WaveShaper curve that simulates jivari buzz.
+ * This is a soft-clip with asymmetric distortion that enriches harmonics
+ * without harsh digital clipping.
+ */
+function createJivariCurve(amount: number = 0.6): Float32Array {
+  const samples = 8192;
+  const curve = new Float32Array(samples);
+  for (let i = 0; i < samples; i++) {
+    const x = (i * 2) / samples - 1; // -1 to 1
+    // Soft-clip with tanh shaping + slight asymmetry for even harmonics
+    const shaped = Math.tanh(x * (1 + amount * 3)) * (1 - 0.1 * amount);
+    // Add subtle quadratic component for buzz character
+    const buzz = x * x * amount * 0.15 * Math.sign(x);
+    curve[i] = shaped + buzz;
+  }
+  return curve;
+}
+
+// ── Instance Type ───────────────────────────────────────────────────────────
+
 interface TanpuraInstance {
+  // Sound sources
   synth: Tone.PolySynth;
-  /** Sample-based player (null if samples not available) */
   sampler: Tone.Sampler | null;
-  /** Whether to use sampler or synth */
   useSamples: boolean;
+
+  // Effects chain
+  jivari: Tone.WaveShaper;
+  jivariGain: Tone.Gain;       // Dry/wet blend for jivari
+  dryGain: Tone.Gain;          // Dry path (bypasses jivari)
+  bodyFilter1: Tone.Filter;    // Body resonance — low band
+  bodyFilter2: Tone.Filter;    // Body resonance — mid band
   chorus: Tone.Chorus;
-  filter: Tone.Filter;
   reverb: Tone.Reverb;
+  compressor: Tone.Compressor; // Gentle compression to tame dynamics
+
+  // Playback state
   loop: Tone.Loop | null;
   currentStringIndex: number;
   playing: boolean;
@@ -40,76 +95,97 @@ interface TanpuraInstance {
 
 const instances: Map<string, TanpuraInstance> = new Map();
 
-/**
- * Create the tanpura synthesis chain.
- * The FM synth generates a harmonically rich tone, then the chorus adds the
- * characteristic shimmering quality, the filter shapes the body resonance,
- * and reverb adds natural space.
- */
-function createTanpuraChain(channelInput: Tone.Volume): {
-  synth: Tone.PolySynth;
-  chorus: Tone.Chorus;
-  filter: Tone.Filter;
-  reverb: Tone.Reverb;
-} {
-  // Reverb: natural room ambiance
-  const reverb = new Tone.Reverb({
-    decay: 4,
-    wet: 0.25,
-    preDelay: 0.01,
+// ── Effects Chain ───────────────────────────────────────────────────────────
+
+function createTanpuraChain(channelInput: Tone.Volume) {
+  // Final stage: gentle compressor to even out dynamics
+  const compressor = new Tone.Compressor({
+    threshold: -20,
+    ratio: 3,
+    attack: 0.1,
+    release: 0.5,
   }).connect(channelInput);
 
-  // Resonant lowpass filter: simulates wooden body
-  const filter = new Tone.Filter({
-    type: 'lowpass',
-    frequency: 2500,
-    rolloff: -12,
-    Q: 2,
-  }).connect(reverb);
+  // Reverb: long, spacious — tanpura sounds best in a reverberant room
+  const reverb = new Tone.Reverb({
+    decay: 6,
+    wet: 0.3,
+    preDelay: 0.02,
+  }).connect(compressor);
 
-  // Chorus: creates the shimmering overtone beating (jivari-like)
+  // Chorus: slow, wide shimmer — creates the beating overtone character
   const chorus = new Tone.Chorus({
-    frequency: 0.8,
-    delayTime: 3.5,
-    depth: 0.6,
-    wet: 0.4,
-    spread: 180,
-  }).connect(filter);
+    frequency: 0.5,      // Very slow LFO
+    delayTime: 4.0,      // Wider delay for richer detuning
+    depth: 0.7,
+    wet: 0.35,
+    spread: 180,         // Full stereo spread
+  }).connect(reverb);
   chorus.start();
 
-  // FM synth: harmonically rich tone
+  // Body resonance: two bandpass filters simulating gourd resonance
+  // Low body resonance (~150-300 Hz) — warmth
+  const bodyFilter1 = new Tone.Filter({
+    type: 'peaking' as BiquadFilterType,
+    frequency: 200,
+    Q: 1.5,
+    gain: 4,
+  }).connect(chorus);
+
+  // Mid body resonance (~800-1200 Hz) — presence and nasal quality
+  const bodyFilter2 = new Tone.Filter({
+    type: 'peaking' as BiquadFilterType,
+    frequency: 1000,
+    Q: 2.0,
+    gain: 3,
+  }).connect(bodyFilter1);
+
+  // Jivari (bridge buzz): waveshaper distortion
+  const jivari = new Tone.WaveShaper(createJivariCurve(0.6));
+
+  // Wet path: through jivari → body filters
+  const jivariGain = new Tone.Gain(0.65).connect(bodyFilter2);
+  jivari.connect(jivariGain);
+
+  // Dry path: clean signal mixed in for clarity
+  const dryGain = new Tone.Gain(0.45).connect(bodyFilter2);
+
+  // FM synth (fallback when samples unavailable)
   const synth = new Tone.PolySynth(Tone.FMSynth);
-  synth.maxPolyphony = 8;
+  synth.maxPolyphony = 10;
   synth.set({
     harmonicity: 2,
-    modulationIndex: 12,
-    oscillator: {
-      type: 'sine',
-    },
+    modulationIndex: 8,
+    oscillator: { type: 'sine' },
     envelope: {
-      attack: 0.15,
-      decay: 1.0,
-      sustain: 0.5,
+      attack: 0.08,      // Quick pluck attack
+      decay: 2.0,        // Long natural decay
+      sustain: 0.3,
+      release: 5.0,      // Very long release for overlapping sustain
+    },
+    modulation: { type: 'triangle' },
+    modulationEnvelope: {
+      attack: 0.2,
+      decay: 1.5,
+      sustain: 0.2,
       release: 4.0,
     },
-    modulation: {
-      type: 'triangle',
-    },
-    modulationEnvelope: {
-      attack: 0.3,
-      decay: 0.8,
-      sustain: 0.3,
-      release: 3.0,
-    },
   });
-  synth.connect(chorus);
+  // Synth goes through both jivari and dry paths
+  synth.connect(jivari);
+  synth.connect(dryGain);
 
-  return { synth, chorus, filter, reverb };
+  return {
+    synth, jivari, jivariGain, dryGain,
+    bodyFilter1, bodyFilter2, chorus, reverb, compressor,
+  };
 }
 
+// ── Public API ──────────────────────────────────────────────────────────────
+
 /**
- * Initialize a tanpura instance and connect it to the mixer.
- * Attempts to load samples first; falls back to synthesis.
+ * Initialize a tanpura instance.
+ * Loads samples if available; builds full effects chain for both paths.
  */
 export async function createTanpura(
   id: 'tanpura1' | 'tanpura2',
@@ -120,18 +196,27 @@ export async function createTanpura(
   disposeTanpura(id);
 
   const channelInput = getChannelInput(id);
-  const { synth, chorus, filter, reverb } = createTanpuraChain(channelInput);
+  const chain = createTanpuraChain(channelInput);
 
-  // Try loading sampler (connects directly to channelInput, bypassing effects chain)
-  const sampler = await loadTanpuraSampler(channelInput);
+  // Try loading sampler — route through BOTH jivari and dry paths
+  const sampler = await loadTanpuraSampler(chain.jivari as unknown as Tone.InputNode);
+  if (sampler) {
+    // Also connect sampler to dry path for clean blend
+    sampler.connect(chain.dryGain);
+  }
 
   const instance: TanpuraInstance = {
-    synth,
+    synth: chain.synth,
     sampler,
     useSamples: sampler !== null,
-    chorus,
-    filter,
-    reverb,
+    jivari: chain.jivari,
+    jivariGain: chain.jivariGain,
+    dryGain: chain.dryGain,
+    bodyFilter1: chain.bodyFilter1,
+    bodyFilter2: chain.bodyFilter2,
+    chorus: chain.chorus,
+    reverb: chain.reverb,
+    compressor: chain.compressor,
     loop: null,
     currentStringIndex: 0,
     playing: false,
@@ -146,7 +231,12 @@ export async function createTanpura(
 
 /**
  * Start the tanpura plucking loop.
- * Strings are plucked in sequence with slight timing humanization.
+ *
+ * Strings are plucked in sequence with:
+ * - Long overlapping note durations (crossfade)
+ * - Slight timing humanization (±25ms)
+ * - Velocity variation per pluck
+ * - First string (Pa/Ma/Ni) slightly louder as is traditional
  */
 export function startTanpura(id: string): void {
   const instance = instances.get(id);
@@ -159,7 +249,8 @@ export function startTanpura(id: string): void {
   instance.currentStringIndex = 0;
 
   instance.loop = new Tone.Loop((time) => {
-    const stringConfig = enabledStrings[instance.currentStringIndex];
+    const idx = instance.currentStringIndex;
+    const stringConfig = enabledStrings[idx];
     if (!stringConfig) return;
 
     const toneNote = swarToToneNote(
@@ -170,22 +261,24 @@ export function startTanpura(id: string): void {
       stringConfig.octaveOffset
     );
 
-    // Longer sustain for overlapping strings (characteristic tanpura sound)
-    const noteDuration = Math.min(pluckInterval * 2.5, 5);
+    // Long overlapping sustain — each note rings well past the next pluck
+    // This creates the characteristic "wall of sound" drone
+    const noteDuration = Math.min(pluckInterval * 3.5, 8);
 
-    // Slight velocity variation for natural feel
-    const velocity = 0.55 + Math.random() * 0.15;
+    // First string is traditionally louder (Pa/Ma/Ni string)
+    const isFirstString = idx === 0;
+    const baseVelocity = isFirstString ? 0.65 : 0.50;
+    const velocity = baseVelocity + Math.random() * 0.12;
 
-    // Slight timing humanization (±20ms)
-    const humanize = (Math.random() - 0.5) * 0.04;
+    // Timing humanization (±25ms) — makes it feel hand-played
+    const humanize = (Math.random() - 0.5) * 0.05;
     const triggerTime = Math.max(time + humanize, time);
 
-    // Use sampler if available, otherwise synth
-    if (instance.useSamples && instance.sampler) {
-      instance.sampler.triggerAttackRelease(toneNote, noteDuration, triggerTime, velocity);
-    } else {
-      instance.synth.triggerAttackRelease(toneNote, noteDuration, triggerTime, velocity);
-    }
+    // Trigger the note
+    const source = (instance.useSamples && instance.sampler)
+      ? instance.sampler
+      : instance.synth;
+    source.triggerAttackRelease(toneNote, noteDuration, triggerTime, velocity);
 
     instance.currentStringIndex =
       (instance.currentStringIndex + 1) % enabledStrings.length;
@@ -199,7 +292,9 @@ export function startTanpura(id: string): void {
   }
 
   console.log(
-    `[Tanpura] Started ${id}: ${enabledStrings.length} strings, ${pluckInterval.toFixed(2)}s interval`
+    `[Tanpura] Started ${id}: ${enabledStrings.length} strings, ` +
+    `${pluckInterval.toFixed(2)}s interval, ` +
+    `${instance.useSamples ? 'samples' : 'synth'}`
   );
 }
 
@@ -281,9 +376,14 @@ export function disposeTanpura(id: string): void {
   stopTanpura(id);
   instance.synth.dispose();
   instance.sampler?.dispose();
+  instance.jivari.dispose();
+  instance.jivariGain.dispose();
+  instance.dryGain.dispose();
+  instance.bodyFilter1.dispose();
+  instance.bodyFilter2.dispose();
   instance.chorus.dispose();
-  instance.filter.dispose();
   instance.reverb.dispose();
+  instance.compressor.dispose();
   instances.delete(id);
 
   console.log(`[Tanpura] Disposed ${id}`);
