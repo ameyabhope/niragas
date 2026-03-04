@@ -140,6 +140,118 @@ export const EQ_PRESETS: Record<string, EQBand[]> = {
     { frequency: 6000,  gain: 3,  Q: 1.0, type: 'peaking' },
     { frequency: 15000, gain: 5,  Q: 0.7, type: 'highshelf' },
   ],
+
+  // ── Indian Classical Music Presets ──
+
+  'Riyaaz (Practice)': [
+    { frequency: 60,    gain: 1,  Q: 0.7, type: 'lowshelf' },
+    { frequency: 150,   gain: 2,  Q: 1.0, type: 'peaking' },
+    { frequency: 400,   gain: 1,  Q: 1.0, type: 'peaking' },
+    { frequency: 1000,  gain: 2,  Q: 1.2, type: 'peaking' },
+    { frequency: 2500,  gain: 2,  Q: 1.0, type: 'peaking' },
+    { frequency: 6000,  gain: 1,  Q: 1.0, type: 'peaking' },
+    { frequency: 15000, gain: 0,  Q: 0.7, type: 'highshelf' },
+  ],
+
+  'Khayal Vocal': [
+    { frequency: 60,    gain: -3, Q: 0.7, type: 'lowshelf' },
+    { frequency: 150,   gain: -1, Q: 1.0, type: 'peaking' },
+    { frequency: 400,   gain: 2,  Q: 1.2, type: 'peaking' },
+    { frequency: 1000,  gain: 4,  Q: 1.0, type: 'peaking' },
+    { frequency: 2500,  gain: 3,  Q: 1.0, type: 'peaking' },
+    { frequency: 6000,  gain: 1,  Q: 1.0, type: 'peaking' },
+    { frequency: 15000, gain: 0,  Q: 0.7, type: 'highshelf' },
+  ],
+
+  'Sitar / Sarod': [
+    { frequency: 60,    gain: -2, Q: 0.7, type: 'lowshelf' },
+    { frequency: 150,   gain: 1,  Q: 1.0, type: 'peaking' },
+    { frequency: 400,   gain: 3,  Q: 1.2, type: 'peaking' },
+    { frequency: 1000,  gain: 2,  Q: 1.0, type: 'peaking' },
+    { frequency: 2500,  gain: 4,  Q: 1.0, type: 'peaking' },
+    { frequency: 6000,  gain: 3,  Q: 1.0, type: 'peaking' },
+    { frequency: 15000, gain: 1,  Q: 0.7, type: 'highshelf' },
+  ],
+
+  'Bansuri (Flute)': [
+    { frequency: 60,    gain: -4, Q: 0.7, type: 'lowshelf' },
+    { frequency: 150,   gain: -2, Q: 1.0, type: 'peaking' },
+    { frequency: 400,   gain: 1,  Q: 1.0, type: 'peaking' },
+    { frequency: 1000,  gain: 3,  Q: 1.0, type: 'peaking' },
+    { frequency: 2500,  gain: 2,  Q: 1.0, type: 'peaking' },
+    { frequency: 6000,  gain: 3,  Q: 1.0, type: 'peaking' },
+    { frequency: 15000, gain: 2,  Q: 0.7, type: 'highshelf' },
+  ],
+
+  'Santoor': [
+    { frequency: 60,    gain: -2, Q: 0.7, type: 'lowshelf' },
+    { frequency: 150,   gain: 0,  Q: 1.0, type: 'peaking' },
+    { frequency: 400,   gain: 2,  Q: 1.0, type: 'peaking' },
+    { frequency: 1000,  gain: 3,  Q: 1.2, type: 'peaking' },
+    { frequency: 2500,  gain: 4,  Q: 1.0, type: 'peaking' },
+    { frequency: 6000,  gain: 2,  Q: 1.0, type: 'peaking' },
+    { frequency: 15000, gain: 1,  Q: 0.7, type: 'highshelf' },
+  ],
+
+  'Deep Bass': [
+    { frequency: 60,    gain: 8,  Q: 0.7, type: 'lowshelf' },
+    { frequency: 150,   gain: 5,  Q: 1.0, type: 'peaking' },
+    { frequency: 400,   gain: 2,  Q: 1.0, type: 'peaking' },
+    { frequency: 1000,  gain: 0,  Q: 1.0, type: 'peaking' },
+    { frequency: 2500,  gain: -1, Q: 1.0, type: 'peaking' },
+    { frequency: 6000,  gain: -2, Q: 1.0, type: 'peaking' },
+    { frequency: 15000, gain: -3, Q: 0.7, type: 'highshelf' },
+  ],
+
+  'Lo-Fi': [
+    { frequency: 60,    gain: 3,  Q: 0.7, type: 'lowshelf' },
+    { frequency: 150,   gain: 2,  Q: 1.0, type: 'peaking' },
+    { frequency: 400,   gain: 0,  Q: 1.0, type: 'peaking' },
+    { frequency: 1000,  gain: -1, Q: 1.0, type: 'peaking' },
+    { frequency: 2500,  gain: -3, Q: 1.0, type: 'peaking' },
+    { frequency: 6000,  gain: -5, Q: 1.0, type: 'peaking' },
+    { frequency: 15000, gain: -8, Q: 0.7, type: 'highshelf' },
+  ],
+
+  'Concert Hall': [
+    { frequency: 60,    gain: 2,  Q: 0.7, type: 'lowshelf' },
+    { frequency: 150,   gain: 1,  Q: 1.0, type: 'peaking' },
+    { frequency: 400,   gain: 0,  Q: 1.0, type: 'peaking' },
+    { frequency: 1000,  gain: 1,  Q: 1.0, type: 'peaking' },
+    { frequency: 2500,  gain: 2,  Q: 1.0, type: 'peaking' },
+    { frequency: 6000,  gain: 3,  Q: 1.0, type: 'peaking' },
+    { frequency: 15000, gain: 2,  Q: 0.7, type: 'highshelf' },
+  ],
+
+  'Late Night': [
+    { frequency: 60,    gain: 2,  Q: 0.7, type: 'lowshelf' },
+    { frequency: 150,   gain: 1,  Q: 1.0, type: 'peaking' },
+    { frequency: 400,   gain: 0,  Q: 1.0, type: 'peaking' },
+    { frequency: 1000,  gain: -1, Q: 1.0, type: 'peaking' },
+    { frequency: 2500,  gain: -2, Q: 1.0, type: 'peaking' },
+    { frequency: 6000,  gain: -3, Q: 1.0, type: 'peaking' },
+    { frequency: 15000, gain: -4, Q: 0.7, type: 'highshelf' },
+  ],
+
+  'Tabla + Vocal': [
+    { frequency: 60,    gain: 3,  Q: 0.7, type: 'lowshelf' },
+    { frequency: 150,   gain: 2,  Q: 1.0, type: 'peaking' },
+    { frequency: 400,   gain: 0,  Q: 1.0, type: 'peaking' },
+    { frequency: 1000,  gain: 3,  Q: 1.2, type: 'peaking' },
+    { frequency: 2500,  gain: 2,  Q: 1.0, type: 'peaking' },
+    { frequency: 6000,  gain: 1,  Q: 1.0, type: 'peaking' },
+    { frequency: 15000, gain: 0,  Q: 0.7, type: 'highshelf' },
+  ],
+
+  'Bluetooth Speaker': [
+    { frequency: 60,    gain: 6,  Q: 0.7, type: 'lowshelf' },
+    { frequency: 150,   gain: 4,  Q: 1.0, type: 'peaking' },
+    { frequency: 400,   gain: 1,  Q: 1.0, type: 'peaking' },
+    { frequency: 1000,  gain: 0,  Q: 1.0, type: 'peaking' },
+    { frequency: 2500,  gain: 2,  Q: 1.0, type: 'peaking' },
+    { frequency: 6000,  gain: 3,  Q: 1.0, type: 'peaking' },
+    { frequency: 15000, gain: 2,  Q: 0.7, type: 'highshelf' },
+  ],
 };
 
 export const EQ_PRESET_NAMES = Object.keys(EQ_PRESETS);

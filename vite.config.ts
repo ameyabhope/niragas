@@ -74,4 +74,16 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split Tone.js (~400KB) into its own chunk for better caching
+          'tone': ['tone'],
+          // Split React into its own chunk
+          'react-vendor': ['react', 'react-dom'],
+        },
+      },
+    },
+  },
 })
