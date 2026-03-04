@@ -153,4 +153,99 @@ export const FACTORY_PRESETS: Preset[] = [
   makePreset('bhairavi-w', 'Bhairavi (Women)', 'G#', 3, 'Pa', 'Ma', 'dadra', 120),
   makePreset('desh-w', 'Desh (Women)', 'G#', 3, 'Pa', 'Ni', 'keherva', 120),
   makePreset('bageshri-w', 'Bageshri (Women)', 'G#', 3, 'Ma', 'Ni', 'teentaal', 80),
+
+  // ── Additional Morning Raags (Men C#3) ──
+  makePreset('nat-bhairav', 'Nat Bhairav', 'C#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('gunakali', 'Gunakali', 'C#', 3, 'Pa', 'Ni', 'teentaal', 70),
+  makePreset('vibhas', 'Vibhas', 'C#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('miya-ki-todi', 'Miya ki Todi', 'C#', 3, 'Pa', 'Ni', 'jhaptaal', 60),
+  makePreset('gujari-todi', 'Gujari Todi', 'C#', 3, 'Pa', 'Ni', 'jhaptaal', 60),
+  makePreset('ahir-lalit', 'Ahir Lalit', 'C#', 3, 'Ma', 'Ni', 'teentaal', 60),
+  makePreset('basant', 'Basant', 'C#', 3, 'Ma', 'Ni', 'teentaal', 70),
+  makePreset('basant-bahar', 'Basant Bahar', 'C#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('bahar', 'Bahar', 'C#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('ramkali', 'Ramkali', 'C#', 3, 'Pa', 'Ni', 'teentaal', 70),
+
+  // ── Late Morning / Afternoon Raags (Men C#3) ──
+  makePreset('gaud-sarang', 'Gaud Sarang', 'C#', 3, 'Pa', 'Ni', 'teentaal', 100),
+  makePreset('shudh-sarang', 'Shudh Sarang', 'C#', 3, 'Pa', 'Ni', 'teentaal', 100),
+  makePreset('madhuvanti', 'Madhuvanti', 'C#', 3, 'Pa', 'Ni', 'teentaal', 70),
+  makePreset('bhupali', 'Bhupali', 'C#', 3, 'Pa', 'Ni', 'teentaal', 100),
+  makePreset('deshkar', 'Deshkar', 'C#', 3, 'Pa', 'Ni', 'teentaal', 100),
+  makePreset('jaunpuri', 'Jaunpuri', 'C#', 3, 'Pa', 'Ni', 'teentaal', 70),
+  makePreset('asawari', 'Asawari', 'C#', 3, 'Pa', 'Ni', 'teentaal', 70),
+  makePreset('komal-rishabh-asawari', 'Komal Rishabh Asawari', 'C#', 3, 'Pa', 'Ni', 'teentaal', 60),
+
+  // ── Evening Raags (Men C#3) ──
+  makePreset('puriya-kalyan', 'Puriya Kalyan', 'C#', 3, 'Pa', 'Ni', 'teentaal', 70),
+  makePreset('gauri', 'Gauri', 'C#', 3, 'Pa', 'Ni', 'teentaal', 70),
+  makePreset('shankara', 'Shankara', 'C#', 3, 'Pa', 'Ni', 'teentaal', 100),
+  makePreset('chhayanat', 'Chhayanat', 'C#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('sohini', 'Sohini', 'C#', 3, 'Ni', 'Ni', 'teentaal', 70),
+
+  // ── Night Raags (Men C#3) ──
+  makePreset('bihagda', 'Bihagda', 'C#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('nandkauns', 'Nandkauns', 'C#', 3, 'Ma', 'Ni', 'teentaal', 80),
+  makePreset('shahana', 'Shahana', 'C#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('jhinjhoti', 'Jhinjhoti', 'C#', 3, 'Pa', 'Ni', 'teentaal', 100),
+  makePreset('kaushi-kanada', 'Kaushi Kanada', 'C#', 3, 'Pa', 'Ni', 'teentaal', 70),
+  makePreset('adana', 'Adana', 'C#', 3, 'Pa', 'Ni', 'teentaal', 70),
+  makePreset('nayaki-kanada', 'Nayaki Kanada', 'C#', 3, 'Pa', 'Ni', 'teentaal', 70),
+  makePreset('suha-kanada', 'Suha Kanada', 'C#', 3, 'Pa', 'Ni', 'teentaal', 70),
+  makePreset('gorakh-kalyan', 'Gorakh Kalyan', 'C#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('jog', 'Jog', 'C#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('jayjaywanti', 'Jayjaywanti', 'C#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('hansdhwani', 'Hansdhwani', 'C#', 3, 'Pa', 'Ni', 'teentaal', 100),
+  makePreset('kirwani', 'Kirwani', 'C#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('charukesi', 'Charukesi', 'C#', 3, 'Pa', 'Ni', 'teentaal', 80),
+
+  // ── Variant spellings / alternate versions (Men C#3) ──
+  makePreset('des', 'Des', 'C#', 3, 'Pa', 'Ni', 'keherva', 120),
+  makePreset('tilang', 'Tilang', 'C#', 3, 'Pa', 'Ni', 'keherva', 100),
+  makePreset('piloo', 'Piloo', 'C#', 3, 'Pa', 'Ni', 'keherva', 120),
+  makePreset('bagesree', 'Bagesree', 'C#', 3, 'Ma', 'Ni', 'teentaal', 80),
+
+  // ── Light / Semi-Classical (Men C#3) ──
+  makePreset('pahadi', 'Pahadi', 'C#', 3, 'Pa', 'Ni', 'dadra', 120),
+  makePreset('mand', 'Mand', 'C#', 3, 'Pa', 'Ni', 'dadra', 120),
+  makePreset('kafi', 'Kafi', 'C#', 3, 'Pa', 'Ni', 'keherva', 120),
+  makePreset('sindhu-bhairavi', 'Sindhu Bhairavi', 'C#', 3, 'Pa', 'Ma', 'dadra', 120),
+  makePreset('jaijaiwanti', 'Jaijaiwanti', 'C#', 3, 'Pa', 'Ni', 'teentaal', 100),
+  makePreset('madhyamavati', 'Madhyamavati', 'C#', 3, 'Pa', 'Ni', 'teentaal', 100),
+
+  // ── Raags with specific taal pairings (Men C#3) ──
+  makePreset('darbari-ektaal', 'Darbari (Ektaal)', 'C#', 3, 'Pa', 'Ni', 'ektaal', 40),
+  makePreset('miyan-ki-malhar-ektaal', 'Miyan ki Malhar (Ektaal)', 'C#', 3, 'Pa', 'Ni', 'ektaal', 50),
+  makePreset('yaman-ektaal', 'Yaman (Ektaal)', 'C#', 3, 'Pa', 'Ni', 'ektaal', 55),
+  makePreset('marwa-jhaptaal', 'Marwa (Jhaptaal)', 'C#', 3, 'Ni', 'Ni', 'jhaptaal', 55),
+  makePreset('malkauns-jhaptaal', 'Malkauns (Jhaptaal)', 'C#', 3, 'Ma', 'Ni', 'jhaptaal', 55),
+  makePreset('bhairav-jhaptaal', 'Bhairav (Jhaptaal)', 'C#', 3, 'Pa', 'Ni', 'jhaptaal', 60),
+  makePreset('kedar-jhaptaal', 'Kedar (Jhaptaal)', 'C#', 3, 'Pa', 'Ni', 'jhaptaal', 70),
+  makePreset('puriya-dhanashree-ektaal', 'Puriya Dhanashree (Ektaal)', 'C#', 3, 'Ni', 'Ni', 'ektaal', 50),
+  makePreset('todi-jhoomra', 'Todi (Jhoomra)', 'C#', 3, 'Pa', 'Ni', 'jhoomra', 40),
+  makePreset('darbari-jhoomra', 'Darbari (Jhoomra)', 'C#', 3, 'Pa', 'Ni', 'jhoomra', 35),
+  makePreset('shree-rupak', 'Shree (Rupak)', 'C#', 3, 'Pa', 'Ni', 'rupak', 70),
+  makePreset('bhimpalasi-rupak', 'Bhimpalasi (Rupak)', 'C#', 3, 'Pa', 'Ni', 'rupak', 80),
+  makePreset('basant-chautaal', 'Basant (Chautaal)', 'C#', 3, 'Ma', 'Ni', 'chautaal', 60),
+  makePreset('bhairavi-deepchandi', 'Bhairavi (Deepchandi)', 'C#', 3, 'Pa', 'Ma', 'deepchandi', 100),
+  makePreset('khamaj-deepchandi', 'Khamaj (Deepchandi)', 'C#', 3, 'Pa', 'Ni', 'deepchandi', 100),
+  makePreset('tilak-kamod-rupak', 'Tilak Kamod (Rupak)', 'C#', 3, 'Pa', 'Ni', 'rupak', 100),
+
+  // ── Women's pitch presets (G#3) ──
+  makePreset('yaman-women', 'Yaman (Women G#)', 'G#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('bhairav-women', 'Bhairav (Women G#)', 'G#', 3, 'Pa', 'Ni', 'teentaal', 70),
+  makePreset('todi-women', 'Todi (Women G#)', 'G#', 3, 'Pa', 'Ni', 'jhaptaal', 60),
+  makePreset('malkauns-women', 'Malkauns (Women G#)', 'G#', 3, 'Ma', 'Ni', 'teentaal', 60),
+  makePreset('darbari-women', 'Darbari (Women G#)', 'G#', 3, 'Pa', 'Ni', 'teentaal', 50),
+  makePreset('kedar-women', 'Kedar (Women G#)', 'G#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('bihag-women', 'Bihag (Women G#)', 'G#', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('marwa-women', 'Marwa (Women G#)', 'G#', 3, 'Ni', 'Ni', 'teentaal', 60),
+  makePreset('puriya-women', 'Puriya (Women G#)', 'G#', 3, 'Ni', 'Ni', 'teentaal', 60),
+
+  // ── Carnatic presets ──
+  makePreset('kalyani-carnatic', 'Kalyani (Carnatic)', 'C', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('shankarabharanam', 'Shankarabharanam', 'C', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('kharaharapriya', 'Kharaharapriya', 'C', 3, 'Pa', 'Ni', 'teentaal', 80),
+  makePreset('todi-carnatic', 'Todi (Carnatic)', 'D', 3, 'Pa', 'Ni', 'teentaal', 70),
+  makePreset('bhairavi-carnatic', 'Bhairavi (Carnatic)', 'D', 3, 'Pa', 'Ni', 'teentaal', 80),
 ];
