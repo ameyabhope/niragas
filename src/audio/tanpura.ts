@@ -19,9 +19,14 @@ import * as Tone from 'tone';
 import type { TanpuraConfig, NoteName } from './types';
 import { swarToToneNote } from '@/lib/notes';
 import { getChannelInput } from './mixer';
+import { loadTanpuraSampler } from './sample-loader';
 
 interface TanpuraInstance {
   synth: Tone.PolySynth;
+  /** Sample-based player (null if samples not available) */
+  sampler: Tone.Sampler | null;
+  /** Whether to use sampler or synth */
+  useSamples: boolean;
   chorus: Tone.Chorus;
   filter: Tone.Filter;
   reverb: Tone.Reverb;
@@ -104,20 +109,26 @@ function createTanpuraChain(channelInput: Tone.Volume): {
 
 /**
  * Initialize a tanpura instance and connect it to the mixer.
+ * Attempts to load samples first; falls back to synthesis.
  */
-export function createTanpura(
+export async function createTanpura(
   id: 'tanpura1' | 'tanpura2',
   config: TanpuraConfig,
   saNote: NoteName,
   saOctave: number
-): void {
+): Promise<void> {
   disposeTanpura(id);
 
   const channelInput = getChannelInput(id);
   const { synth, chorus, filter, reverb } = createTanpuraChain(channelInput);
 
+  // Try loading sampler (connects directly to channelInput, bypassing effects chain)
+  const sampler = await loadTanpuraSampler(channelInput);
+
   const instance: TanpuraInstance = {
     synth,
+    sampler,
+    useSamples: sampler !== null,
     chorus,
     filter,
     reverb,
@@ -130,7 +141,7 @@ export function createTanpura(
   };
 
   instances.set(id, instance);
-  console.log(`[Tanpura] Created ${id}`);
+  console.log(`[Tanpura] Created ${id} (${sampler ? 'sample-based' : 'synthesis'})`);
 }
 
 /**
@@ -169,7 +180,12 @@ export function startTanpura(id: string): void {
     const humanize = (Math.random() - 0.5) * 0.04;
     const triggerTime = Math.max(time + humanize, time);
 
-    instance.synth.triggerAttackRelease(toneNote, noteDuration, triggerTime, velocity);
+    // Use sampler if available, otherwise synth
+    if (instance.useSamples && instance.sampler) {
+      instance.sampler.triggerAttackRelease(toneNote, noteDuration, triggerTime, velocity);
+    } else {
+      instance.synth.triggerAttackRelease(toneNote, noteDuration, triggerTime, velocity);
+    }
 
     instance.currentStringIndex =
       (instance.currentStringIndex + 1) % enabledStrings.length;
@@ -264,6 +280,7 @@ export function disposeTanpura(id: string): void {
 
   stopTanpura(id);
   instance.synth.dispose();
+  instance.sampler?.dispose();
   instance.chorus.dispose();
   instance.filter.dispose();
   instance.reverb.dispose();

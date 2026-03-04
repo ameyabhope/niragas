@@ -44,8 +44,9 @@ export function TanpuraControl({
 
   // Create tanpura instance on mount
   useEffect(() => {
-    createTanpura(id, config, saNote, saOctave);
-    created.current = true;
+    createTanpura(id, config, saNote, saOctave).then(() => {
+      created.current = true;
+    });
     return () => {
       created.current = false;
     };
