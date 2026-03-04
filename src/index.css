@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  /* Color palette - warm Indian classical music inspired */
+  --color-saffron-50: #fff7ed;
+  --color-saffron-100: #ffedd5;
+  --color-saffron-200: #fed7aa;
+  --color-saffron-300: #fdba74;
+  --color-saffron-400: #fb923c;
+  --color-saffron-500: #f97316;
+  --color-saffron-600: #ea580c;
+  --color-saffron-700: #c2410c;
+  --color-saffron-800: #9a3412;
+  --color-saffron-900: #7c2d12;
+
+  /* Surface colors */
+  --color-surface: #1a1a2e;
+  --color-surface-light: #16213e;
+  --color-surface-lighter: #0f3460;
+  --color-surface-card: #1e2746;
+
+  /* Accent */
+  --color-accent: #e94560;
+  --color-accent-muted: #b83b5e;
+
+  /* Text */
+  --color-text-primary: #eee;
+  --color-text-secondary: #a0a0b0;
+  --color-text-muted: #6b7280;
+
+  /* Status */
+  --color-active: #22c55e;
+  --color-warning: #eab308;
+  --color-sam: #ef4444;
+  --color-taali: #3b82f6;
+  --color-khaali: #a855f7;
+
+  /* Tuner colors */
+  --color-tune-sharp: #06b6d4;
+  --color-tune-flat: #eab308;
+  --color-tune-center: #22c55e;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  min-height: 100dvh;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}

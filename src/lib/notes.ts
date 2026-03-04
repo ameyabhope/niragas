@@ -1,0 +1,140 @@
+/**
+ * Music theory utilities: note names, frequencies, swara-to-semitone mapping.
+ */
+
+import type { NoteName, SwarName, SwarVariant } from '@/audio/types';
+
+/** All 12 western note names in chromatic order */
+export const NOTE_NAMES: NoteName[] = [
+  'C', 'C#', 'D', 'D#', 'E', 'F',
+  'F#', 'G', 'G#', 'A', 'A#', 'B',
+];
+
+/** A4 = 440 Hz reference */
+const A4_FREQ = 440;
+const A4_MIDI = 69;
+
+/**
+ * Convert a note name + octave to frequency in Hz.
+ * @param note - Western note name (e.g., "C#")
+ * @param octave - Octave number (e.g., 3)
+ * @param cents - Fine-tune offset in cents (default 0)
+ */
+export function noteToFreq(note: NoteName, octave: number, cents = 0): number {
+  const noteIndex = NOTE_NAMES.indexOf(note);
+  if (noteIndex === -1) throw new Error(`Invalid note: ${note}`);
+  const midi = (octave + 1) * 12 + noteIndex;
+  return A4_FREQ * Math.pow(2, (midi - A4_MIDI + cents / 100) / 12);
+}
+
+/**
+ * Convert a frequency to the nearest note name, octave, and cent offset.
+ */
+export function freqToNote(freq: number): { note: NoteName; octave: number; cents: number } {
+  const midiFloat = 12 * Math.log2(freq / A4_FREQ) + A4_MIDI;
+  const midi = Math.round(midiFloat);
+  const cents = Math.round((midiFloat - midi) * 100);
+  const octave = Math.floor(midi / 12) - 1;
+  const noteIndex = midi % 12;
+  return { note: NOTE_NAMES[noteIndex], octave, cents };
+}
+
+/**
+ * Convert a MIDI note number to frequency.
+ */
+export function midiToFreq(midi: number): number {
+  return A4_FREQ * Math.pow(2, (midi - A4_MIDI) / 12);
+}
+
+/**
+ * Swara-to-semitone offset from Sa.
+ * Shuddha values are the default. Komal lowers by 1 semitone.
+ * Tivra raises by 1 semitone (only Ma has tivra).
+ */
+const SWARA_SEMITONES: Record<SwarName, number> = {
+  Sa: 0,
+  Re: 2,   // shuddha Re = major 2nd
+  Ga: 4,   // shuddha Ga = major 3rd
+  Ma: 5,   // shuddha Ma = perfect 4th
+  Pa: 7,   // Pa = perfect 5th (no variant)
+  Dha: 9,  // shuddha Dha = major 6th
+  Ni: 11,  // shuddha Ni = major 7th
+};
+
+/**
+ * Get the semitone offset of a swara from Sa.
+ */
+export function swarToSemitones(
+  note: SwarName,
+  variant: SwarVariant = 'shuddha'
+): number {
+  let semitones = SWARA_SEMITONES[note];
+
+  // Pa and Sa have no variants
+  if (note === 'Sa' || note === 'Pa') return semitones;
+
+  if (variant === 'komal') {
+    semitones -= 1;
+  } else if (variant === 'tivra' && note === 'Ma') {
+    semitones += 1;
+  }
+
+  return semitones;
+}
+
+/**
+ * Given a Sa note + octave, calculate the frequency of a swara.
+ */
+export function swarToFreq(
+  saNote: NoteName,
+  saOctave: number,
+  saCents: number,
+  swar: SwarName,
+  variant: SwarVariant = 'shuddha',
+  octaveOffset = 0,
+  customCents = 0
+): number {
+  const saFreq = noteToFreq(saNote, saOctave, saCents);
+  const semitones = swarToSemitones(swar, variant) + octaveOffset * 12;
+  return saFreq * Math.pow(2, (semitones + customCents / 100) / 12);
+}
+
+/**
+ * Get the MIDI-style note name for a swara given a Sa root.
+ * Returns a string like "G3" that Tone.js can understand.
+ */
+export function swarToToneNote(
+  saNote: NoteName,
+  saOctave: number,
+  swar: SwarName,
+  variant: SwarVariant = 'shuddha',
+  octaveOffset = 0
+): string {
+  const saIndex = NOTE_NAMES.indexOf(saNote);
+  const semitones = swarToSemitones(swar, variant);
+  const totalSemitones = saIndex + semitones + octaveOffset * 12;
+  const noteIndex = ((totalSemitones % 12) + 12) % 12;
+  const octave = saOctave + Math.floor(totalSemitones / 12);
+  return `${NOTE_NAMES[noteIndex]}${octave}`;
+}
+
+/**
+ * Get the speed range label for a given tempo (BPM).
+ */
+export function getSpeedRange(
+  bpm: number,
+  breakpoints: {
+    atiVilambit?: number;
+    vilambit: number;
+    madhya: number;
+    drut: number;
+    atiDrut?: number;
+  }
+): string {
+  if (breakpoints.atiVilambit && bpm < breakpoints.atiVilambit) return 'Ati-Vilambit';
+  if (bpm < breakpoints.vilambit) return 'Vilambit';
+  if (bpm < breakpoints.madhya) return 'Madhya';
+  if (bpm < breakpoints.drut) return 'Drut';
+  if (breakpoints.atiDrut && bpm >= breakpoints.atiDrut) return 'Ati-Drut';
+  return 'Drut';
+}
