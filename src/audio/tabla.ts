@@ -2,9 +2,12 @@
  * Tabla engine.
  *
  * Schedules bol (syllable) playback according to the selected taal and tempo.
- * Uses synthesized percussion sounds as placeholders until real samples are loaded.
  *
- * Sound design approach:
+ * Dual-mode playback:
+ * 1. Sample-based: Uses real tabla recordings via Tone.Sampler (preferred)
+ * 2. Synthesized: Falls back to MembraneSynth + NoiseSynth when samples unavailable
+ *
+ * Sound design (synthesis fallback):
  * - Each bol type maps to a combination of oscillator/noise bursts
  * - "Dha" / "Dhin" = bass (baya) + treble (daya) together
  * - "Na" / "Ta" / "Tin" = treble only
@@ -17,6 +20,7 @@
 import * as Tone from 'tone';
 import type { TaalDefinition, Bol, SpeedRange } from './types';
 import { getChannelInput } from './mixer';
+import { loadTablaSampler, getBolSamplerNote } from './sample-loader';
 
 // ── Bol Synth Definitions ──────────────────────────────────────────────────
 
@@ -121,6 +125,10 @@ interface TablaInstance {
   trebleSynth: Tone.MembraneSynth;
   bassSynth: Tone.MembraneSynth;
   noiseSynth: Tone.NoiseSynth;
+  /** Sample-based player (null if samples not available) */
+  sampler: Tone.Sampler | null;
+  /** Whether to use sampler or synth */
+  useSamples: boolean;
   /** Scheduled event IDs for cleanup */
   scheduledEvents: number[];
   /** Currently loaded taal */
@@ -139,8 +147,9 @@ let instance: TablaInstance | null = null;
 
 /**
  * Create and connect the tabla audio chain.
+ * Attempts to load samples first; falls back to synthesis if unavailable.
  */
-export function createTabla(): void {
+export async function createTabla(): Promise<void> {
   disposeTabla();
 
   const channelInput = getChannelInput('tabla');
@@ -156,10 +165,15 @@ export function createTabla(): void {
   const noiseGain = new Tone.Gain(0.3).connect(channelInput);
   noiseSynth.connect(noiseGain);
 
+  // Try loading samples
+  const sampler = await loadTablaSampler(channelInput);
+
   instance = {
     trebleSynth,
     bassSynth,
     noiseSynth,
+    sampler,
+    useSamples: sampler !== null,
     scheduledEvents: [],
     taal: null,
     styleId: '',
@@ -168,7 +182,7 @@ export function createTabla(): void {
     onBeat: null,
   };
 
-  console.log('[Tabla] Created');
+  console.log(`[Tabla] Created (${sampler ? 'sample-based' : 'synthesis'})`);
 }
 
 /**
@@ -182,12 +196,25 @@ export function setTablaBeatCallback(
 
 /**
  * Trigger a single bol sound at the given time.
+ * Uses sampler if available, otherwise falls back to synthesis.
  */
 function triggerBol(bol: Bol, time: number): void {
   if (!instance) return;
 
-  const category = BOL_CATEGORIES[bol.name] ?? 'tap';
   const velocity = bol.velocity ?? 0.7;
+
+  // ── Sample-based playback ──
+  if (instance.useSamples && instance.sampler) {
+    const note = getBolSamplerNote(bol.name);
+    if (note) {
+      instance.sampler.triggerAttackRelease(note, '4n', time, velocity);
+      return;
+    }
+    // If this specific bol has no sample, fall through to synthesis
+  }
+
+  // ── Synthesis fallback ──
+  const category = BOL_CATEGORIES[bol.name] ?? 'tap';
 
   switch (category) {
     case 'bass+treble': {
@@ -411,7 +438,15 @@ export function disposeTabla(): void {
   instance.trebleSynth.dispose();
   instance.bassSynth.dispose();
   instance.noiseSynth.dispose();
+  instance.sampler?.dispose();
   instance = null;
 
   console.log('[Tabla] Disposed');
+}
+
+/**
+ * Check if tabla is using real samples.
+ */
+export function isUsingTablaSamples(): boolean {
+  return instance?.useSamples ?? false;
 }

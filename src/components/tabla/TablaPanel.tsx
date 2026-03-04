@@ -48,8 +48,9 @@ export function TablaPanel() {
 
   // Create tabla on mount
   useEffect(() => {
-    createTabla();
-    created.current = true;
+    createTabla().then(() => {
+      created.current = true;
+    });
     return () => { created.current = false; };
   }, []);
 
