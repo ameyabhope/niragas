@@ -14,6 +14,7 @@ import { TablaPanel } from '@/components/tabla/TablaPanel';
 import { SurPetiControl } from '@/components/surpeti/SurPetiControl';
 import { SwarMandalPanel } from '@/components/swarmandal/SwarMandalPanel';
 import { TunerPanel } from '@/components/tuner/TunerPanel';
+import { PresetPanel } from '@/components/presets/PresetPanel';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 type Tab = 'mixer' | 'controls' | 'presets' | 'swarmandal' | 'more';
@@ -50,6 +51,7 @@ export function AppShell() {
             </div>
           </div>
           <TunerPanel />
+          <PresetPanel />
         </main>
       </div>
 
@@ -72,7 +74,7 @@ export function AppShell() {
             </>
           )}
           {activeTab === 'presets' && (
-            <p className="text-text-muted text-sm">Presets coming soon.</p>
+            <PresetPanel />
           )}
           {activeTab === 'swarmandal' && (
             <SwarMandalPanel />
