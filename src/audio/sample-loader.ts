@@ -70,8 +70,8 @@ export const TANPURA_SAMPLE_MAP: SampleMap = {
   'C#3': '/samples/tanpura/Sa-low.wav',
   'C#4': '/samples/tanpura/Sa.wav',
   'G#3': '/samples/tanpura/Pa.wav',
-  'F#3': '/samples/tanpura/Ma.wav',
   'B3':  '/samples/tanpura/Ni.wav',
+  // Ma (F#3) not available — Tone.Sampler will interpolate from Pa and Sa
 };
 
 /**
