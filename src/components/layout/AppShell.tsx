@@ -13,6 +13,7 @@ import { TanpuraPanel } from '@/components/tanpura/TanpuraPanel';
 import { TablaPanel } from '@/components/tabla/TablaPanel';
 import { SurPetiControl } from '@/components/surpeti/SurPetiControl';
 import { SwarMandalPanel } from '@/components/swarmandal/SwarMandalPanel';
+import { TunerPanel } from '@/components/tuner/TunerPanel';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 type Tab = 'mixer' | 'controls' | 'presets' | 'swarmandal' | 'more';
@@ -48,6 +49,7 @@ export function AppShell() {
               <SwarMandalPanel />
             </div>
           </div>
+          <TunerPanel />
         </main>
       </div>
 
@@ -76,7 +78,7 @@ export function AppShell() {
             <SwarMandalPanel />
           )}
           {activeTab === 'more' && (
-            <p className="text-text-muted text-sm">Tuner, Recorder, Settings coming soon.</p>
+            <TunerPanel />
           )}
         </main>
 
