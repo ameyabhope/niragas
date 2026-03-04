@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Header } from './Header';
 import { PitchControl } from '@/components/pitch/PitchControl';
 import { MixerPanel } from '@/components/mixer/MixerPanel';
+import { EQPanel } from '@/components/mixer/EQPanel';
 import { TanpuraPanel } from '@/components/tanpura/TanpuraPanel';
 import { TablaPanel } from '@/components/tabla/TablaPanel';
 import { SurPetiControl } from '@/components/surpeti/SurPetiControl';
@@ -32,6 +33,7 @@ export function AppShell() {
         <aside className="w-80 border-r border-white/5 overflow-y-auto p-4 flex flex-col gap-6">
           <PitchControl />
           <MixerPanel />
+          <EQPanel />
         </aside>
 
         {/* Right panel: Controls */}
@@ -57,6 +59,7 @@ export function AppShell() {
             <>
               <PitchControl />
               <MixerPanel />
+              <EQPanel />
             </>
           )}
           {activeTab === 'controls' && (
