@@ -1,7 +1,7 @@
 /**
  * Main app shell: header + content panels.
  * Desktop: side-by-side layout (mixer left, controls right).
- * Mobile: tabbed layout (future).
+ * Mobile: tabbed layout.
  */
 
 import { useState } from 'react';
@@ -9,6 +9,8 @@ import { Header } from './Header';
 import { PitchControl } from '@/components/pitch/PitchControl';
 import { MixerPanel } from '@/components/mixer/MixerPanel';
 import { TanpuraPanel } from '@/components/tanpura/TanpuraPanel';
+import { TablaPanel } from '@/components/tabla/TablaPanel';
+import { SurPetiControl } from '@/components/surpeti/SurPetiControl';
 
 type Tab = 'mixer' | 'controls' | 'presets' | 'swarmandal' | 'more';
 
@@ -30,23 +32,16 @@ export function AppShell() {
         {/* Right panel: Controls */}
         <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
           <TanpuraPanel />
+          <SurPetiControl />
+          <TablaPanel />
 
           {/* Placeholder for future panels */}
-          <div className="rounded-xl border border-white/5 bg-surface-card p-4">
-            <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold mb-2">
-              Tabla
-            </h2>
-            <p className="text-text-muted text-sm">
-              Tabla controls will be added in Phase 6.
-            </p>
-          </div>
-
           <div className="rounded-xl border border-white/5 bg-surface-card p-4">
             <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold mb-2">
               Swar Mandal
             </h2>
             <p className="text-text-muted text-sm">
-              Swar Mandal controls will be added in Phase 5.
+              Swar Mandal controls will be added in the next phase.
             </p>
           </div>
         </main>
@@ -63,7 +58,11 @@ export function AppShell() {
             </>
           )}
           {activeTab === 'controls' && (
-            <TanpuraPanel />
+            <>
+              <TanpuraPanel />
+              <SurPetiControl />
+              <TablaPanel />
+            </>
           )}
           {activeTab === 'presets' && (
             <p className="text-text-muted text-sm">Presets coming in Phase 12.</p>
