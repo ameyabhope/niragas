@@ -1,40 +1,22 @@
 /**
  * Sample loader: loads audio samples from public/samples/ directory.
  *
- * Provides a centralized way to load, cache, and check availability of
- * audio samples for all instruments. If samples aren't available,
- * instruments fall back to synthesis.
+ * Provides a centralized way to load and check availability of tabla samples.
+ * Tanpura samples are loaded directly by the tanpura engine (Tone.Player).
  *
  * Expected directory structure:
  *   public/samples/
  *     tabla/          - Individual bol samples (Dha.wav, Na.wav, etc.)
- *     tanpura/        - Tanpura string pluck samples per note
- *     manjira/        - Manjira hit samples
- *     surpeti/        - Sur-Peti drone samples
- *     swarmandal/     - Swar Mandal string pluck samples
- *     metronome/      - Click samples
+ *     tanpura/        - Electronic tanpura loop files (Pa_C.m4a, etc.)
  */
 
 import * as Tone from 'tone';
 
-// ── Types ───────────────────────────────────────────────────────────────────
-
-export interface SampleMap {
-  [key: string]: string; // note/name → URL path
-}
-
-export type InstrumentSampleSet = 'tabla' | 'tanpura' | 'manjira' | 'surpeti' | 'swarmandal' | 'metronome';
-
 // ── State ───────────────────────────────────────────────────────────────────
 
-/** Tracks which sample sets have been loaded */
-const loadedSets = new Set<InstrumentSampleSet>();
-
-/** Tracks which sample sets failed to load (missing files) */
-const failedSets = new Set<InstrumentSampleSet>();
-
-/** Created Tone.Sampler instances, keyed by instrument */
-const samplers = new Map<string, Tone.Sampler>();
+/** Tracks whether tabla samples have been loaded */
+let tablaLoaded = false;
+let tablaFailed = false;
 
 // ── Expected sample files ───────────────────────────────────────────────────
 
@@ -42,7 +24,7 @@ const samplers = new Map<string, Tone.Sampler>();
  * Tabla bol sample paths.
  * Keys are bol names, values are file paths relative to /samples/tabla/
  */
-export const TABLA_SAMPLE_MAP: SampleMap = {
+const TABLA_SAMPLE_MAP: Record<string, string> = {
   'Dha':  '/samples/tabla/Dha.wav',
   'Dhin': '/samples/tabla/Dhin.wav',
   'Dhi':  '/samples/tabla/Dhi.wav',
@@ -61,20 +43,6 @@ export const TABLA_SAMPLE_MAP: SampleMap = {
   'Kat':  '/samples/tabla/Kat.wav',
 };
 
-/**
- * Tanpura samples are now loop-based M4A files loaded directly by the
- * tanpura engine (src/audio/tanpura.ts) using Tone.Player.
- * See public/samples/tanpura/ for the sample files.
- */
-
-/**
- * Manjira hit sample paths.
- */
-export const MANJIRA_SAMPLE_MAP: SampleMap = {
-  'hit':    '/samples/manjira/hit.wav',
-  'accent': '/samples/manjira/accent.wav',
-};
-
 // ── Loading ─────────────────────────────────────────────────────────────────
 
 /**
@@ -90,36 +58,6 @@ async function sampleExists(url: string): Promise<boolean> {
 }
 
 /**
- * Check if any samples exist for an instrument.
- * Tests the first file in the sample map.
- */
-export async function hasSamples(instrument: InstrumentSampleSet): Promise<boolean> {
-  if (loadedSets.has(instrument)) return true;
-  if (failedSets.has(instrument)) return false;
-
-  let testUrl: string;
-  switch (instrument) {
-    case 'tabla':
-      testUrl = TABLA_SAMPLE_MAP['Dha'];
-      break;
-    case 'tanpura':
-      testUrl = '/samples/tanpura/Pa_C.m4a';
-      break;
-    case 'manjira':
-      testUrl = MANJIRA_SAMPLE_MAP['hit'];
-      break;
-    default:
-      testUrl = `/samples/${instrument}/test.wav`;
-  }
-
-  const exists = await sampleExists(testUrl);
-  if (!exists) {
-    failedSets.add(instrument);
-  }
-  return exists;
-}
-
-/**
  * Create a Tone.Sampler for tabla bols.
  * Each bol gets its own buffer — the sampler maps note names to samples.
  * Since tabla bols aren't pitched, we use MIDI notes C1-C2 range as arbitrary keys.
@@ -127,10 +65,14 @@ export async function hasSamples(instrument: InstrumentSampleSet): Promise<boole
 export async function loadTablaSampler(
   outputNode: Tone.InputNode
 ): Promise<Tone.Sampler | null> {
-  const exists = await hasSamples('tabla');
-  if (!exists) {
-    console.log('[SampleLoader] No tabla samples found, using synthesis');
-    return null;
+  if (tablaFailed) return null;
+  if (!tablaLoaded) {
+    const exists = await sampleExists(TABLA_SAMPLE_MAP['Dha']);
+    if (!exists) {
+      console.log('[SampleLoader] No tabla samples found, using synthesis');
+      tablaFailed = true;
+      return null;
+    }
   }
 
   // Map each bol to an arbitrary MIDI note for Tone.Sampler
@@ -154,24 +96,19 @@ export async function loadTablaSampler(
     const sampler = new Tone.Sampler({
       urls,
       onload: () => {
-        loadedSets.add('tabla');
+        tablaLoaded = true;
         console.log('[SampleLoader] Tabla samples loaded');
         resolve(sampler);
       },
       onerror: (err) => {
         console.warn('[SampleLoader] Failed to load tabla samples:', err);
-        failedSets.add('tabla');
+        tablaFailed = true;
         sampler.dispose();
         resolve(null);
       },
     }).connect(outputNode as Tone.ToneAudioNode);
   });
 }
-
-/**
- * Tanpura samples are loaded by the tanpura engine directly using Tone.Player.
- * No sampler needed here — see src/audio/tanpura.ts.
- */
 
 /**
  * Get the MIDI note key for a tabla bol name (used with the sampler).
@@ -185,22 +122,4 @@ export function getBolSamplerNote(bolName: string): string | null {
     'Trkt': 'D2', 'Kat': 'D#2',
   };
   return map[bolName] ?? null;
-}
-
-/**
- * Check if samples have been loaded for an instrument.
- */
-export function areSamplesLoaded(instrument: InstrumentSampleSet): boolean {
-  return loadedSets.has(instrument);
-}
-
-/**
- * Dispose a sampler instance.
- */
-export function disposeSampler(key: string): void {
-  const sampler = samplers.get(key);
-  if (sampler) {
-    sampler.dispose();
-    samplers.delete(key);
-  }
 }

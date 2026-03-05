@@ -34,29 +34,4 @@ export function isAudioEngineReady(): boolean {
   return initialized && Tone.getContext().state === 'running';
 }
 
-/**
- * Get the Tone.js destination node (speakers).
- */
-export function getDestination(): Tone.ToneAudioNode {
-  return Tone.getDestination();
-}
 
-/**
- * Suspend the audio context (battery saving when app is idle).
- */
-export async function suspendAudio(): Promise<void> {
-  const ctx = Tone.getContext();
-  if ('rawContext' in ctx) {
-    await (ctx as unknown as { rawContext: AudioContext }).rawContext.suspend();
-  }
-}
-
-/**
- * Resume the audio context.
- */
-export async function resumeAudio(): Promise<void> {
-  const ctx = Tone.getContext();
-  if ('rawContext' in ctx) {
-    await (ctx as unknown as { rawContext: AudioContext }).rawContext.resume();
-  }
-}

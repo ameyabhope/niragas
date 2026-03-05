@@ -40,14 +40,6 @@ export async function getAllPresets(): Promise<Preset[]> {
 }
 
 /**
- * Get a preset by ID.
- */
-export async function getPreset(id: string): Promise<Preset | undefined> {
-  const db = await getDB();
-  return db.get(PRESETS_STORE, id);
-}
-
-/**
  * Save a preset (create or update).
  */
 export async function savePreset(preset: Preset): Promise<void> {
@@ -73,14 +65,6 @@ export async function savePresets(presets: Preset[]): Promise<void> {
     await tx.store.put(preset);
   }
   await tx.done;
-}
-
-/**
- * Delete all presets.
- */
-export async function clearAllPresets(): Promise<void> {
-  const db = await getDB();
-  await db.clear(PRESETS_STORE);
 }
 
 /**

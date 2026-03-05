@@ -40,13 +40,6 @@ export function freqToNote(freq: number): { note: NoteName; octave: number; cent
 }
 
 /**
- * Convert a MIDI note number to frequency.
- */
-export function midiToFreq(midi: number): number {
-  return A4_FREQ * Math.pow(2, (midi - A4_MIDI) / 12);
-}
-
-/**
  * Swara-to-semitone offset from Sa.
  * Shuddha values are the default. Komal lowers by 1 semitone.
  * Tivra raises by 1 semitone (only Ma has tivra).
@@ -64,7 +57,7 @@ const SWARA_SEMITONES: Record<SwarName, number> = {
 /**
  * Get the semitone offset of a swara from Sa.
  */
-export function swarToSemitones(
+function swarToSemitones(
   note: SwarName,
   variant: SwarVariant = 'shuddha'
 ): number {
@@ -80,23 +73,6 @@ export function swarToSemitones(
   }
 
   return semitones;
-}
-
-/**
- * Given a Sa note + octave, calculate the frequency of a swara.
- */
-export function swarToFreq(
-  saNote: NoteName,
-  saOctave: number,
-  saCents: number,
-  swar: SwarName,
-  variant: SwarVariant = 'shuddha',
-  octaveOffset = 0,
-  customCents = 0
-): number {
-  const saFreq = noteToFreq(saNote, saOctave, saCents);
-  const semitones = swarToSemitones(swar, variant) + octaveOffset * 12;
-  return saFreq * Math.pow(2, (semitones + customCents / 100) / 12);
 }
 
 /**
@@ -118,23 +94,4 @@ export function swarToToneNote(
   return `${NOTE_NAMES[noteIndex]}${octave}`;
 }
 
-/**
- * Get the speed range label for a given tempo (BPM).
- */
-export function getSpeedRange(
-  bpm: number,
-  breakpoints: {
-    atiVilambit?: number;
-    vilambit: number;
-    madhya: number;
-    drut: number;
-    atiDrut?: number;
-  }
-): string {
-  if (breakpoints.atiVilambit && bpm < breakpoints.atiVilambit) return 'Ati-Vilambit';
-  if (bpm < breakpoints.vilambit) return 'Vilambit';
-  if (bpm < breakpoints.madhya) return 'Madhya';
-  if (bpm < breakpoints.drut) return 'Drut';
-  if (breakpoints.atiDrut && bpm >= breakpoints.atiDrut) return 'Ati-Drut';
-  return 'Drut';
-}
+

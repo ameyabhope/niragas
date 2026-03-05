@@ -370,13 +370,6 @@ export function setTablaTempo(bpm: number): void {
 }
 
 /**
- * Get the current tempo.
- */
-export function getTablaTempo(): number {
-  return Tone.getTransport().bpm.value;
-}
-
-/**
  * Start the tabla.
  */
 export function startTabla(): void {
@@ -415,20 +408,6 @@ export function isTablaPlaying(): boolean {
 }
 
 /**
- * Get the currently loaded taal.
- */
-export function getCurrentTaal(): TaalDefinition | null {
-  return instance?.taal ?? null;
-}
-
-/**
- * Get the current style ID.
- */
-export function getCurrentStyleId(): string {
-  return instance?.styleId ?? '';
-}
-
-/**
  * Dispose the tabla engine.
  */
 export function disposeTabla(): void {
@@ -444,9 +423,4 @@ export function disposeTabla(): void {
   console.log('[Tabla] Disposed');
 }
 
-/**
- * Check if tabla is using real samples.
- */
-export function isUsingTablaSamples(): boolean {
-  return instance?.useSamples ?? false;
-}
+

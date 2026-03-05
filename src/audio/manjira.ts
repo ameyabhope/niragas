@@ -134,13 +134,6 @@ function clearManjiraEvents(): void {
 }
 
 /**
- * Check if Manjira is playing.
- */
-export function isManjiraPlaying(): boolean {
-  return instance?.playing ?? false;
-}
-
-/**
  * Dispose the Manjira.
  */
 export function disposeManjira(): void {
