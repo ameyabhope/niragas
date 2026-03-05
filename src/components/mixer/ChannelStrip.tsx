@@ -69,11 +69,11 @@ export function ChannelStrip({
   }, [id, channel.muted, onToggleMute]);
 
   return (
-    <div className="flex items-center gap-3 py-2">
+    <div className="flex items-center gap-2 py-1.5">
       {/* Enable/disable toggle */}
       <button
         onClick={onToggleEnabled}
-        className={`w-3 h-3 rounded-full border-2 transition-colors flex-shrink-0 ${
+        className={`w-2.5 h-2.5 rounded-full border-2 transition-colors flex-shrink-0 ${
           channel.enabled
             ? 'bg-active border-active'
             : 'bg-transparent border-text-muted'
@@ -83,7 +83,7 @@ export function ChannelStrip({
 
       {/* Label */}
       <span
-        className={`text-[10px] font-medium w-10 flex-shrink-0 ${
+        className={`text-[10px] font-medium w-9 flex-shrink-0 ${
           channel.enabled ? 'text-text-primary' : 'text-text-muted'
         }`}
         title={INSTRUMENT_FULL_NAMES[id]}
@@ -94,7 +94,7 @@ export function ChannelStrip({
       {/* Mute button */}
       <button
         onClick={handleMuteToggle}
-        className={`text-xs px-1.5 py-0.5 rounded font-mono ${
+        className={`text-[10px] w-5 h-5 flex items-center justify-center rounded font-mono flex-shrink-0 ${
           channel.muted
             ? 'bg-accent text-white'
             : 'bg-surface-lighter text-text-muted hover:text-text-primary'
@@ -114,7 +114,7 @@ export function ChannelStrip({
           value={channel.volume}
           onChange={handleVolumeChange}
           disabled={!channel.enabled}
-          className="flex-1 h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
+          className="flex-1 h-1.5 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                      accent-saffron-500 disabled:opacity-30"
           aria-label={`${INSTRUMENT_FULL_NAMES[id]} volume`}
         />
@@ -127,14 +127,14 @@ export function ChannelStrip({
           value={channel.pan}
           onChange={handlePanChange}
           disabled={!channel.enabled}
-          className="flex-1 h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
+          className="flex-1 h-1.5 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                      accent-saffron-500 disabled:opacity-30"
           aria-label={`${INSTRUMENT_FULL_NAMES[id]} pan`}
         />
       )}
 
       {/* Value display */}
-      <span className="text-xs font-mono text-text-muted w-10 text-right">
+      <span className="text-[10px] font-mono text-text-muted w-8 text-right flex-shrink-0">
         {mode === 'volume'
           ? `${Math.round(channel.volume * 100)}%`
           : channel.pan === 0
