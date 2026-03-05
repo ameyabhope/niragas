@@ -7,13 +7,23 @@ import type { InstrumentId, ChannelState } from '@/audio/types';
 import { setChannelVolume, setChannelPan, setChannelMute } from '@/audio/mixer';
 
 const INSTRUMENT_LABELS: Record<InstrumentId, string> = {
-  tanpura1: 'Tanp 1',
-  tanpura2: 'Tanp 2',
+  tanpura1: 'Tanp1',
+  tanpura2: 'Tanp2',
+  tabla: 'Tabla',
+  surpeti: 'SrPti',
+  swarmandal: 'SwMdl',
+  manjira: 'Mnjra',
+  metronome: 'Metro',
+};
+
+const INSTRUMENT_FULL_NAMES: Record<InstrumentId, string> = {
+  tanpura1: 'Tanpura 1',
+  tanpura2: 'Tanpura 2',
   tabla: 'Tabla',
   surpeti: 'Sur-Peti',
-  swarmandal: 'Swar Mdl',
+  swarmandal: 'Swar Mandal',
   manjira: 'Manjira',
-  metronome: 'Metro',
+  metronome: 'Metronome',
 };
 
 interface ChannelStripProps {
@@ -68,14 +78,15 @@ export function ChannelStrip({
             ? 'bg-active border-active'
             : 'bg-transparent border-text-muted'
         }`}
-        aria-label={`Toggle ${INSTRUMENT_LABELS[id]}`}
+        aria-label={`Toggle ${INSTRUMENT_FULL_NAMES[id]}`}
       />
 
       {/* Label */}
       <span
-        className={`text-xs font-medium w-16 truncate ${
+        className={`text-[10px] font-medium w-10 flex-shrink-0 ${
           channel.enabled ? 'text-text-primary' : 'text-text-muted'
         }`}
+        title={INSTRUMENT_FULL_NAMES[id]}
       >
         {INSTRUMENT_LABELS[id]}
       </span>
@@ -88,7 +99,7 @@ export function ChannelStrip({
             ? 'bg-accent text-white'
             : 'bg-surface-lighter text-text-muted hover:text-text-primary'
         }`}
-        aria-label={`Mute ${INSTRUMENT_LABELS[id]}`}
+        aria-label={`Mute ${INSTRUMENT_FULL_NAMES[id]}`}
       >
         M
       </button>
@@ -105,7 +116,7 @@ export function ChannelStrip({
           disabled={!channel.enabled}
           className="flex-1 h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                      accent-saffron-500 disabled:opacity-30"
-          aria-label={`${INSTRUMENT_LABELS[id]} volume`}
+          aria-label={`${INSTRUMENT_FULL_NAMES[id]} volume`}
         />
       ) : (
         <input
@@ -118,7 +129,7 @@ export function ChannelStrip({
           disabled={!channel.enabled}
           className="flex-1 h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                      accent-saffron-500 disabled:opacity-30"
-          aria-label={`${INSTRUMENT_LABELS[id]} pan`}
+          aria-label={`${INSTRUMENT_FULL_NAMES[id]} pan`}
         />
       )}
 
