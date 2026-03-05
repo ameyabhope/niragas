@@ -1,25 +1,40 @@
 /**
  * Root App component.
- * Shows the start screen until the audio engine is initialized,
- * then shows the main app shell.
+ * Renders the app shell immediately and initializes audio on first user interaction.
  */
 
+import { useEffect, useRef } from 'react';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
-import { StartScreen } from '@/components/layout/StartScreen';
 import { AppShell } from '@/components/layout/AppShell';
 
 function App() {
-  const { ready, loading, error, initialize } = useAudioEngine();
+  const { ready, initialize } = useAudioEngine();
+  const initAttempted = useRef(false);
 
-  if (!ready) {
-    return (
-      <StartScreen
-        onStart={initialize}
-        loading={loading}
-        error={error}
-      />
-    );
-  }
+  // Initialize audio on first user interaction (click, tap, or keypress)
+  useEffect(() => {
+    if (ready || initAttempted.current) return;
+
+    const handleInteraction = () => {
+      if (initAttempted.current) return;
+      initAttempted.current = true;
+      initialize();
+      // Clean up listeners after first interaction
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+      window.removeEventListener('keydown', handleInteraction);
+    };
+
+    window.addEventListener('click', handleInteraction);
+    window.addEventListener('touchstart', handleInteraction);
+    window.addEventListener('keydown', handleInteraction);
+
+    return () => {
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+      window.removeEventListener('keydown', handleInteraction);
+    };
+  }, [ready, initialize]);
 
   return <AppShell />;
 }
