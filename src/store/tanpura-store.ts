@@ -30,7 +30,7 @@ interface TanpuraState {
 export const useTanpuraStore = create<TanpuraState>((set) => ({
   tanpura1: {
     ...DEFAULT_TANPURA_CONFIG,
-    enabled: true,
+    enabled: false,
     pan: -0.3,
   },
   tanpura2: {

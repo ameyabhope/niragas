@@ -49,7 +49,7 @@ export function TanpuraControl({
 }: TanpuraControlProps) {
   const { note: saNote, octave: saOctave, cents: saCents, a4Freq } = usePitchStore();
   const created = useRef(false);
-  const prevEnabled = useRef(config.enabled);
+  const prevEnabled = useRef(false);
 
   // Create tanpura instance on mount
   useEffect(() => {
