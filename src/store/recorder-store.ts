@@ -1,5 +1,10 @@
 /**
  * Recording state management.
+ *
+ * Recordings are kept in-memory only (Zustand store). Nothing is persisted
+ * to IndexedDB, localStorage, or any external service. Blob URLs are
+ * revoked on delete and on page unload. A beforeunload warning fires
+ * when undownloaded recordings exist.
  */
 
 import { create } from 'zustand';
@@ -21,8 +26,10 @@ interface RecorderStoreState {
   state: RecordingState;
   /** Whether to include microphone in recording */
   includeMic: boolean;
-  /** Completed recordings */
+  /** Completed recordings (in-memory only, lost on page unload) */
   recordings: Recording[];
+  /** Set of recording IDs that have been downloaded */
+  downloadedIds: Set<string>;
   /** Currently playing recording ID */
   playingId: string | null;
   /** Current recording elapsed time in seconds */
@@ -39,6 +46,10 @@ interface RecorderStoreState {
   downloadRecording: (id: string, format?: 'webm' | 'wav') => Promise<void>;
   setPlayingId: (id: string | null) => void;
   updateElapsed: () => void;
+  /** Check if there are recordings that haven't been downloaded yet */
+  hasUndownloadedRecordings: () => boolean;
+  /** Revoke all blob URLs (called on page unload) */
+  revokeAll: () => void;
 }
 
 export const useRecorderStore = create<RecorderStoreState>((set, get) => {
@@ -53,6 +64,7 @@ export const useRecorderStore = create<RecorderStoreState>((set, get) => {
     state: 'idle',
     includeMic: false,
     recordings: [],
+    downloadedIds: new Set(),
     playingId: null,
     elapsed: 0,
 
@@ -76,7 +88,12 @@ export const useRecorderStore = create<RecorderStoreState>((set, get) => {
       set((s) => {
         const rec = s.recordings.find((r) => r.id === id);
         if (rec) URL.revokeObjectURL(rec.url);
-        return { recordings: s.recordings.filter((r) => r.id !== id) };
+        const newDownloaded = new Set(s.downloadedIds);
+        newDownloaded.delete(id);
+        return {
+          recordings: s.recordings.filter((r) => r.id !== id),
+          downloadedIds: newDownloaded,
+        };
       }),
 
     downloadRecording: async (id, format = 'webm') => {
@@ -100,12 +117,32 @@ export const useRecorderStore = create<RecorderStoreState>((set, get) => {
       } else {
         downloadRec(rec);
       }
+
+      // Mark as downloaded
+      set((s) => {
+        const newDownloaded = new Set(s.downloadedIds);
+        newDownloaded.add(id);
+        return { downloadedIds: newDownloaded };
+      });
     },
 
     setPlayingId: (id) => set({ playingId: id }),
 
     updateElapsed: () => {
       set({ elapsed: getRecordingDuration() });
+    },
+
+    hasUndownloadedRecordings: () => {
+      const { recordings, downloadedIds } = get();
+      return recordings.some((r) => !downloadedIds.has(r.id));
+    },
+
+    revokeAll: () => {
+      const { recordings } = get();
+      for (const rec of recordings) {
+        URL.revokeObjectURL(rec.url);
+      }
+      set({ recordings: [], downloadedIds: new Set() });
     },
   };
 });
