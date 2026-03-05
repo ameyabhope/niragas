@@ -4,6 +4,8 @@ Free, open-source Indian Classical music practice companion. A web app with elec
 
 **Live:** [niragas.pages.dev](https://niragas.pages.dev)
 
+> This app is entirely vibe coded.
+
 ## Features
 
 - **Tanpura** — Real electronic tanpura samples (Pa/Ma/Ni tuning, 5 pitch keys, 3 tone variants, fine pitch and speed controls)
