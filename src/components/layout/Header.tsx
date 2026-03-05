@@ -10,6 +10,11 @@ import { useTablaStore } from '@/store/tabla-store';
 import { useSurPetiStore } from '@/store/surpeti-store';
 import { useSwarMandalStore } from '@/store/swarmandal-store';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
+import { stopTanpura } from '@/audio/tanpura';
+import { stopTabla } from '@/audio/tabla';
+import { stopSurPeti } from '@/audio/surpeti';
+import { stopSwarMandalLoop } from '@/audio/swarmandal';
+import { stopManjira } from '@/audio/manjira';
 
 /** Snapshot of which instruments were active before global stop */
 interface ActiveSnapshot {
@@ -54,7 +59,15 @@ export function Header() {
         swarmandal: swarmandal.enabled && swarmandal.autoLoop,
       };
 
-      // Disable everything
+      // Stop audio immediately, then update store state
+      stopTanpura('tanpura1');
+      stopTanpura('tanpura2');
+      stopTabla();
+      stopSurPeti();
+      stopSwarMandalLoop();
+      stopManjira();
+
+      // Sync store state
       if (tanpura.tanpura1.enabled) tanpura.toggleTanpura('tanpura1');
       if (tanpura.tanpura2.enabled) tanpura.toggleTanpura('tanpura2');
       if (tabla.playing) tabla.setPlaying(false);
