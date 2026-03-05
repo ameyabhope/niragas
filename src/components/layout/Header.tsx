@@ -2,7 +2,7 @@
  * App header: logo, title, global start/stop, theme toggle, and pitch display.
  */
 
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback } from 'react';
 import { PitchDisplay } from '@/components/pitch/PitchDisplay';
 import { useThemeStore } from '@/store/theme-store';
 import { useTanpuraStore } from '@/store/tanpura-store';
@@ -36,30 +36,33 @@ const DEFAULT_SNAPSHOT: ActiveSnapshot = {
 export function Header() {
   const { theme, toggleTheme } = useThemeStore();
   const { initialize } = useAudioEngine();
-  const [globalPlaying, setGlobalPlaying] = useState(false);
   const snapshotRef = useRef<ActiveSnapshot | null>(null);
+
+  // Derive playing state from actual instrument stores
+  const tanpura1Playing = useTanpuraStore((s) => s.tanpura1.enabled);
+  const tanpura2Playing = useTanpuraStore((s) => s.tanpura2.enabled);
+  const tablaPlaying = useTablaStore((s) => s.playing);
+  const surpetiPlaying = useSurPetiStore((s) => s.enabled);
+  const swarmandalPlaying = useSwarMandalStore((s) => s.enabled);
+
+  const anyPlaying = tanpura1Playing || tanpura2Playing || tablaPlaying || surpetiPlaying || swarmandalPlaying;
 
   const handleGlobalToggle = useCallback(async () => {
     // Ensure audio engine is started (user gesture)
     await initialize();
 
-    if (globalPlaying) {
+    if (anyPlaying) {
       // ── STOP ALL ──
-      // Snapshot current state
-      const tanpura = useTanpuraStore.getState();
-      const tabla = useTablaStore.getState();
-      const surpeti = useSurPetiStore.getState();
-      const swarmandal = useSwarMandalStore.getState();
-
+      // Snapshot current state before stopping
       snapshotRef.current = {
-        tanpura1: tanpura.tanpura1.enabled,
-        tanpura2: tanpura.tanpura2.enabled,
-        tabla: tabla.playing,
-        surpeti: surpeti.enabled,
-        swarmandal: swarmandal.enabled && swarmandal.autoLoop,
+        tanpura1: tanpura1Playing,
+        tanpura2: tanpura2Playing,
+        tabla: tablaPlaying,
+        surpeti: surpetiPlaying,
+        swarmandal: swarmandalPlaying,
       };
 
-      // Stop audio immediately, then update store state
+      // Stop audio immediately
       stopTanpura('tanpura1');
       stopTanpura('tanpura2');
       stopTabla();
@@ -68,13 +71,16 @@ export function Header() {
       stopManjira();
 
       // Sync store state
+      const tanpura = useTanpuraStore.getState();
+      const tabla = useTablaStore.getState();
+      const surpeti = useSurPetiStore.getState();
+      const swarmandal = useSwarMandalStore.getState();
+
       if (tanpura.tanpura1.enabled) tanpura.toggleTanpura('tanpura1');
       if (tanpura.tanpura2.enabled) tanpura.toggleTanpura('tanpura2');
       if (tabla.playing) tabla.setPlaying(false);
       if (surpeti.enabled) surpeti.setEnabled(false);
       if (swarmandal.enabled) swarmandal.setEnabled(false);
-
-      setGlobalPlaying(false);
     } else {
       // ── START ──
       const snapshot = snapshotRef.current ?? DEFAULT_SNAPSHOT;
@@ -93,10 +99,8 @@ export function Header() {
         swarmandal.setEnabled(true);
         if (!swarmandal.autoLoop) swarmandal.setAutoLoop(true);
       }
-
-      setGlobalPlaying(true);
     }
-  }, [globalPlaying, initialize]);
+  }, [anyPlaying, tanpura1Playing, tanpura2Playing, tablaPlaying, surpetiPlaying, swarmandalPlaying, initialize]);
 
   return (
     <header className="flex items-center justify-between px-4 py-3 bg-surface-light border-b border-white/5">
@@ -114,13 +118,13 @@ export function Header() {
         <button
           onClick={handleGlobalToggle}
           className={`px-4 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-colors ${
-            globalPlaying
+            anyPlaying
               ? 'bg-accent text-white hover:bg-accent/80'
               : 'bg-saffron-600 text-white hover:bg-saffron-500'
           }`}
-          title={globalPlaying ? 'Stop all instruments' : 'Start instruments'}
+          title={anyPlaying ? 'Stop all instruments' : 'Start instruments'}
         >
-          {globalPlaying ? 'STOP' : 'START'}
+          {anyPlaying ? 'STOP' : 'START'}
         </button>
 
         {/* Theme toggle */}
