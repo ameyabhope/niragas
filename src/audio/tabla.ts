@@ -21,6 +21,7 @@ import * as Tone from 'tone';
 import type { TaalDefinition, Bol, SpeedRange } from './types';
 import { getChannelInput } from './mixer';
 import { loadTablaSampler, getBolSamplerNote } from './sample-loader';
+import { log } from './log';
 
 // ── Bol Synth Definitions ──────────────────────────────────────────────────
 
@@ -188,7 +189,7 @@ export async function createTabla(): Promise<void> {
     onBeat: pendingOnBeat,
   };
 
-  console.log(`[Tabla] Created (${sampler ? 'sample-based' : 'synthesis'})`);
+  log(`[Tabla] Created (${sampler ? 'sample-based' : 'synthesis'})`);
 }
 
 /**
@@ -323,7 +324,7 @@ function scheduleThekaLoop(): void {
     instance.scheduledEvents.push(eventId);
   }
 
-  console.log(
+  log(
     `[Tabla] Scheduled ${theka.length} bols for ${taal.name} (${style.name}), ` +
     `${speedRange}, cycle=${cycleDuration.toFixed(2)}s`
   );
@@ -355,7 +356,7 @@ export function loadTaal(taal: TaalDefinition, styleId?: string): void {
 
   if (wasPlaying) startTabla();
 
-  console.log(`[Tabla] Loaded taal: ${taal.name}, style: ${instance.styleId}`);
+  log(`[Tabla] Loaded taal: ${taal.name}, style: ${instance.styleId}`);
 }
 
 /**
@@ -392,7 +393,7 @@ export function startTabla(): void {
   instance.playing = true;
   instance.currentMatra = 1;
 
-  console.log(`[Tabla] Started: ${instance.taal.name} at ${Tone.getTransport().bpm.value} BPM`);
+  log(`[Tabla] Started: ${instance.taal.name} at ${Tone.getTransport().bpm.value} BPM`);
 }
 
 /**
@@ -405,7 +406,7 @@ export function stopTabla(): void {
   instance.playing = false;
   instance.currentMatra = 1;
 
-  console.log('[Tabla] Stopped');
+  log('[Tabla] Stopped');
 }
 
 /**
@@ -428,7 +429,7 @@ export function disposeTabla(): void {
   instance.sampler?.dispose();
   instance = null;
 
-  console.log('[Tabla] Disposed');
+  log('[Tabla] Disposed');
 }
 
 

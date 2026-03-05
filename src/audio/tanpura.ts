@@ -31,6 +31,7 @@ import * as Tone from 'tone';
 import type { NoteName, TanpuraTuning, TanpuraEQ, TanpuraConfig } from './types';
 import { getChannelInput } from './mixer';
 import { noteToFreq } from '@/lib/notes';
+import { log } from './log';
 
 // ── Sample Catalog ──────────────────────────────────────────────────────────
 
@@ -115,14 +116,24 @@ function computePlaybackRate(baseRate: number, finePitchCents: number, speed: nu
   return baseRate * finePitchRatio * speed;
 }
 
-/** Check if a sample URL exists */
-async function sampleExists(url: string): Promise<boolean> {
-  try {
-    const response = await fetch(url, { method: 'HEAD' });
-    return response.ok;
-  } catch {
-    return false;
+/** Static set of all valid tanpura sample URLs (no network check needed) */
+const VALID_SAMPLES: Set<string> = (() => {
+  const set = new Set<string>();
+  const tunings: TanpuraTuning[] = ['Pa', 'Ma', 'Ni'];
+  const pitchKeys = SAMPLE_PITCHES.map((p) => p.key);
+  for (const tuning of tunings) {
+    for (const key of pitchKeys) {
+      set.add(`/samples/tanpura/${tuning}_${key}.m4a`);
+    }
   }
+  // EQ variants exist only for Pa + C
+  set.add('/samples/tanpura/Pa_C_bass.m4a');
+  set.add('/samples/tanpura/Pa_C_treble.m4a');
+  return set;
+})();
+
+function sampleExists(url: string): boolean {
+  return VALID_SAMPLES.has(url);
 }
 
 // ── Public API ──────────────────────────────────────────────────────────────
@@ -156,7 +167,7 @@ export async function createTanpura(
   // Load the appropriate sample
   await loadSampleForInstance(id);
 
-  console.log(`[Tanpura] Created ${id}`);
+  log(`[Tanpura] Created ${id}`);
 }
 
 /**
@@ -189,14 +200,12 @@ async function loadSampleForInstance(id: string): Promise<void> {
   instance.player?.dispose();
   instance.player = null;
 
-  // Check if sample exists
-  const exists = await sampleExists(sampleUrl);
-  if (!exists) {
+  // Check if sample exists (synchronous static lookup)
+  if (!sampleExists(sampleUrl)) {
     console.warn(`[Tanpura] Sample not found: ${sampleUrl}, trying neutral EQ`);
     // Fall back to neutral EQ
     const fallbackUrl = getSampleUrl(tuning, entry.key, 'neutral');
-    const fallbackExists = await sampleExists(fallbackUrl);
-    if (!fallbackExists) {
+    if (!sampleExists(fallbackUrl)) {
       console.error(`[Tanpura] No sample found for ${tuning} ${entry.key}`);
       instance.loading = false;
       return;
@@ -243,7 +252,7 @@ async function loadPlayerFromUrl(
         );
         player.playbackRate = finalRate;
 
-        console.log(
+        log(
           `[Tanpura] Loaded ${sampleKey} for ${id} ` +
           `(baseRate=${baseRate.toFixed(4)}, finalRate=${finalRate.toFixed(4)})`
         );
@@ -273,7 +282,7 @@ export function startTanpura(id: string): void {
       Tone.getTransport().start();
     }
 
-    console.log(`[Tanpura] Started ${id}`);
+    log(`[Tanpura] Started ${id}`);
   } catch (err) {
     console.error(`[Tanpura] Error starting ${id}:`, err);
   }
@@ -291,7 +300,7 @@ export function stopTanpura(id: string): void {
   }
   instance.playing = false;
 
-  console.log(`[Tanpura] Stopped ${id}`);
+  log(`[Tanpura] Stopped ${id}`);
 }
 
 /**
@@ -382,7 +391,7 @@ export function disposeTanpura(id: string): void {
   instance.player?.dispose();
   instances.delete(id);
 
-  console.log(`[Tanpura] Disposed ${id}`);
+  log(`[Tanpura] Disposed ${id}`);
 }
 
 

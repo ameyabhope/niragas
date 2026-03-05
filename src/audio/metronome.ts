@@ -7,6 +7,7 @@
 
 import * as Tone from 'tone';
 import { getChannelInput } from './mixer';
+import { log } from './log';
 
 interface MetronomeInstance {
   accentSynth: Tone.MembraneSynth;
@@ -64,7 +65,7 @@ export function createMetronome(): void {
     currentBeat: 0,
   };
 
-  console.log('[Metronome] Created');
+  log('[Metronome] Created');
 }
 
 /**
@@ -94,7 +95,7 @@ export function startMetronome(beatsPerMeasure = 4): void {
     Tone.getTransport().start();
   }
 
-  console.log(`[Metronome] Started: ${beatsPerMeasure}/4`);
+  log(`[Metronome] Started: ${beatsPerMeasure}/4`);
 }
 
 /**
@@ -109,7 +110,7 @@ export function stopMetronome(): void {
   instance.playing = false;
   instance.currentBeat = 0;
 
-  console.log('[Metronome] Stopped');
+  log('[Metronome] Stopped');
 }
 
 /**
@@ -123,5 +124,5 @@ export function disposeMetronome(): void {
   instance.normalSynth.dispose();
   instance = null;
 
-  console.log('[Metronome] Disposed');
+  log('[Metronome] Disposed');
 }

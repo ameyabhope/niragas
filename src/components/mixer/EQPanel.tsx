@@ -2,12 +2,8 @@
  * 7-band parametric EQ panel with visual sliders and preset selector.
  */
 
-import { useEffect, useRef } from 'react';
 import { useEQStore } from '@/store/eq-store';
 import {
-  createEQ,
-  setEQBandGain,
-  applyEQPreset,
   EQ_PRESETS,
   EQ_PRESET_NAMES,
 } from '@/audio/eq';
@@ -27,25 +23,14 @@ export function EQPanel() {
     resetToFlat,
   } = useEQStore();
 
-  const created = useRef(false);
-
-  // Create EQ on mount (note: EQ needs to be inserted into signal chain by mixer)
-  useEffect(() => {
-    createEQ();
-    created.current = true;
-    return () => { created.current = false; };
-  }, []);
-
   const handlePresetChange = (name: string) => {
     const preset = EQ_PRESETS[name];
     if (!preset) return;
     setPreset(name, preset);
-    applyEQPreset(name);
   };
 
   const handleBandGainChange = (index: number, gain: number) => {
     setBandGain(index, gain);
-    setEQBandGain(index, gain);
   };
 
   return (

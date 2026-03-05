@@ -7,10 +7,6 @@ import { useTablaStore } from '@/store/tabla-store';
 import { TAAL_LIST, getTaal } from '@/data/taals';
 import {
   createTabla,
-  loadTaal,
-  startTabla,
-  stopTabla,
-  setTablaTempo,
   setTablaBeatCallback,
 } from '@/audio/tabla';
 import { BeatDisplay } from './BeatDisplay';
@@ -37,11 +33,10 @@ export function TablaPanel() {
   const created = useRef(false);
   const taal = getTaal(taalId);
 
-  // Tap tempo
+  // Tap tempo — just updates the store, subscription propagates to audio
   const handleTapTempo = useCallback(
     (bpm: number) => {
       setTempo(bpm);
-      setTablaTempo(bpm);
     },
     [setTempo]
   );
@@ -61,33 +56,6 @@ export function TablaPanel() {
       setCurrentBeat(matra, label);
     });
   }, [setCurrentBeat]);
-
-  // Load taal when selection changes
-  useEffect(() => {
-    if (!created.current) return;
-    loadTaal(taal, styleId);
-  }, [taal, styleId]);
-
-  // Handle tempo changes
-  useEffect(() => {
-    if (!created.current) return;
-    setTablaTempo(tempo);
-  }, [tempo]);
-
-  // Handle play/stop
-  const prevPlaying = useRef(false);
-  useEffect(() => {
-    if (!created.current) return;
-
-    if (playing && !prevPlaying.current) {
-      loadTaal(taal, styleId);
-      setTablaTempo(tempo);
-      startTabla();
-    } else if (!playing && prevPlaying.current) {
-      stopTabla();
-    }
-    prevPlaying.current = playing;
-  }, [playing, taal, styleId, tempo]);
 
   // Get speed range label
   const getSpeedLabel = () => {
@@ -119,7 +87,6 @@ export function TablaPanel() {
               onChange={(e) => {
                 setTaalId(e.target.value);
                 if (playing) {
-                  stopTabla();
                   setPlaying(false);
                 }
               }}
@@ -182,11 +149,7 @@ export function TablaPanel() {
             min={taal.tempoRange.min}
             max={taal.tempoRange.max}
             value={tempo}
-            onChange={(e) => {
-              const bpm = parseInt(e.target.value, 10);
-              setTempo(bpm);
-              setTablaTempo(bpm);
-            }}
+            onChange={(e) => setTempo(parseInt(e.target.value, 10))}
             className="w-full h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                        accent-saffron-500"
             aria-label="Tempo"
@@ -195,20 +158,14 @@ export function TablaPanel() {
           {/* Tempo buttons */}
           <div className="flex items-center gap-2 justify-center">
             <button
-              onClick={() => {
-                halfTempo();
-                setTablaTempo(Math.max(10, Math.round(tempo / 2)));
-              }}
+              onClick={halfTempo}
               className="px-2 py-1 bg-surface-lighter text-text-secondary text-xs rounded-lg
                          hover:bg-surface-lighter/80 transition-colors"
             >
               x/2
             </button>
             <button
-              onClick={() => {
-                adjustTempo(-1);
-                setTablaTempo(tempo - 1);
-              }}
+              onClick={() => adjustTempo(-1)}
               className="w-8 h-8 bg-surface-lighter text-text-secondary rounded-lg
                          hover:bg-surface-lighter/80 transition-colors font-bold"
             >
@@ -222,20 +179,14 @@ export function TablaPanel() {
               TAP
             </button>
             <button
-              onClick={() => {
-                adjustTempo(1);
-                setTablaTempo(tempo + 1);
-              }}
+              onClick={() => adjustTempo(1)}
               className="w-8 h-8 bg-surface-lighter text-text-secondary rounded-lg
                          hover:bg-surface-lighter/80 transition-colors font-bold"
             >
               +
             </button>
             <button
-              onClick={() => {
-                doubleTempo();
-                setTablaTempo(Math.min(700, tempo * 2));
-              }}
+              onClick={doubleTempo}
               className="px-2 py-1 bg-surface-lighter text-text-secondary text-xs rounded-lg
                          hover:bg-surface-lighter/80 transition-colors"
             >

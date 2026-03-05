@@ -51,5 +51,5 @@ export function useTapTempo(onTempoChange: (bpm: number) => void) {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, []);
 
-  return { tap, reset, tapCount: taps.current.length };
+  return { tap, reset };
 }

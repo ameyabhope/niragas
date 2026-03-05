@@ -9,6 +9,7 @@
 import * as Tone from 'tone';
 import type { TaalDefinition } from './types';
 import { getChannelInput } from './mixer';
+import { log } from './log';
 
 interface ManjiraInstance {
   synth: Tone.MetalSynth;
@@ -49,7 +50,7 @@ export function createManjira(): void {
     taal: null,
   };
 
-  console.log('[Manjira] Created');
+  log('[Manjira] Created');
 }
 
 /**
@@ -106,7 +107,7 @@ export function startManjira(taal: TaalDefinition): void {
   }
 
   instance.playing = true;
-  console.log(`[Manjira] Started with ${pattern.length} hits per cycle`);
+  log(`[Manjira] Started with ${pattern.length} hits per cycle`);
 }
 
 /**
@@ -119,7 +120,7 @@ export function stopManjira(): void {
   instance.playing = false;
   instance.taal = null;
 
-  console.log('[Manjira] Stopped');
+  log('[Manjira] Stopped');
 }
 
 /**
@@ -143,5 +144,5 @@ export function disposeManjira(): void {
   instance.synth.dispose();
   instance = null;
 
-  console.log('[Manjira] Disposed');
+  log('[Manjira] Disposed');
 }

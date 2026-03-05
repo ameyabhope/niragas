@@ -7,6 +7,7 @@
  */
 
 import * as Tone from 'tone';
+import { log } from './log';
 
 let initialized = false;
 
@@ -19,7 +20,7 @@ export async function initAudioEngine(): Promise<void> {
 
   await Tone.start();
   const ctx = Tone.getContext();
-  console.log('[AudioEngine] Tone.js started. Context state:', ctx.state);
+  log('[AudioEngine] Tone.js started. Context state:', ctx.state);
 
   // Set a reasonable latency hint for real-time playback
   ctx.lookAhead = 0.05; // 50ms look-ahead for scheduling

@@ -7,8 +7,6 @@ import { useTablaStore } from '@/store/tabla-store';
 import { useTanpuraStore } from '@/store/tanpura-store';
 import { usePitchStore } from '@/store/pitch-store';
 import { useMixerStore } from '@/store/mixer-store';
-import { setTablaTempo } from '@/audio/tabla';
-import { setMasterMute } from '@/audio/mixer';
 
 export function useKeyboardShortcuts() {
   useEffect(() => {
@@ -23,10 +21,10 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      const { togglePlaying, tempo, setTempo } = useTablaStore.getState();
+      const { togglePlaying, adjustTempo } = useTablaStore.getState();
       const { toggleTanpura } = useTanpuraStore.getState();
       const { noteUp, noteDown, adjustCents } = usePitchStore.getState();
-      const { masterMuted, toggleMasterMute } = useMixerStore.getState();
+      const { toggleMasterMute } = useMixerStore.getState();
 
       switch (e.code) {
         // Space: toggle tabla play/stop
@@ -44,27 +42,15 @@ export function useKeyboardShortcuts() {
           }
           break;
 
-        // Up/Down: tempo
+        // Up/Down: tempo (uses adjustTempo for atomic updates)
         case 'ArrowUp':
           e.preventDefault();
-          if (e.shiftKey) {
-            setTempo(tempo + 10);
-            setTablaTempo(tempo + 10);
-          } else {
-            setTempo(tempo + 1);
-            setTablaTempo(tempo + 1);
-          }
+          adjustTempo(e.shiftKey ? 10 : 1);
           break;
 
         case 'ArrowDown':
           e.preventDefault();
-          if (e.shiftKey) {
-            setTempo(tempo - 10);
-            setTablaTempo(tempo - 10);
-          } else {
-            setTempo(tempo - 1);
-            setTablaTempo(tempo - 1);
-          }
+          adjustTempo(e.shiftKey ? -10 : -1);
           break;
 
         // Left/Right: pitch
@@ -89,7 +75,6 @@ export function useKeyboardShortcuts() {
         // M: master mute
         case 'KeyM':
           toggleMasterMute();
-          setMasterMute(!masterMuted);
           break;
       }
     }

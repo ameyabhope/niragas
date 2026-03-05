@@ -12,6 +12,7 @@
 import { PitchDetector } from 'pitchy';
 import { freqToNote } from '@/lib/notes';
 import type { NoteName } from './types';
+import { log } from './log';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyPitchDetector = PitchDetector<any>;
@@ -69,7 +70,7 @@ export async function initTuner(): Promise<void> {
     onPitchDetected: null,
   };
 
-  console.log('[Tuner] Initialized with mic access');
+  log('[Tuner] Initialized with mic access');
 }
 
 /**
@@ -108,7 +109,7 @@ export function startTuner(): void {
   }
 
   detect();
-  console.log('[Tuner] Started pitch detection');
+  log('[Tuner] Started pitch detection');
 }
 
 /**
@@ -123,7 +124,7 @@ export function stopTuner(): void {
     instance.animationFrameId = null;
   }
 
-  console.log('[Tuner] Stopped pitch detection');
+  log('[Tuner] Stopped pitch detection');
 }
 
 /**
@@ -149,5 +150,5 @@ export function disposeTuner(): void {
   instance.audioContext.close();
 
   instance = null;
-  console.log('[Tuner] Disposed');
+  log('[Tuner] Disposed');
 }

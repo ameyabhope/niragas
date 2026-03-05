@@ -165,7 +165,7 @@ export function PresetPanel() {
         const text = await file.text();
         const count = await importFromJSON(text);
         alert(`Imported ${count} presets successfully.`);
-      } catch (err) {
+      } catch {
         alert('Failed to import presets. Check file format.');
       }
 

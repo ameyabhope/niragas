@@ -1,5 +1,5 @@
 /**
- * Mixer state: per-instrument volume, pan, mute, solo + master.
+ * Mixer state: per-instrument volume, pan, mute + master.
  */
 
 import { create } from 'zustand';
@@ -10,7 +10,6 @@ const defaultChannel = (enabled = false): ChannelState => ({
   volume: 0.75,
   pan: 0,
   muted: false,
-  solo: false,
 });
 
 interface MixerState {
@@ -26,8 +25,6 @@ interface MixerState {
   setPan: (id: InstrumentId, pan: number) => void;
   /** Toggle mute for an instrument */
   toggleMute: (id: InstrumentId) => void;
-  /** Toggle solo for an instrument */
-  toggleSolo: (id: InstrumentId) => void;
   /** Set master volume */
   setMasterVolume: (volume: number) => void;
   /** Toggle master mute */
@@ -76,14 +73,6 @@ export const useMixerStore = create<MixerState>((set) => ({
       channels: {
         ...state.channels,
         [id]: { ...state.channels[id], muted: !state.channels[id].muted },
-      },
-    })),
-
-  toggleSolo: (id) =>
-    set((state) => ({
-      channels: {
-        ...state.channels,
-        [id]: { ...state.channels[id], solo: !state.channels[id].solo },
       },
     })),
 

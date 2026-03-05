@@ -2,11 +2,15 @@
  * Audio mixer: per-instrument channel strips (gain + pan) routed to a master bus.
  *
  * Signal flow:
- *   Instrument → Channel Volume (Gain) → Channel Pan (Panner) → Master Volume → Destination
+ *   Instrument → Channel Volume (Gain) → Channel Pan (Panner) → preMasterGain
+ *     → [EQ input → EQ output] → masterVolume → Destination
+ *
+ * When EQ is bypassed, preMasterGain connects directly to masterVolume.
  */
 
 import * as Tone from 'tone';
 import type { InstrumentId } from './types';
+import { log } from './log';
 
 interface Channel {
   volume: Tone.Volume;
@@ -16,8 +20,15 @@ interface Channel {
 /** All instrument channel strips */
 const channels: Map<InstrumentId, Channel> = new Map();
 
+/** Pre-master gain — feeds into EQ or directly into masterVolume */
+let preMasterGain: Tone.Gain | null = null;
+
 /** Master volume node */
 let masterVolume: Tone.Volume | null = null;
+
+/** Currently inserted EQ nodes */
+let eqInput: Tone.Gain | null = null;
+let eqOutput: Tone.Gain | null = null;
 
 /**
  * Create the mixer: one channel strip per instrument + master volume.
@@ -27,6 +38,7 @@ export function createMixer(): void {
   if (masterVolume) return; // already created
 
   masterVolume = new Tone.Volume(0).toDestination();
+  preMasterGain = new Tone.Gain(1).connect(masterVolume);
 
   const instrumentIds: InstrumentId[] = [
     'tanpura1', 'tanpura2', 'tabla', 'surpeti',
@@ -34,12 +46,55 @@ export function createMixer(): void {
   ];
 
   for (const id of instrumentIds) {
-    const panner = new Tone.Panner(0).connect(masterVolume);
+    const panner = new Tone.Panner(0).connect(preMasterGain);
     const volume = new Tone.Volume(0).connect(panner);
     channels.set(id, { volume, panner });
   }
 
-  console.log('[Mixer] Created', channels.size, 'channel strips');
+  log('[Mixer] Created', channels.size, 'channel strips');
+}
+
+/**
+ * Insert the EQ between preMasterGain and masterVolume.
+ * Disconnects the direct path and routes through the EQ chain.
+ */
+export function insertEQ(input: Tone.Gain, output: Tone.Gain): void {
+  if (!preMasterGain || !masterVolume) return;
+
+  // Disconnect the direct path
+  preMasterGain.disconnect(masterVolume);
+
+  // Route through EQ: preMasterGain → EQ input → ... → EQ output → masterVolume
+  preMasterGain.connect(input);
+  output.connect(masterVolume);
+
+  eqInput = input;
+  eqOutput = output;
+
+  log('[Mixer] EQ inserted into signal chain');
+}
+
+/**
+ * Bypass (remove) the EQ — reconnect preMasterGain directly to masterVolume.
+ */
+export function bypassEQ(): void {
+  if (!preMasterGain || !masterVolume) return;
+
+  // Disconnect EQ if it was connected
+  if (eqInput) {
+    try { preMasterGain.disconnect(eqInput); } catch { /* already disconnected */ }
+  }
+  if (eqOutput) {
+    try { eqOutput.disconnect(masterVolume); } catch { /* already disconnected */ }
+  }
+
+  // Reconnect direct path
+  preMasterGain.connect(masterVolume);
+
+  eqInput = null;
+  eqOutput = null;
+
+  log('[Mixer] EQ bypassed');
 }
 
 /**
@@ -116,6 +171,10 @@ export function disposeMixer(): void {
     channel.panner.dispose();
   }
   channels.clear();
+  preMasterGain?.dispose();
+  preMasterGain = null;
+  eqInput = null;
+  eqOutput = null;
   masterVolume?.dispose();
   masterVolume = null;
 }
