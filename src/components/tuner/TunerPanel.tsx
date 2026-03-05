@@ -32,9 +32,17 @@ export function TunerPanel() {
 
   const initRef = useRef(false);
 
-  // Compute offset between app pitch and mic pitch in cents
   const appFreq = noteToFreq(appNote, appOctave, appCents);
-  const offsetCents =
+
+  // Cents offset from the ideal frequency of the detected note (chromatic tuner)
+  // micCents is already this value from freqToNote() in the tuner engine
+  const noteOffsetCents = micCents;
+
+  // Ideal frequency of the detected note (what it should be at current A4 ref)
+  const idealMicFreq = micNote ? noteToFreq(micNote, micOctave, 0) : 0;
+
+  // Interval offset from Sa in semitones (for reference)
+  const offsetFromSaCents =
     micFreq > 0 ? Math.round(1200 * Math.log2(micFreq / appFreq)) : 0;
 
   const handleToggle = useCallback(async () => {
@@ -91,11 +99,11 @@ export function TunerPanel() {
     };
   }, []);
 
-  // Color for offset indicator
-  const offsetColor =
-    Math.abs(offsetCents) <= 5
+  // Color for note accuracy indicator
+  const noteAccuracyColor =
+    Math.abs(noteOffsetCents) <= 5
       ? 'text-tune-center'
-      : offsetCents < 0
+      : noteOffsetCents < 0
         ? 'text-tune-flat'
         : 'text-tune-sharp';
 
@@ -147,9 +155,6 @@ export function TunerPanel() {
                 <p className="text-sm text-saffron-300 font-semibold">
                   {noteToSwar(micNote, appNote)}
                 </p>
-                <p className="text-xs text-text-muted">
-                  {micOctave} {micCents !== 0 ? `(${micCents > 0 ? '+' : ''}${micCents}c)` : ''}
-                </p>
                 <p className="text-xs text-text-muted font-mono">{micFreq.toFixed(1)} Hz</p>
               </>
             ) : (
@@ -163,12 +168,14 @@ export function TunerPanel() {
           </div>
         </div>
 
-        {/* Offset indicator */}
+        {/* Note accuracy — cents off from ideal frequency of detected note */}
         {tunerActive && micNote && (
           <div className="text-center">
-            <p className="text-xs text-text-muted mb-1">Offset from Sa</p>
-            <p className={`text-2xl font-bold font-mono ${offsetColor}`}>
-              {offsetCents > 0 ? '+' : ''}{offsetCents} cents
+            <p className="text-xs text-text-muted mb-1">
+              Accuracy ({noteToSwar(micNote, appNote)} = {micNote}{micOctave} ideal {idealMicFreq.toFixed(1)} Hz)
+            </p>
+            <p className={`text-2xl font-bold font-mono ${noteAccuracyColor}`}>
+              {noteOffsetCents > 0 ? '+' : ''}{noteOffsetCents} cents
             </p>
             {/* Visual bar */}
             <div className="relative h-3 bg-surface-lighter rounded-full mt-2 overflow-hidden">
@@ -178,21 +185,26 @@ export function TunerPanel() {
               />
               <div
                 className={`absolute top-0 bottom-0 w-2 rounded-full transition-all duration-100 ${
-                  Math.abs(offsetCents) <= 5
+                  Math.abs(noteOffsetCents) <= 5
                     ? 'bg-tune-center'
-                    : offsetCents < 0
+                    : noteOffsetCents < 0
                       ? 'bg-tune-flat'
                       : 'bg-tune-sharp'
                 }`}
                 style={{
-                  left: `${Math.max(5, Math.min(95, 50 + offsetCents / 2))}%`,
+                  left: `${Math.max(5, Math.min(95, 50 + noteOffsetCents))}%`,
                   transform: 'translateX(-50%)',
                 }}
               />
             </div>
-            <p className="text-[10px] text-text-muted mt-1">
-              Clarity: {(clarity * 100).toFixed(0)}%
-            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-[10px] text-text-muted">
+                Clarity: {(clarity * 100).toFixed(0)}%
+              </p>
+              <p className="text-[10px] text-text-muted">
+                From Sa: {offsetFromSaCents > 0 ? '+' : ''}{offsetFromSaCents}c
+              </p>
+            </div>
           </div>
         )}
 
