@@ -15,7 +15,7 @@
  */
 
 import * as Tone from 'tone';
-import type { EQBand, EQState } from './types';
+import type { EQBand } from './types';
 
 interface EQInstance {
   bands: Tone.BiquadFilter[];
@@ -305,22 +305,6 @@ export function setEQBandGain(bandIndex: number, gain: number): void {
 }
 
 /**
- * Set the frequency for a specific EQ band.
- */
-export function setEQBandFrequency(bandIndex: number, frequency: number): void {
-  if (!instance || bandIndex < 0 || bandIndex >= instance.bands.length) return;
-  instance.bands[bandIndex].frequency.value = frequency;
-}
-
-/**
- * Set the Q for a specific EQ band.
- */
-export function setEQBandQ(bandIndex: number, Q: number): void {
-  if (!instance || bandIndex < 0 || bandIndex >= instance.bands.length) return;
-  instance.bands[bandIndex].Q.value = Q;
-}
-
-/**
  * Apply an EQ preset by name.
  */
 export function applyEQPreset(presetName: string): void {
@@ -336,44 +320,6 @@ export function applyEQPreset(presetName: string): void {
   });
 
   console.log(`[EQ] Applied preset: ${presetName}`);
-}
-
-/**
- * Get the current EQ state.
- */
-export function getEQState(): EQState {
-  if (!instance) {
-    return {
-      enabled: false,
-      bands: DEFAULT_EQ_BANDS.map((b) => ({ ...b })),
-      presetName: 'Flat',
-    };
-  }
-
-  return {
-    enabled: instance.enabled,
-    bands: instance.bands.map((band, i) => ({
-      frequency: band.frequency.value as number,
-      gain: band.gain.value as number,
-      Q: band.Q.value as number,
-      type: DEFAULT_EQ_BANDS[i].type,
-    })),
-    presetName: null,
-  };
-}
-
-/**
- * Enable/disable the EQ (bypass).
- */
-export function setEQEnabled(enabled: boolean): void {
-  if (!instance) return;
-  instance.enabled = enabled;
-  // Bypass by setting all gains to 0
-  if (!enabled) {
-    instance.bands.forEach((band) => {
-      band.gain.value = 0;
-    });
-  }
 }
 
 /**

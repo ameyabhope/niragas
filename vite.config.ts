@@ -55,7 +55,7 @@ export default defineConfig({
         // Cache audio samples with a CacheFirst strategy
         runtimeCaching: [
           {
-            urlPattern: /\/samples\/.+\.(wav|ogg|mp3)$/,
+            urlPattern: /\/samples\/.+\.(wav|ogg|mp3|m4a)$/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'audio-samples',

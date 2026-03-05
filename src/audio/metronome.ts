@@ -113,13 +113,6 @@ export function stopMetronome(): void {
 }
 
 /**
- * Check if metronome is playing.
- */
-export function isMetronomePlaying(): boolean {
-  return instance?.playing ?? false;
-}
-
-/**
  * Dispose the metronome.
  */
 export function disposeMetronome(): void {

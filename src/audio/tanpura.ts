@@ -372,14 +372,6 @@ export function isTanpuraPlaying(id: string): boolean {
 }
 
 /**
- * Check if a tanpura sample is loaded and ready.
- */
-export function isTanpuraReady(id: string): boolean {
-  const inst = instances.get(id);
-  return inst !== null && inst !== undefined && inst.player !== null && !inst.loading;
-}
-
-/**
  * Dispose a tanpura instance and free all audio nodes.
  */
 export function disposeTanpura(id: string): void {
@@ -393,11 +385,4 @@ export function disposeTanpura(id: string): void {
   console.log(`[Tanpura] Disposed ${id}`);
 }
 
-/**
- * Dispose all tanpura instances.
- */
-export function disposeAllTanpuras(): void {
-  for (const id of instances.keys()) {
-    disposeTanpura(id);
-  }
-}
+
