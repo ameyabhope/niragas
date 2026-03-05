@@ -1,13 +1,18 @@
 /**
  * A small info icon that shows a tooltip on hover.
- * On touch devices, tap to toggle.
+ * On touch devices, focus (tap) to show.
+ *
+ * Tooltip opens to the left by default. Pass align="left" to open rightward
+ * (useful for items in a narrow left sidebar).
  */
 
 interface InfoTooltipProps {
   text: string;
+  /** Which side the tooltip aligns to. "right" = right-aligned (default), "left" = left-aligned */
+  align?: 'left' | 'right';
 }
 
-export function InfoTooltip({ text }: InfoTooltipProps) {
+export function InfoTooltip({ text, align = 'right' }: InfoTooltipProps) {
   return (
     <div className="relative inline-flex group">
       <span
@@ -20,11 +25,12 @@ export function InfoTooltip({ text }: InfoTooltipProps) {
         i
       </span>
       <div
-        className="absolute right-0 top-7 z-50 w-64 rounded-lg border border-white/10
+        className={`absolute top-7 z-50 w-64 rounded-lg border border-white/10
                    bg-surface-card p-3 text-xs text-text-secondary leading-relaxed shadow-lg
                    opacity-0 invisible group-hover:opacity-100 group-hover:visible
                    group-focus-within:opacity-100 group-focus-within:visible
-                   transition-all duration-150 pointer-events-none group-hover:pointer-events-auto"
+                   transition-all duration-150 pointer-events-none group-hover:pointer-events-auto
+                   ${align === 'left' ? 'left-0' : 'right-0'}`}
       >
         {text}
       </div>

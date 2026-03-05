@@ -41,7 +41,7 @@ export function MixerPanel() {
           <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
             Mixer
           </h2>
-          <InfoTooltip text="Control volume and stereo pan for each instrument independently. Toggle between Volume and Pan modes. Use the master fader to control overall output level." />
+          <InfoTooltip text="Control volume and stereo pan for each instrument independently. Toggle between Volume and Pan modes. Use the master fader to control overall output level." align="left" />
         </div>
 
         {/* Volume / Pan mode toggle */}
