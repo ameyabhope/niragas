@@ -62,17 +62,10 @@ export const TABLA_SAMPLE_MAP: SampleMap = {
 };
 
 /**
- * Tanpura pluck sample paths.
- * Keys are MIDI note names, values are file paths.
- * We need a few reference pitches; Tone.Sampler will pitch-shift the rest.
+ * Tanpura samples are now loop-based M4A files loaded directly by the
+ * tanpura engine (src/audio/tanpura.ts) using Tone.Player.
+ * See public/samples/tanpura/ for the sample files.
  */
-export const TANPURA_SAMPLE_MAP: SampleMap = {
-  'C#3': '/samples/tanpura/Sa-low.wav',
-  'C#4': '/samples/tanpura/Sa.wav',
-  'G#3': '/samples/tanpura/Pa.wav',
-  'B3':  '/samples/tanpura/Ni.wav',
-  // Ma (F#3) not available — Tone.Sampler will interpolate from Pa and Sa
-};
 
 /**
  * Manjira hit sample paths.
@@ -110,7 +103,7 @@ export async function hasSamples(instrument: InstrumentSampleSet): Promise<boole
       testUrl = TABLA_SAMPLE_MAP['Dha'];
       break;
     case 'tanpura':
-      testUrl = TANPURA_SAMPLE_MAP['C#4'];
+      testUrl = '/samples/tanpura/Pa_C.m4a';
       break;
     case 'manjira':
       testUrl = MANJIRA_SAMPLE_MAP['hit'];
@@ -176,34 +169,9 @@ export async function loadTablaSampler(
 }
 
 /**
- * Create a Tone.Sampler for tanpura.
+ * Tanpura samples are loaded by the tanpura engine directly using Tone.Player.
+ * No sampler needed here — see src/audio/tanpura.ts.
  */
-export async function loadTanpuraSampler(
-  outputNode: Tone.InputNode
-): Promise<Tone.Sampler | null> {
-  const exists = await hasSamples('tanpura');
-  if (!exists) {
-    console.log('[SampleLoader] No tanpura samples found, using synthesis');
-    return null;
-  }
-
-  return new Promise((resolve) => {
-    const sampler = new Tone.Sampler({
-      urls: TANPURA_SAMPLE_MAP,
-      onload: () => {
-        loadedSets.add('tanpura');
-        console.log('[SampleLoader] Tanpura samples loaded');
-        resolve(sampler);
-      },
-      onerror: (err) => {
-        console.warn('[SampleLoader] Failed to load tanpura samples:', err);
-        failedSets.add('tanpura');
-        sampler.dispose();
-        resolve(null);
-      },
-    }).connect(outputNode as Tone.ToneAudioNode);
-  });
-}
 
 /**
  * Get the MIDI note key for a tabla bol name (used with the sampler).

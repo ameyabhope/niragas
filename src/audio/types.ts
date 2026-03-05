@@ -24,32 +24,22 @@ export type InstrumentId =
   | 'manjira'
   | 'metronome';
 
-/** Tanpura string configuration */
-export interface TanpuraStringConfig {
-  note: SwarName;
-  variant: SwarVariant;
-  octaveOffset: number; // -1, 0, or +1 relative to Sa
-  customCents: number;  // fine-tune offset in cents
-  enabled: boolean;
-}
+/** Tanpura tuning type (first string) */
+export type TanpuraTuning = 'Pa' | 'Ma' | 'Ni';
 
-/** Full tanpura configuration */
+/** Tanpura EQ variant */
+export type TanpuraEQ = 'neutral' | 'bass' | 'treble';
+
+/** Full tanpura configuration (loop-based) */
 export interface TanpuraConfig {
   enabled: boolean;
-  strings: TanpuraStringConfig[];
-  pan: number;         // -1 (left) to 1 (right)
-  volume: number;      // 0 to 1
-  cycleSpeed: number;  // seconds per full pluck cycle
+  tuning: TanpuraTuning;     // First string: Pa, Ma, or Ni
+  eq: TanpuraEQ;             // EQ variant (only affects Pa+C samples)
+  finePitchCents: number;    // -50 to +50 cents
+  speed: number;             // 0.7 to 1.4 (1.0 = normal)
+  volume: number;            // 0 to 1
+  pan: number;               // -1 (left) to 1 (right)
 }
-
-/** Default 5-string tanpura tuning: Pa Sa Sa Sa Sa (low) */
-export const DEFAULT_TANPURA_STRINGS: TanpuraStringConfig[] = [
-  { note: 'Pa', variant: 'shuddha', octaveOffset: 0, customCents: 0, enabled: true },
-  { note: 'Sa', variant: 'shuddha', octaveOffset: 1, customCents: 0, enabled: true },
-  { note: 'Sa', variant: 'shuddha', octaveOffset: 1, customCents: 0, enabled: true },
-  { note: 'Sa', variant: 'shuddha', octaveOffset: 1, customCents: 0, enabled: true },
-  { note: 'Sa', variant: 'shuddha', octaveOffset: 0, customCents: 0, enabled: true },
-];
 
 /** Speed range labels for tabla */
 export type SpeedRange =

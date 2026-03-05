@@ -13,19 +13,22 @@
  *   - Women: Sa = G# (Kali Char)
  */
 
-import type { Preset, TanpuraConfig, TanpuraStringConfig } from '@/audio/types';
-import { DEFAULT_TANPURA_STRINGS } from '@/audio/types';
-
-type SwarName = 'Sa' | 'Re' | 'Ga' | 'Ma' | 'Pa' | 'Dha' | 'Ni';
+import type { Preset, TanpuraConfig, TanpuraTuning, SwarName } from '@/audio/types';
 
 function makeTanpura(
-  firstString: SwarName,
+  firstString: TanpuraTuning,
   pan: number,
   enabled = true
 ): TanpuraConfig {
-  const strings: TanpuraStringConfig[] = DEFAULT_TANPURA_STRINGS.map((s) => ({ ...s }));
-  strings[0] = { note: firstString, variant: 'shuddha', octaveOffset: 0, customCents: 0, enabled: true };
-  return { enabled, strings, pan, volume: 0.75, cycleSpeed: 5 };
+  return {
+    enabled,
+    tuning: firstString,
+    eq: 'neutral',
+    finePitchCents: 0,
+    speed: 1.0,
+    volume: 0.75,
+    pan,
+  };
 }
 
 const defaultMixer = () => ({
@@ -74,8 +77,8 @@ function makePreset(
   name: string,
   note: string,
   octave: number,
-  firstString1: SwarName,
-  firstString2: SwarName,
+  firstString1: TanpuraTuning,
+  firstString2: TanpuraTuning,
   taalId: string,
   tempo: number
 ): Preset {

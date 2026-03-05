@@ -1,362 +1,367 @@
 /**
- * Tanpura engine — realistic Indian classical drone.
+ * Tanpura engine — sample-loop based Indian classical drone.
  *
  * Architecture (per tanpura instance):
  *
- *   Sound Source (Sampler or FMSynth)
+ *   Tone.Player (looping pre-recorded 20s tanpura drone)
  *       │
- *       ▼
- *   Jivari simulation (WaveShaper soft-clip + resonant comb filter)
- *       │
- *       ▼
- *   Body resonance (bandpass filter chain — simulates gourd body)
- *       │
- *       ▼
- *   Chorus (slow, wide — creates the characteristic shimmer/beating)
- *       │
- *       ▼
- *   Reverb (long decay — ambient space)
+ *       ├── playbackRate used for pitch correction + fine tuning
  *       │
  *       ▼
  *   Mixer Channel
  *
- * Key sound design elements:
+ * Samples come from sankalp's "Electronic Tanpura" pack on Freesound
+ * (CC-BY 4.0). Each is a 20-second crossfade-looped segment extracted
+ * from ~4 minute recordings of a Raagini electronic tanpura.
  *
- * 1. JIVARI (bridge buzz): The tanpura bridge is curved so the vibrating
- *    string grazes it, creating a rich swarm of overtones. We simulate this
- *    with a WaveShaper (soft clipping) that adds odd and even harmonics,
- *    plus a short comb-filter feedback that reinforces specific overtone
- *    frequencies.
+ * Available sample matrix:
+ *   - 3 tuning types: Pa, Ma, Ni (first string)
+ *   - 5 base pitches: A (110Hz), C (130.8Hz), D (146.8Hz), E (164.8Hz), F# (185Hz)
+ *   - 3 EQ variants for Pa+C: bass, neutral, treble
  *
- * 2. CROSSFADE: Each string rings for much longer than the pluck interval,
- *    so multiple strings overlap. We use long note durations (2-5x the pluck
- *    interval) with slow attack envelopes for natural crossfade.
+ * Pitch matching: we find the closest sample to the user's chosen SA,
+ * then apply a small playbackRate adjustment to hit the exact frequency.
  *
- * 3. BODY RESONANCE: A bandpass filter chain simulates the wooden body/gourd
- *    resonance that colors the tanpura's tone.
- *
- * 4. CHORUS/SHIMMER: Slow LFO chorus creates the beating effect between
- *    near-unison overtones — the "alive" quality of a real tanpura.
+ * Fine pitch: user can apply ±50 cents offset on top.
+ * Speed: user can adjust playback speed (0.7x–1.4x) which also shifts pitch
+ *        (this is natural — real tanpuras behave the same way).
  */
 
 import * as Tone from 'tone';
-import type { TanpuraConfig, NoteName } from './types';
-import { swarToToneNote } from '@/lib/notes';
+import type { NoteName, TanpuraTuning, TanpuraEQ, TanpuraConfig } from './types';
 import { getChannelInput } from './mixer';
-import { loadTanpuraSampler } from './sample-loader';
+import { noteToFreq } from '@/lib/notes';
 
-// ── Jivari Curve ────────────────────────────────────────────────────────────
+// ── Sample Catalog ──────────────────────────────────────────────────────────
 
-/**
- * Generate a WaveShaper curve that simulates jivari buzz.
- * This is a soft-clip with asymmetric distortion that enriches harmonics
- * without harsh digital clipping.
- */
-function createJivariCurve(amount: number = 0.6): Float32Array {
-  const samples = 8192;
-  const curve = new Float32Array(samples);
-  for (let i = 0; i < samples; i++) {
-    const x = (i * 2) / samples - 1; // -1 to 1
-    // Soft-clip with tanh shaping + slight asymmetry for even harmonics
-    const shaped = Math.tanh(x * (1 + amount * 3)) * (1 - 0.1 * amount);
-    // Add subtle quadratic component for buzz character
-    const buzz = x * x * amount * 0.15 * Math.sign(x);
-    curve[i] = shaped + buzz;
-  }
-  return curve;
+/** Base pitch keys with their reference SA frequency in Hz */
+interface SampleEntry {
+  key: string;        // e.g. 'A', 'C', 'D', 'E', 'Fs'
+  saFreq: number;     // Hz — the SA frequency of this sample
+  saNote: NoteName;   // Western note name
+  saOctave: number;   // Octave
 }
 
-// ── Instance Type ───────────────────────────────────────────────────────────
+const SAMPLE_PITCHES: SampleEntry[] = [
+  { key: 'A',  saFreq: 110.0,  saNote: 'A',  saOctave: 2 },
+  { key: 'C',  saFreq: 130.8,  saNote: 'C',  saOctave: 3 },
+  { key: 'D',  saFreq: 146.8,  saNote: 'D',  saOctave: 3 },
+  { key: 'E',  saFreq: 164.8,  saNote: 'E',  saOctave: 3 },
+  { key: 'Fs', saFreq: 185.0,  saNote: 'F#', saOctave: 3 },
+];
+
+/** Build the URL for a given tuning + pitch + eq variant */
+function getSampleUrl(tuning: TanpuraTuning, pitchKey: string, eq: TanpuraEQ = 'neutral'): string {
+  // EQ variants only exist for Pa + C
+  if (tuning === 'Pa' && pitchKey === 'C' && eq !== 'neutral') {
+    return `/samples/tanpura/${tuning}_${pitchKey}_${eq}.m4a`;
+  }
+  return `/samples/tanpura/${tuning}_${pitchKey}.m4a`;
+}
+
+/**
+ * Find the closest sample pitch entry to a target frequency.
+ * Returns the entry and the playback rate ratio needed to match.
+ */
+function findClosestSample(targetFreq: number): { entry: SampleEntry; rate: number } {
+  let best = SAMPLE_PITCHES[0];
+  let bestRatio = targetFreq / best.saFreq;
+  let bestDistance = Math.abs(Math.log2(bestRatio));
+
+  for (const entry of SAMPLE_PITCHES) {
+    const ratio = targetFreq / entry.saFreq;
+    const distance = Math.abs(Math.log2(ratio));
+    if (distance < bestDistance) {
+      best = entry;
+      bestRatio = ratio;
+      bestDistance = distance;
+    }
+  }
+
+  return { entry: best, rate: bestRatio };
+}
+
+// ── Tanpura Instance ────────────────────────────────────────────────────────
+
+export const DEFAULT_TANPURA_CONFIG: TanpuraConfig = {
+  enabled: true,
+  tuning: 'Pa',
+  eq: 'neutral',
+  finePitchCents: 0,
+  speed: 1.0,
+  volume: 0.75,
+  pan: 0,
+};
 
 interface TanpuraInstance {
-  // Sound sources
-  synth: Tone.PolySynth;
-  sampler: Tone.Sampler | null;
-  useSamples: boolean;
-
-  // Effects chain
-  jivari: Tone.WaveShaper;
-  jivariGain: Tone.Gain;       // Dry/wet blend for jivari
-  dryGain: Tone.Gain;          // Dry path (bypasses jivari)
-  bodyFilter1: Tone.Filter;    // Body resonance — low band
-  bodyFilter2: Tone.Filter;    // Body resonance — mid band
-  chorus: Tone.Chorus;
-  reverb: Tone.Reverb;
-  compressor: Tone.Compressor; // Gentle compression to tame dynamics
-
-  // Playback state
-  loop: Tone.Loop | null;
-  currentStringIndex: number;
-  playing: boolean;
+  player: Tone.Player | null;
   config: TanpuraConfig;
   saNote: NoteName;
   saOctave: number;
+  saCents: number;
+  playing: boolean;
+  currentSampleKey: string;  // e.g. "Pa_C" — tracks which sample is loaded
+  baseRate: number;          // playback rate for pitch correction (before speed/finePitch)
+  loading: boolean;
 }
 
 const instances: Map<string, TanpuraInstance> = new Map();
 
-// ── Effects Chain ───────────────────────────────────────────────────────────
+// ── Helpers ─────────────────────────────────────────────────────────────────
 
-function createTanpuraChain(channelInput: Tone.Volume) {
-  // Final stage: gentle compressor to even out dynamics
-  const compressor = new Tone.Compressor({
-    threshold: -20,
-    ratio: 3,
-    attack: 0.1,
-    release: 0.5,
-  }).connect(channelInput);
+/** Compute the combined playback rate from base pitch correction + fine pitch + speed */
+function computePlaybackRate(baseRate: number, finePitchCents: number, speed: number): number {
+  const finePitchRatio = Math.pow(2, finePitchCents / 1200);
+  return baseRate * finePitchRatio * speed;
+}
 
-  // Reverb: long, spacious — tanpura sounds best in a reverberant room
-  const reverb = new Tone.Reverb({
-    decay: 6,
-    wet: 0.3,
-    preDelay: 0.02,
-  }).connect(compressor);
-
-  // Chorus: slow, wide shimmer — creates the beating overtone character
-  const chorus = new Tone.Chorus({
-    frequency: 0.5,      // Very slow LFO
-    delayTime: 4.0,      // Wider delay for richer detuning
-    depth: 0.7,
-    wet: 0.35,
-    spread: 180,         // Full stereo spread
-  }).connect(reverb);
-  chorus.start();
-
-  // Body resonance: two bandpass filters simulating gourd resonance
-  // Low body resonance (~150-300 Hz) — warmth
-  const bodyFilter1 = new Tone.Filter({
-    type: 'peaking' as BiquadFilterType,
-    frequency: 200,
-    Q: 1.5,
-    gain: 4,
-  }).connect(chorus);
-
-  // Mid body resonance (~800-1200 Hz) — presence and nasal quality
-  const bodyFilter2 = new Tone.Filter({
-    type: 'peaking' as BiquadFilterType,
-    frequency: 1000,
-    Q: 2.0,
-    gain: 3,
-  }).connect(bodyFilter1);
-
-  // Jivari (bridge buzz): waveshaper distortion
-  const jivari = new Tone.WaveShaper(createJivariCurve(0.6));
-
-  // Wet path: through jivari → body filters
-  const jivariGain = new Tone.Gain(0.65).connect(bodyFilter2);
-  jivari.connect(jivariGain);
-
-  // Dry path: clean signal mixed in for clarity
-  const dryGain = new Tone.Gain(0.45).connect(bodyFilter2);
-
-  // FM synth (fallback when samples unavailable)
-  const synth = new Tone.PolySynth(Tone.FMSynth);
-  synth.maxPolyphony = 10;
-  synth.set({
-    harmonicity: 2,
-    modulationIndex: 8,
-    oscillator: { type: 'sine' },
-    envelope: {
-      attack: 0.08,      // Quick pluck attack
-      decay: 2.0,        // Long natural decay
-      sustain: 0.3,
-      release: 5.0,      // Very long release for overlapping sustain
-    },
-    modulation: { type: 'triangle' },
-    modulationEnvelope: {
-      attack: 0.2,
-      decay: 1.5,
-      sustain: 0.2,
-      release: 4.0,
-    },
-  });
-  // Synth goes through both jivari and dry paths
-  synth.connect(jivari);
-  synth.connect(dryGain);
-
-  return {
-    synth, jivari, jivariGain, dryGain,
-    bodyFilter1, bodyFilter2, chorus, reverb, compressor,
-  };
+/** Check if a sample URL exists */
+async function sampleExists(url: string): Promise<boolean> {
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 // ── Public API ──────────────────────────────────────────────────────────────
 
 /**
  * Initialize a tanpura instance.
- * Loads samples if available; builds full effects chain for both paths.
  */
 export async function createTanpura(
   id: 'tanpura1' | 'tanpura2',
   config: TanpuraConfig,
   saNote: NoteName,
-  saOctave: number
+  saOctave: number,
+  saCents: number = 0
 ): Promise<void> {
   disposeTanpura(id);
 
-  const channelInput = getChannelInput(id);
-  const chain = createTanpuraChain(channelInput);
-
-  // Try loading sampler — route through BOTH jivari and dry paths
-  const sampler = await loadTanpuraSampler(chain.jivari as unknown as Tone.InputNode);
-  if (sampler) {
-    // Also connect sampler to dry path for clean blend
-    sampler.connect(chain.dryGain);
-  }
-
   const instance: TanpuraInstance = {
-    synth: chain.synth,
-    sampler,
-    useSamples: sampler !== null,
-    jivari: chain.jivari,
-    jivariGain: chain.jivariGain,
-    dryGain: chain.dryGain,
-    bodyFilter1: chain.bodyFilter1,
-    bodyFilter2: chain.bodyFilter2,
-    chorus: chain.chorus,
-    reverb: chain.reverb,
-    compressor: chain.compressor,
-    loop: null,
-    currentStringIndex: 0,
-    playing: false,
+    player: null,
     config: { ...config },
     saNote,
     saOctave,
+    saCents,
+    playing: false,
+    currentSampleKey: '',
+    baseRate: 1.0,
+    loading: false,
   };
 
   instances.set(id, instance);
-  console.log(`[Tanpura] Created ${id} (${sampler ? 'sample-based' : 'synthesis'})`);
+
+  // Load the appropriate sample
+  await loadSampleForInstance(id);
+
+  console.log(`[Tanpura] Created ${id}`);
 }
 
 /**
- * Start the tanpura plucking loop.
- *
- * Strings are plucked in sequence with:
- * - Long overlapping note durations (crossfade)
- * - Slight timing humanization (±25ms)
- * - Velocity variation per pluck
- * - First string (Pa/Ma/Ni) slightly louder as is traditional
+ * Load (or reload) the correct sample for an instance based on its config and pitch.
  */
-export function startTanpura(id: string): void {
+async function loadSampleForInstance(id: string): Promise<void> {
   const instance = instances.get(id);
-  if (!instance || instance.playing) return;
+  if (!instance) return;
 
-  const enabledStrings = instance.config.strings.filter((s) => s.enabled);
-  if (enabledStrings.length === 0) return;
+  const { tuning, eq } = instance.config;
+  const targetFreq = noteToFreq(instance.saNote, instance.saOctave, instance.saCents);
+  const { entry, rate } = findClosestSample(targetFreq);
 
-  const pluckInterval = instance.config.cycleSpeed / enabledStrings.length;
-  instance.currentStringIndex = 0;
+  const sampleKey = `${tuning}_${entry.key}_${eq}`;
+  const sampleUrl = getSampleUrl(tuning, entry.key, eq);
 
-  instance.loop = new Tone.Loop((time) => {
-    const idx = instance.currentStringIndex;
-    const stringConfig = enabledStrings[idx];
-    if (!stringConfig) return;
-
-    const toneNote = swarToToneNote(
-      instance.saNote,
-      instance.saOctave,
-      stringConfig.note,
-      stringConfig.variant,
-      stringConfig.octaveOffset
-    );
-
-    // Long overlapping sustain — each note rings well past the next pluck
-    // This creates the characteristic "wall of sound" drone
-    const noteDuration = Math.min(pluckInterval * 3.5, 8);
-
-    // First string is traditionally louder (Pa/Ma/Ni string)
-    const isFirstString = idx === 0;
-    const baseVelocity = isFirstString ? 0.65 : 0.50;
-    const velocity = baseVelocity + Math.random() * 0.12;
-
-    // Timing humanization (±25ms) — makes it feel hand-played
-    const humanize = (Math.random() - 0.5) * 0.05;
-    const triggerTime = Math.max(time + humanize, time);
-
-    // Trigger the note
-    const source = (instance.useSamples && instance.sampler)
-      ? instance.sampler
-      : instance.synth;
-    source.triggerAttackRelease(toneNote, noteDuration, triggerTime, velocity);
-
-    instance.currentStringIndex =
-      (instance.currentStringIndex + 1) % enabledStrings.length;
-  }, pluckInterval);
-
-  instance.loop.start(0);
-  instance.playing = true;
-
-  if (Tone.getTransport().state !== 'started') {
-    Tone.getTransport().start();
+  // Don't reload if same sample is already loaded
+  if (sampleKey === instance.currentSampleKey && instance.player) {
+    instance.baseRate = rate;
+    const finalRate = computePlaybackRate(rate, instance.config.finePitchCents, instance.config.speed);
+    instance.player.playbackRate = finalRate;
+    return;
   }
 
-  console.log(
-    `[Tanpura] Started ${id}: ${enabledStrings.length} strings, ` +
-    `${pluckInterval.toFixed(2)}s interval, ` +
-    `${instance.useSamples ? 'samples' : 'synth'}`
-  );
-}
-
-/**
- * Stop the tanpura plucking loop.
- */
-export function stopTanpura(id: string): void {
-  const instance = instances.get(id);
-  if (!instance) return;
-
-  instance.loop?.stop();
-  instance.loop?.dispose();
-  instance.loop = null;
-  instance.synth.releaseAll();
-  instance.playing = false;
-  instance.currentStringIndex = 0;
-
-  console.log(`[Tanpura] Stopped ${id}`);
-}
-
-/**
- * Update the tanpura configuration. Restarts the loop if currently playing.
- */
-export function updateTanpura(
-  id: 'tanpura1' | 'tanpura2',
-  config: Partial<TanpuraConfig>,
-  saNote?: NoteName,
-  saOctave?: number
-): void {
-  const instance = instances.get(id);
-  if (!instance) return;
-
+  instance.loading = true;
   const wasPlaying = instance.playing;
   if (wasPlaying) stopTanpura(id);
 
-  instance.config = { ...instance.config, ...config };
-  if (saNote !== undefined) instance.saNote = saNote;
-  if (saOctave !== undefined) instance.saOctave = saOctave;
+  // Dispose old player
+  instance.player?.dispose();
+  instance.player = null;
+
+  // Check if sample exists
+  const exists = await sampleExists(sampleUrl);
+  if (!exists) {
+    console.warn(`[Tanpura] Sample not found: ${sampleUrl}, trying neutral EQ`);
+    // Fall back to neutral EQ
+    const fallbackUrl = getSampleUrl(tuning, entry.key, 'neutral');
+    const fallbackExists = await sampleExists(fallbackUrl);
+    if (!fallbackExists) {
+      console.error(`[Tanpura] No sample found for ${tuning} ${entry.key}`);
+      instance.loading = false;
+      return;
+    }
+    // Load fallback
+    await loadPlayerFromUrl(id, fallbackUrl, `${tuning}_${entry.key}_neutral`, rate);
+  } else {
+    await loadPlayerFromUrl(id, sampleUrl, sampleKey, rate);
+  }
+
+  instance.loading = false;
 
   if (wasPlaying && instance.config.enabled) {
     startTanpura(id);
   }
 }
 
-/**
- * Update the Sa pitch for a tanpura. Restarts if playing.
- */
-export function updateTanpuraPitch(
+async function loadPlayerFromUrl(
   id: string,
-  saNote: NoteName,
-  saOctave: number
-): void {
+  url: string,
+  sampleKey: string,
+  baseRate: number
+): Promise<void> {
   const instance = instances.get(id);
   if (!instance) return;
 
-  const wasPlaying = instance.playing;
-  if (wasPlaying) stopTanpura(id);
+  const channelInput = getChannelInput(id as 'tanpura1' | 'tanpura2');
+
+  return new Promise<void>((resolve) => {
+    const player = new Tone.Player({
+      url,
+      loop: true,
+      fadeIn: 0.5,
+      fadeOut: 0.5,
+      onload: () => {
+        instance.player = player;
+        instance.currentSampleKey = sampleKey;
+        instance.baseRate = baseRate;
+
+        const finalRate = computePlaybackRate(
+          baseRate,
+          instance.config.finePitchCents,
+          instance.config.speed
+        );
+        player.playbackRate = finalRate;
+
+        console.log(
+          `[Tanpura] Loaded ${sampleKey} for ${id} ` +
+          `(baseRate=${baseRate.toFixed(4)}, finalRate=${finalRate.toFixed(4)})`
+        );
+        resolve();
+      },
+      onerror: (err) => {
+        console.error(`[Tanpura] Failed to load ${url}:`, err);
+        player.dispose();
+        resolve();
+      },
+    }).connect(channelInput);
+  });
+}
+
+/**
+ * Start the tanpura drone.
+ */
+export function startTanpura(id: string): void {
+  const instance = instances.get(id);
+  if (!instance || instance.playing || !instance.player || instance.loading) return;
+
+  try {
+    instance.player.start();
+    instance.playing = true;
+
+    if (Tone.getTransport().state !== 'started') {
+      Tone.getTransport().start();
+    }
+
+    console.log(`[Tanpura] Started ${id}`);
+  } catch (err) {
+    console.error(`[Tanpura] Error starting ${id}:`, err);
+  }
+}
+
+/**
+ * Stop the tanpura drone.
+ */
+export function stopTanpura(id: string): void {
+  const instance = instances.get(id);
+  if (!instance) return;
+
+  if (instance.player?.state === 'started') {
+    instance.player.stop();
+  }
+  instance.playing = false;
+
+  console.log(`[Tanpura] Stopped ${id}`);
+}
+
+/**
+ * Update the tanpura configuration.
+ * If tuning, EQ, or SA pitch changed, reloads the sample.
+ * If only fine pitch or speed changed, just adjusts playbackRate.
+ */
+export async function updateTanpura(
+  id: 'tanpura1' | 'tanpura2',
+  config: Partial<TanpuraConfig>,
+  saNote?: NoteName,
+  saOctave?: number,
+  saCents?: number
+): Promise<void> {
+  const instance = instances.get(id);
+  if (!instance) return;
+
+  const oldConfig = { ...instance.config };
+  const oldSaNote = instance.saNote;
+  const oldSaOctave = instance.saOctave;
+  const oldSaCents = instance.saCents;
+
+  // Update config
+  instance.config = { ...instance.config, ...config };
+  if (saNote !== undefined) instance.saNote = saNote;
+  if (saOctave !== undefined) instance.saOctave = saOctave;
+  if (saCents !== undefined) instance.saCents = saCents;
+
+  // Check if we need to reload the sample (tuning, EQ, or pitch changed significantly)
+  const tuningChanged = config.tuning !== undefined && config.tuning !== oldConfig.tuning;
+  const eqChanged = config.eq !== undefined && config.eq !== oldConfig.eq;
+  const pitchChanged =
+    (saNote !== undefined && saNote !== oldSaNote) ||
+    (saOctave !== undefined && saOctave !== oldSaOctave) ||
+    (saCents !== undefined && saCents !== oldSaCents);
+
+  if (tuningChanged || eqChanged || pitchChanged) {
+    // Need to reload sample
+    await loadSampleForInstance(id);
+  } else if (instance.player) {
+    // Just update playback rate
+    const targetFreq = noteToFreq(instance.saNote, instance.saOctave, instance.saCents);
+    const { rate } = findClosestSample(targetFreq);
+    instance.baseRate = rate;
+    const finalRate = computePlaybackRate(
+      rate,
+      instance.config.finePitchCents,
+      instance.config.speed
+    );
+    instance.player.playbackRate = finalRate;
+  }
+}
+
+/**
+ * Update the Sa pitch. Reloads sample if the closest sample changes.
+ */
+export async function updateTanpuraPitch(
+  id: string,
+  saNote: NoteName,
+  saOctave: number,
+  saCents: number = 0
+): Promise<void> {
+  const instance = instances.get(id);
+  if (!instance) return;
 
   instance.saNote = saNote;
   instance.saOctave = saOctave;
+  instance.saCents = saCents;
 
-  if (wasPlaying) startTanpura(id);
+  await loadSampleForInstance(id);
 }
 
 /**
@@ -367,6 +372,14 @@ export function isTanpuraPlaying(id: string): boolean {
 }
 
 /**
+ * Check if a tanpura sample is loaded and ready.
+ */
+export function isTanpuraReady(id: string): boolean {
+  const inst = instances.get(id);
+  return inst !== null && inst !== undefined && inst.player !== null && !inst.loading;
+}
+
+/**
  * Dispose a tanpura instance and free all audio nodes.
  */
 export function disposeTanpura(id: string): void {
@@ -374,16 +387,7 @@ export function disposeTanpura(id: string): void {
   if (!instance) return;
 
   stopTanpura(id);
-  instance.synth.dispose();
-  instance.sampler?.dispose();
-  instance.jivari.dispose();
-  instance.jivariGain.dispose();
-  instance.dryGain.dispose();
-  instance.bodyFilter1.dispose();
-  instance.bodyFilter2.dispose();
-  instance.chorus.dispose();
-  instance.reverb.dispose();
-  instance.compressor.dispose();
+  instance.player?.dispose();
   instances.delete(id);
 
   console.log(`[Tanpura] Disposed ${id}`);
