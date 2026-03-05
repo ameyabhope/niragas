@@ -1,73 +1,48 @@
-# React + TypeScript + Vite
+# Niragas
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Free, open-source Indian Classical music practice companion. A web app with electronic Tabla, Tanpura, Sur-Peti, Swar Mandal, Manjira, and more — no install required.
 
-Currently, two official plugins are available:
+**Live:** [niragas.pages.dev](https://niragas.pages.dev)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- **Tanpura** — Real electronic tanpura samples (Pa/Ma/Ni tuning, 5 pitch keys, 3 tone variants, fine pitch and speed controls)
+- **Tabla** — 47 taals with real bol samples, vilambit/drut thekas for core taals, tap tempo
+- **Sur-Peti** — Additive synthesis shruti box drone
+- **Swar Mandal** — 15-string harp with configurable tuning and auto-strum loop
+- **Manjira** — Cymbal accents synced to taal
+- **Metronome** — Click track with accent on sam
+- **7-Band EQ** — 22 presets including Indian classical instrument profiles (Khayal Vocal, Sitar/Sarod, Bansuri, Santoor, etc.)
+- **Auto-Tuner** — Microphone pitch detection for tuning instruments to Sa
+- **112 Raag Presets** — Factory presets for morning/afternoon/evening/night raags, women's pitch (G#), Carnatic, taal pairings
+- **Preset System** — Save/load custom presets, import/export JSON, IndexedDB storage
+- **Recording** — Record sessions with mic input, export WebM/WAV
+- **432 Hz Support** — Toggle between A4 = 440 Hz and 432 Hz reference
+- **PWA** — Installable, works offline after first visit
+- **Keyboard Shortcuts** — Space (tabla), T (tanpura), arrow keys (pitch), M (metronome)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+- TypeScript + React 19 + Vite
+- Tone.js (Web Audio)
+- Tailwind CSS v4
+- Zustand (state management)
+- IndexedDB via idb (persistence)
+- VitePWA (service worker + offline)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Development
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm install
+pnpm dev        # http://localhost:5173
+pnpm build      # production build in dist/
+pnpm preview    # preview production build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Audio Samples
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Tanpura samples from [sankalp's Electronic Tanpura](https://freesound.org/people/sankalp/packs/9600/) (CC BY 4.0). Tabla samples from [mmiron's tabla bols](https://freesound.org/people/mmiron/packs/8058/) (CC0). See [SAMPLE-CREDITS.md](SAMPLE-CREDITS.md) for full attribution.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## License
+
+MIT
