@@ -134,22 +134,24 @@ export function TablaPanel() {
             </select>
           </div>
 
-          {/* Style selector */}
-          <div className="flex-1 min-w-[120px]">
-            <label className="text-xs text-text-muted mb-1 block">Style</label>
-            <select
-              value={styleId}
-              onChange={(e) => setStyleId(e.target.value)}
-              className="w-full bg-surface-lighter text-text-primary text-sm rounded-lg px-3 py-2
-                         border border-white/10 focus:outline-none focus:ring-2 focus:ring-saffron-400"
-            >
-              {taal.styles.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Style selector — only shown when taal has multiple styles */}
+          {taal.styles.length > 1 && (
+            <div className="flex-1 min-w-[120px]">
+              <label className="text-xs text-text-muted mb-1 block">Style</label>
+              <select
+                value={styleId}
+                onChange={(e) => setStyleId(e.target.value)}
+                className="w-full bg-surface-lighter text-text-primary text-sm rounded-lg px-3 py-2
+                           border border-white/10 focus:outline-none focus:ring-2 focus:ring-saffron-400"
+              >
+                {taal.styles.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Beat display */}
