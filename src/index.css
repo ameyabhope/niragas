@@ -41,6 +41,29 @@
   --color-tune-center: #22c55e;
 }
 
+/* ── Light theme overrides ── */
+html.light {
+  --color-surface: #f5f0eb;
+  --color-surface-light: #ebe4db;
+  --color-surface-lighter: #d4c9bb;
+  --color-surface-card: #ffffff;
+
+  --color-text-primary: #1a1a2e;
+  --color-text-secondary: #4a4a5a;
+  --color-text-muted: #8b8b9b;
+
+  --color-accent: #d63851;
+  --color-accent-muted: #a83050;
+}
+
+/* Light theme needs darker borders instead of white/N */
+html.light .border-white\/5 {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+html.light .border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
 body {
   margin: 0;
   background-color: var(--color-surface);
