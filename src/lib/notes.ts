@@ -1,5 +1,8 @@
 /**
  * Music theory utilities: note names, frequencies, swara-to-semitone mapping.
+ *
+ * The A4 reference frequency is configurable (440 Hz or 432 Hz).
+ * All frequency calculations use the current reference.
  */
 
 import type { NoteName, SwarName, SwarVariant } from '@/audio/types';
@@ -10,12 +13,23 @@ export const NOTE_NAMES: NoteName[] = [
   'F#', 'G', 'G#', 'A', 'A#', 'B',
 ];
 
-/** A4 = 440 Hz reference */
-const A4_FREQ = 440;
+/** A4 reference frequency — configurable (440 or 432 Hz) */
+let a4Freq = 440;
 const A4_MIDI = 69;
+
+/** Get the current A4 reference frequency. */
+export function getA4Freq(): number {
+  return a4Freq;
+}
+
+/** Set the A4 reference frequency (e.g., 440 or 432). */
+export function setA4Freq(freq: number): void {
+  a4Freq = freq;
+}
 
 /**
  * Convert a note name + octave to frequency in Hz.
+ * Uses the current A4 reference frequency.
  * @param note - Western note name (e.g., "C#")
  * @param octave - Octave number (e.g., 3)
  * @param cents - Fine-tune offset in cents (default 0)
@@ -24,14 +38,15 @@ export function noteToFreq(note: NoteName, octave: number, cents = 0): number {
   const noteIndex = NOTE_NAMES.indexOf(note);
   if (noteIndex === -1) throw new Error(`Invalid note: ${note}`);
   const midi = (octave + 1) * 12 + noteIndex;
-  return A4_FREQ * Math.pow(2, (midi - A4_MIDI + cents / 100) / 12);
+  return a4Freq * Math.pow(2, (midi - A4_MIDI + cents / 100) / 12);
 }
 
 /**
  * Convert a frequency to the nearest note name, octave, and cent offset.
+ * Uses the current A4 reference frequency.
  */
 export function freqToNote(freq: number): { note: NoteName; octave: number; cents: number } {
-  const midiFloat = 12 * Math.log2(freq / A4_FREQ) + A4_MIDI;
+  const midiFloat = 12 * Math.log2(freq / a4Freq) + A4_MIDI;
   const midi = Math.round(midiFloat);
   const cents = Math.round((midiFloat - midi) * 100);
   const octave = Math.floor(midi / 12) - 1;
@@ -93,5 +108,3 @@ export function swarToToneNote(
   const octave = saOctave + Math.floor(totalSemitones / 12);
   return `${NOTE_NAMES[noteIndex]}${octave}`;
 }
-
-

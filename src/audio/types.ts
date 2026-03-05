@@ -142,6 +142,7 @@ export interface Preset {
     note: NoteName;
     octave: number;
     cents: number;
+    a4Freq?: number;  // 440 or 432 (optional for backward compat with old presets)
   };
   tanpura1: TanpuraConfig;
   tanpura2: TanpuraConfig;
