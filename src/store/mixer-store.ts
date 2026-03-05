@@ -36,7 +36,7 @@ interface MixerState {
 
 export const useMixerStore = create<MixerState>((set) => ({
   channels: {
-    tanpura1: { ...defaultChannel(true), pan: -0.3 },
+    tanpura1: { ...defaultChannel(false), pan: -0.3 },
     tanpura2: { ...defaultChannel(false), pan: 0.3 },
     tabla: defaultChannel(false),
     surpeti: defaultChannel(false),
