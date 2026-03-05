@@ -17,6 +17,7 @@ import * as Tone from 'tone';
 import type { SwarMandalConfig, NoteName } from './types';
 import { swarToToneNote } from '@/lib/notes';
 import { getChannelInput } from './mixer';
+import { log } from './log';
 
 interface SwarMandalInstance {
   synth: Tone.PolySynth;
@@ -74,7 +75,7 @@ export function createSwarMandal(): void {
     saOctave: 3,
   };
 
-  console.log('[SwarMandal] Created');
+  log('[SwarMandal] Created');
 }
 
 /**
@@ -124,7 +125,7 @@ export function startSwarMandalLoop(): void {
     Tone.getTransport().start();
   }
 
-  console.log(`[SwarMandal] Auto-loop started: ${instance.config.loopDuration}s interval`);
+  log(`[SwarMandal] Auto-loop started: ${instance.config.loopDuration}s interval`);
 }
 
 /**
@@ -139,7 +140,7 @@ export function stopSwarMandalLoop(): void {
   instance.playing = false;
   instance.synth.releaseAll();
 
-  console.log('[SwarMandal] Auto-loop stopped');
+  log('[SwarMandal] Auto-loop stopped');
 }
 
 /**
@@ -192,5 +193,5 @@ export function disposeSwarMandal(): void {
   instance.reverb.dispose();
   instance = null;
 
-  console.log('[SwarMandal] Disposed');
+  log('[SwarMandal] Disposed');
 }

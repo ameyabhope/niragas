@@ -6,7 +6,6 @@
 import { useState } from 'react';
 import type { InstrumentId } from '@/audio/types';
 import { useMixerStore } from '@/store/mixer-store';
-import { setMasterVolume as setMasterVolumeAudio, setMasterMute } from '@/audio/mixer';
 import { ChannelStrip } from './ChannelStrip';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
@@ -90,10 +89,7 @@ export function MixerPanel() {
         {/* Master */}
         <div className="flex items-center gap-2 py-1.5">
           <button
-            onClick={() => {
-              toggleMasterMute();
-              setMasterMute(!masterMuted);
-            }}
+            onClick={toggleMasterMute}
             className={`text-[10px] px-2 py-0.5 rounded font-semibold flex-shrink-0 ${
               masterMuted
                 ? 'bg-accent text-white'
@@ -109,11 +105,7 @@ export function MixerPanel() {
             max={1}
             step={0.01}
             value={masterVolume}
-            onChange={(e) => {
-              const v = parseFloat(e.target.value);
-              setMasterVolume(v);
-              setMasterVolumeAudio(v);
-            }}
+            onChange={(e) => setMasterVolume(parseFloat(e.target.value))}
             className="flex-1 h-1.5 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                        accent-saffron-500"
             aria-label="Master volume"

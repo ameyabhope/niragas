@@ -11,6 +11,7 @@
  */
 
 import * as Tone from 'tone';
+import { log } from './log';
 
 // ── State ───────────────────────────────────────────────────────────────────
 
@@ -69,7 +70,7 @@ export async function loadTablaSampler(
   if (!tablaLoaded) {
     const exists = await sampleExists(TABLA_SAMPLE_MAP['Dha']);
     if (!exists) {
-      console.log('[SampleLoader] No tabla samples found, using synthesis');
+      log('[SampleLoader] No tabla samples found, using synthesis');
       tablaFailed = true;
       return null;
     }
@@ -97,7 +98,7 @@ export async function loadTablaSampler(
       urls,
       onload: () => {
         tablaLoaded = true;
-        console.log('[SampleLoader] Tabla samples loaded');
+        log('[SampleLoader] Tabla samples loaded');
         resolve(sampler);
       },
       onerror: (err) => {

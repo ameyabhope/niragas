@@ -4,7 +4,6 @@
 
 import { useCallback } from 'react';
 import type { InstrumentId, ChannelState } from '@/audio/types';
-import { setChannelVolume, setChannelPan, setChannelMute } from '@/audio/mixer';
 
 const INSTRUMENT_LABELS: Record<InstrumentId, string> = {
   tanpura1: 'Tanp1',
@@ -47,26 +46,17 @@ export function ChannelStrip({
 }: ChannelStripProps) {
   const handleVolumeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = parseFloat(e.target.value);
-      onSetVolume(value);
-      setChannelVolume(id, value);
+      onSetVolume(parseFloat(e.target.value));
     },
-    [id, onSetVolume]
+    [onSetVolume]
   );
 
   const handlePanChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = parseFloat(e.target.value);
-      onSetPan(value);
-      setChannelPan(id, value);
+      onSetPan(parseFloat(e.target.value));
     },
-    [id, onSetPan]
+    [onSetPan]
   );
-
-  const handleMuteToggle = useCallback(() => {
-    onToggleMute();
-    setChannelMute(id, !channel.muted);
-  }, [id, channel.muted, onToggleMute]);
 
   return (
     <div className="flex items-center gap-2 py-1.5">
@@ -93,7 +83,7 @@ export function ChannelStrip({
 
       {/* Mute button */}
       <button
-        onClick={handleMuteToggle}
+        onClick={onToggleMute}
         className={`text-[10px] w-5 h-5 flex items-center justify-center rounded font-mono flex-shrink-0 ${
           channel.muted
             ? 'bg-accent text-white'

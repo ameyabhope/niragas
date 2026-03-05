@@ -98,7 +98,6 @@ export interface ChannelState {
   volume: number;   // 0 to 1
   pan: number;      // -1 to 1
   muted: boolean;
-  solo: boolean;
 }
 
 /** 7-band EQ state */

@@ -14,6 +14,7 @@ import * as Tone from 'tone';
 import type { NoteName } from './types';
 import { noteToFreq } from '@/lib/notes';
 import { getChannelInput } from './mixer';
+import { log } from './log';
 
 interface SurPetiInstance {
   /** Oscillators for each partial */
@@ -93,7 +94,7 @@ export function createSurPeti(): void {
     playing: false,
   };
 
-  console.log('[SurPeti] Created');
+  log('[SurPeti] Created');
 }
 
 /**
@@ -135,7 +136,7 @@ export function startSurPeti(
   }
 
   instance.playing = true;
-  console.log('[SurPeti] Started');
+  log('[SurPeti] Started');
 }
 
 /**
@@ -158,7 +159,7 @@ export function stopSurPeti(): void {
   }, 600);
 
   instance.playing = false;
-  console.log('[SurPeti] Stopped');
+  log('[SurPeti] Stopped');
 }
 
 /**
@@ -180,5 +181,5 @@ export function disposeSurPeti(): void {
   instance.masterGain.dispose();
 
   instance = null;
-  console.log('[SurPeti] Disposed');
+  log('[SurPeti] Disposed');
 }

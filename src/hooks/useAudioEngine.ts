@@ -9,12 +9,17 @@
 import { useState, useCallback } from 'react';
 import { initAudioEngine, isAudioEngineReady } from '@/audio/engine';
 import { createMixer, isMixerReady } from '@/audio/mixer';
+import { initAudioSubscriptions } from '@/audio/subscriptions';
 
 // Create mixer immediately so instrument create* calls on mount can connect.
 // Tone.js nodes work fine before Tone.start() — they just sit in a suspended context.
 if (!isMixerReady()) {
   createMixer();
 }
+
+// Set up store → audio engine subscriptions immediately.
+// They are safe to register even before Tone.start() since they only fire on state changes.
+initAudioSubscriptions();
 
 export function useAudioEngine() {
   const [ready, setReady] = useState(isAudioEngineReady());

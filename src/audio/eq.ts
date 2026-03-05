@@ -16,6 +16,7 @@
 
 import * as Tone from 'tone';
 import type { EQBand } from './types';
+import { log } from './log';
 
 interface EQInstance {
   bands: Tone.BiquadFilter[];
@@ -290,7 +291,7 @@ export function createEQ(): { input: Tone.Gain; output: Tone.Gain } {
     enabled: true,
   };
 
-  console.log('[EQ] Created 7-band parametric EQ');
+  log('[EQ] Created 7-band parametric EQ');
   return { input: inputGain, output: outputGain };
 }
 
@@ -319,7 +320,7 @@ export function applyEQPreset(presetName: string): void {
     }
   });
 
-  console.log(`[EQ] Applied preset: ${presetName}`);
+  log(`[EQ] Applied preset: ${presetName}`);
 }
 
 /**
@@ -333,5 +334,5 @@ export function disposeEQ(): void {
   instance.outputGain.dispose();
   instance = null;
 
-  console.log('[EQ] Disposed');
+  log('[EQ] Disposed');
 }

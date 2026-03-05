@@ -61,28 +61,21 @@ export function SwarMandalPanel() {
     updateSwarMandalPitch(saNote, saOctave);
   }, [saNote, saOctave]);
 
-  // Sync config to audio engine (strings, loopDuration changes)
+  // Sync config to audio engine and manage loop lifecycle
   useEffect(() => {
     if (!created.current) return;
-    updateSwarMandal({ enabled, strings, autoLoop, loopDuration });
-  }, [strings, loopDuration]);
 
-  // Handle enable/disable and auto-loop start/stop
-  useEffect(() => {
-    if (!created.current) return;
+    updateSwarMandal({ enabled, strings, autoLoop, loopDuration });
 
     const shouldLoop = enabled && autoLoop;
     const isLooping = isSwarMandalPlaying();
-
-    // Sync config first
-    updateSwarMandal({ enabled, strings, autoLoop, loopDuration });
 
     if (shouldLoop && !isLooping) {
       startSwarMandalLoop();
     } else if (!shouldLoop && isLooping) {
       stopSwarMandalLoop();
     }
-  }, [enabled, autoLoop]);
+  }, [enabled, strings, autoLoop, loopDuration]);
 
   const handleStrum = useCallback(() => {
     if (!created.current) return;

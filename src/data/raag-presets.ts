@@ -32,13 +32,13 @@ function makeTanpura(
 }
 
 const defaultMixer = () => ({
-  tanpura1: { enabled: true, volume: 0.75, pan: -0.3, muted: false, solo: false },
-  tanpura2: { enabled: true, volume: 0.75, pan: 0.3, muted: false, solo: false },
-  tabla: { enabled: false, volume: 0.75, pan: 0, muted: false, solo: false },
-  surpeti: { enabled: false, volume: 0.75, pan: 0, muted: false, solo: false },
-  swarmandal: { enabled: false, volume: 0.6, pan: 0, muted: false, solo: false },
-  manjira: { enabled: false, volume: 0.5, pan: 0, muted: false, solo: false },
-  metronome: { enabled: false, volume: 0.5, pan: 0, muted: false, solo: false },
+  tanpura1: { enabled: true, volume: 0.75, pan: -0.3, muted: false },
+  tanpura2: { enabled: true, volume: 0.75, pan: 0.3, muted: false },
+  tabla: { enabled: false, volume: 0.75, pan: 0, muted: false },
+  surpeti: { enabled: false, volume: 0.75, pan: 0, muted: false },
+  swarmandal: { enabled: false, volume: 0.6, pan: 0, muted: false },
+  manjira: { enabled: false, volume: 0.5, pan: 0, muted: false },
+  metronome: { enabled: false, volume: 0.5, pan: 0, muted: false },
 });
 
 const defaultEQ = () => ({

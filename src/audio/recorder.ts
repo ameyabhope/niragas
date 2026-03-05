@@ -216,10 +216,11 @@ export function downloadRecording(recording: Recording, filename?: string): void
  */
 export async function convertToWAV(recording: Recording): Promise<Blob> {
   const arrayBuffer = await recording.blob.arrayBuffer();
-  const audioCtx = new OfflineAudioContext(2, 1, 44100);
+  const audioCtx = new AudioContext();
 
   // Decode the audio
   const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+  await audioCtx.close();
 
   // Create WAV from AudioBuffer
   return audioBufferToWAV(audioBuffer);
