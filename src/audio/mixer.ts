@@ -119,3 +119,10 @@ export function disposeMixer(): void {
   masterVolume?.dispose();
   masterVolume = null;
 }
+
+/**
+ * Check if the mixer has been created.
+ */
+export function isMixerReady(): boolean {
+  return masterVolume !== null;
+}
