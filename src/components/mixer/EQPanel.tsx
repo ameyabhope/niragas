@@ -97,8 +97,8 @@ export function EQPanel() {
                 {band.gain > 0 ? '+' : ''}{band.gain.toFixed(0)}
               </span>
 
-              {/* Vertical slider (rotated range input) */}
-              <div className="h-16 flex items-center justify-center">
+              {/* Vertical slider (rotated horizontal range) */}
+              <div className="h-20 w-6 flex items-center justify-center relative">
                 <input
                   type="range"
                   min={-12}
@@ -109,9 +109,9 @@ export function EQPanel() {
                     handleBandGainChange(i, parseFloat(e.target.value))
                   }
                   disabled={!enabled}
-                  className="h-1.5 w-16 bg-surface-lighter rounded-lg appearance-none cursor-pointer
-                             accent-saffron-500 disabled:opacity-30
-                             [writing-mode:vertical-lr] [direction:rtl]"
+                  className="absolute w-20 h-1.5 bg-surface-lighter rounded-lg appearance-none
+                             cursor-pointer accent-saffron-500 disabled:opacity-30
+                             origin-center -rotate-90"
                   aria-label={`EQ band ${BAND_LABELS[i]} Hz`}
                 />
               </div>
