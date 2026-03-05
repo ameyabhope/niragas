@@ -32,12 +32,11 @@ export function AppShell() {
 
       {/* Desktop layout */}
       <div className="hidden md:flex flex-1 overflow-hidden">
-        {/* Left panel: Mixer + Tuner */}
+        {/* Left panel: Pitch + Mixer + EQ */}
         <aside className="w-80 border-r border-white/5 overflow-y-auto p-4 flex flex-col gap-6">
           <PitchControl />
           <MixerPanel />
           <EQPanel />
-          <TunerPanel />
         </aside>
 
         {/* Right panel: Controls */}
@@ -46,12 +45,13 @@ export function AppShell() {
             <div className="flex flex-col gap-6">
               <TanpuraPanel />
               <SurPetiControl />
-              <RecorderPanel />
+              <TunerPanel />
               <PresetPanel />
             </div>
             <div className="flex flex-col gap-6">
               <TablaPanel />
               <SwarMandalPanel />
+              <RecorderPanel />
             </div>
           </div>
         </main>
