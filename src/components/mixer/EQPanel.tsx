@@ -84,17 +84,17 @@ export function EQPanel() {
       </select>
 
       {/* Band sliders - vertical layout */}
-      <div className="bg-surface-card rounded-xl border border-white/5 p-3">
-        <div className="flex justify-between gap-1">
+      <div className="bg-surface-card rounded-xl border border-white/5 p-3 overflow-hidden">
+        <div className="flex justify-between gap-0.5">
           {bands.map((band, i) => (
-            <div key={i} className="flex flex-col items-center gap-1 flex-1">
+            <div key={i} className="flex flex-col items-center gap-0.5 min-w-0 flex-1">
               {/* Gain value */}
-              <span className="text-[10px] font-mono text-text-muted">
+              <span className="text-[9px] font-mono text-text-muted">
                 {band.gain > 0 ? '+' : ''}{band.gain.toFixed(0)}
               </span>
 
               {/* Vertical slider (rotated range input) */}
-              <div className="h-20 flex items-center justify-center">
+              <div className="h-16 flex items-center justify-center">
                 <input
                   type="range"
                   min={-12}
@@ -105,7 +105,7 @@ export function EQPanel() {
                     handleBandGainChange(i, parseFloat(e.target.value))
                   }
                   disabled={!enabled}
-                  className="h-2 w-20 bg-surface-lighter rounded-lg appearance-none cursor-pointer
+                  className="h-1.5 w-16 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                              accent-saffron-500 disabled:opacity-30
                              [writing-mode:vertical-lr] [direction:rtl]"
                   aria-label={`EQ band ${BAND_LABELS[i]} Hz`}
@@ -113,7 +113,7 @@ export function EQPanel() {
               </div>
 
               {/* Frequency label */}
-              <span className="text-[10px] text-text-muted font-mono">
+              <span className="text-[9px] text-text-muted font-mono">
                 {BAND_LABELS[i]}
               </span>
             </div>

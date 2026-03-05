@@ -41,19 +41,17 @@ export function AppShell() {
 
         {/* Right panel: Controls */}
         <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
             <div className="flex flex-col gap-6">
               <TanpuraPanel />
               <SurPetiControl />
+              <TunerPanel />
             </div>
             <div className="flex flex-col gap-6">
               <TablaPanel />
               <SwarMandalPanel />
+              <RecorderPanel />
             </div>
-          </div>
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <TunerPanel />
-            <RecorderPanel />
           </div>
           <PresetPanel />
         </main>
