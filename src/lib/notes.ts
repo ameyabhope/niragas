@@ -91,6 +91,36 @@ function swarToSemitones(
 }
 
 /**
+ * Map of semitone offset from Sa → Indian swar label.
+ * Lowercase = komal, uppercase first letter = shuddha, 'ma' (lowercase) = tivra Ma.
+ */
+const SEMITONE_TO_SWAR: Record<number, string> = {
+  0: 'Sa',
+  1: 're',   // komal Re
+  2: 'Re',
+  3: 'ga',   // komal Ga
+  4: 'Ga',
+  5: 'Ma',
+  6: 'ma',   // tivra Ma
+  7: 'Pa',
+  8: 'dha',  // komal Dha
+  9: 'Dha',
+  10: 'ni',  // komal Ni
+  11: 'Ni',
+};
+
+/**
+ * Get the Indian swar name for a Western note, relative to the current Sa.
+ * Returns e.g. "Sa", "Re", "ga", "Ma", "Pa", etc.
+ */
+export function noteToSwar(note: NoteName, saNote: NoteName): string {
+  const noteIndex = NOTE_NAMES.indexOf(note);
+  const saIndex = NOTE_NAMES.indexOf(saNote);
+  const semitones = ((noteIndex - saIndex) % 12 + 12) % 12;
+  return SEMITONE_TO_SWAR[semitones] ?? '?';
+}
+
+/**
  * Get the MIDI-style note name for a swara given a Sa root.
  * Returns a string like "G3" that Tone.js can understand.
  */
