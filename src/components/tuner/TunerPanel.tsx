@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePitchStore } from '@/store/pitch-store';
 import type { NoteName } from '@/audio/types';
-import { noteToFreq } from '@/lib/notes';
+import { noteToFreq, noteToSwar } from '@/lib/notes';
 import {
   initTuner,
   startTuner,
@@ -131,6 +131,7 @@ export function TunerPanel() {
           <div className="text-center">
             <p className="text-xs text-text-muted mb-1">App (Sa)</p>
             <p className="text-3xl font-bold text-text-primary">{appNote}</p>
+            <p className="text-sm text-saffron-400 font-semibold">Sa</p>
             <p className="text-xs text-text-muted">
               {appOctave} {appCents !== 0 ? `(${appCents > 0 ? '+' : ''}${appCents}c)` : ''}
             </p>
@@ -143,6 +144,9 @@ export function TunerPanel() {
             {tunerActive && micNote ? (
               <>
                 <p className="text-3xl font-bold text-saffron-400">{micNote}</p>
+                <p className="text-sm text-saffron-300 font-semibold">
+                  {noteToSwar(micNote, appNote)}
+                </p>
                 <p className="text-xs text-text-muted">
                   {micOctave} {micCents !== 0 ? `(${micCents > 0 ? '+' : ''}${micCents}c)` : ''}
                 </p>
