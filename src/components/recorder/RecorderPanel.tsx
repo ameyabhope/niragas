@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useRecorderStore } from '@/store/recorder-store';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -80,9 +81,12 @@ export function RecorderPanel() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-        Recorder
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
+          Recorder
+        </h2>
+        <InfoTooltip text="Record your practice session including all instruments. Optionally include microphone input. Download recordings as WebM or WAV. Recordings are kept in memory for this session only." />
+      </div>
 
       <div className="rounded-xl border border-white/5 bg-surface-card p-4 flex flex-col gap-4">
         {/* Recording controls */}

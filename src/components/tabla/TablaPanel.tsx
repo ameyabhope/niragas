@@ -15,6 +15,7 @@ import {
 } from '@/audio/tabla';
 import { BeatDisplay } from './BeatDisplay';
 import { useTapTempo } from '@/hooks/useTapTempo';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
 export function TablaPanel() {
   const {
@@ -100,9 +101,12 @@ export function TablaPanel() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-        Tabla
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
+          Tabla
+        </h2>
+        <InfoTooltip text="Electronic tabla with 47 taals and real tabla samples. Select a taal and style, adjust tempo with the slider or tap tempo, then press Play. Speed-dependent thekas available for core taals." />
+      </div>
 
       <div className="rounded-xl border border-white/5 bg-surface-card p-4 flex flex-col gap-4">
         {/* Taal + Style selectors */}

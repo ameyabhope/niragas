@@ -10,6 +10,7 @@ import { useTanpuraStore } from '@/store/tanpura-store';
 import { useTablaStore } from '@/store/tabla-store';
 import { useMixerStore } from '@/store/mixer-store';
 import { useEQStore } from '@/store/eq-store';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
 export function PresetPanel() {
   const {
@@ -176,9 +177,12 @@ export function PresetPanel() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-        Presets
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
+          Presets
+        </h2>
+        <InfoTooltip text="112 factory raag presets plus custom presets. Each preset stores Sa pitch, tanpura tuning, taal, tempo, mixer, and EQ settings. Use 'Options' to choose which settings to load. Export/import presets as JSON." />
+      </div>
 
       <div className="rounded-xl border border-white/5 bg-surface-card p-4 flex flex-col gap-3">
         {/* Top controls */}

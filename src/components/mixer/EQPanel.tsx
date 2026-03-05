@@ -11,6 +11,7 @@ import {
   EQ_PRESETS,
   EQ_PRESET_NAMES,
 } from '@/audio/eq';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
 /** Friendly label for each band */
 const BAND_LABELS = ['60', '150', '400', '1k', '2.5k', '6k', '15k'];
@@ -50,9 +51,12 @@ export function EQPanel() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-          Equalizer
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
+            Equalizer
+          </h3>
+          <InfoTooltip text="7-band parametric EQ applied to the master output. Choose from 22 presets or adjust individual frequency bands manually. Useful for shaping the overall tone of your practice session." />
+        </div>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"

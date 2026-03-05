@@ -12,6 +12,7 @@ import {
   stopSurPeti,
   setSurPetiPitch,
 } from '@/audio/surpeti';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
 export function SurPetiControl() {
   const { enabled, toggle } = useSurPetiStore();
@@ -53,9 +54,12 @@ export function SurPetiControl() {
       }`}
     >
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-semibold text-text-primary">Sur-Peti</h3>
-          <p className="text-xs text-text-muted">Shruti Box Drone</p>
+        <div className="flex items-center gap-2">
+          <div>
+            <h3 className="text-sm font-semibold text-text-primary">Sur-Peti</h3>
+            <p className="text-xs text-text-muted">Shruti Box Drone</p>
+          </div>
+          <InfoTooltip text="A shruti box (sur-peti) drone that plays a continuous pitch matching the current Sa. Useful as a simpler alternative to the tanpura for vocal practice. Toggle on/off to start/stop." />
         </div>
 
         <button
