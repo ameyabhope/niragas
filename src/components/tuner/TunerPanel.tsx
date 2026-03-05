@@ -105,7 +105,7 @@ export function TunerPanel() {
         <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
           Tuner
         </h2>
-        <InfoTooltip text="Uses your microphone to detect pitch in real-time. Compares your voice/instrument to the current Sa and shows the offset in cents. Use 'Capture as Sa' to set your detected pitch as the new reference." />
+        <InfoTooltip text="Uses your microphone to detect pitch in real-time. Compares your voice/instrument to the current Sa and shows the offset in cents. Use 'Capture as Sa' to set your detected pitch as the new reference." align="left" />
       </div>
 
       <div className="rounded-xl border border-white/5 bg-surface-card p-4 flex flex-col gap-4">
