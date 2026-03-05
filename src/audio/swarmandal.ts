@@ -143,19 +143,33 @@ export function stopSwarMandalLoop(): void {
 }
 
 /**
- * Update the Swar Mandal configuration.
+ * Update the Swar Mandal configuration (config only, does NOT start/stop loop).
+ * Callers should manage start/stop explicitly.
  */
 export function updateSwarMandal(config: Partial<SwarMandalConfig>): void {
   if (!instance) return;
 
+  // If loop duration changed while playing, recreate the loop
+  const durationChanged =
+    config.loopDuration !== undefined &&
+    config.loopDuration !== instance.config.loopDuration;
   const wasLooping = instance.playing;
-  if (wasLooping) stopSwarMandalLoop();
 
   instance.config = { ...instance.config, ...config };
 
-  if (wasLooping && instance.config.autoLoop && instance.config.enabled) {
-    startSwarMandalLoop();
+  if (wasLooping && durationChanged) {
+    stopSwarMandalLoop();
+    if (instance.config.autoLoop && instance.config.enabled) {
+      startSwarMandalLoop();
+    }
   }
+}
+
+/**
+ * Check if swar mandal auto-loop is currently playing.
+ */
+export function isSwarMandalPlaying(): boolean {
+  return instance?.playing ?? false;
 }
 
 /**
