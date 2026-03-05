@@ -15,7 +15,7 @@ import {
 
 export function SurPetiControl() {
   const { enabled, toggle } = useSurPetiStore();
-  const { note, octave, cents } = usePitchStore();
+  const { note, octave, cents, a4Freq } = usePitchStore();
   const created = useRef(false);
   const prevEnabled = useRef(false);
 
@@ -38,11 +38,11 @@ export function SurPetiControl() {
     prevEnabled.current = enabled;
   }, [enabled, note, octave, cents]);
 
-  // Follow pitch changes while playing
+  // Follow pitch changes while playing (including A4 reference changes)
   useEffect(() => {
     if (!created.current || !enabled) return;
     setSurPetiPitch(note, octave, cents);
-  }, [note, octave, cents, enabled]);
+  }, [note, octave, cents, enabled, a4Freq]);
 
   return (
     <div

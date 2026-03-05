@@ -1,11 +1,15 @@
 /**
  * Global pitch (Sa) state.
  * All instruments share this pitch as their root.
+ * Also holds the A4 reference frequency (440 or 432 Hz).
  */
 
 import { create } from 'zustand';
 import type { NoteName } from '@/audio/types';
-import { NOTE_NAMES } from '@/lib/notes';
+import { NOTE_NAMES, setA4Freq } from '@/lib/notes';
+
+/** Supported A4 reference frequencies */
+export type A4Reference = 440 | 432;
 
 interface PitchState {
   /** Current note name for Sa */
@@ -14,6 +18,8 @@ interface PitchState {
   octave: number;
   /** Fine-tune offset in cents (-50 to +50) */
   cents: number;
+  /** A4 reference frequency (440 Hz standard, 432 Hz alternative) */
+  a4Freq: A4Reference;
 
   /** Set the note (e.g., "C#") */
   setNote: (note: NoteName) => void;
@@ -29,12 +35,15 @@ interface PitchState {
   adjustCents: (delta: number) => void;
   /** Set everything at once */
   setPitch: (note: NoteName, octave: number, cents: number) => void;
+  /** Set the A4 reference frequency */
+  setA4Freq: (freq: A4Reference) => void;
 }
 
 export const usePitchStore = create<PitchState>((set) => ({
   note: 'C#',
   octave: 3,
   cents: 0,
+  a4Freq: 440,
 
   setNote: (note) => set({ note }),
 
@@ -68,4 +77,10 @@ export const usePitchStore = create<PitchState>((set) => ({
     })),
 
   setPitch: (note, octave, cents) => set({ note, octave, cents }),
+
+  setA4Freq: (freq) => {
+    // Update the module-level reference used by all frequency calculations
+    setA4Freq(freq);
+    set({ a4Freq: freq });
+  },
 }));

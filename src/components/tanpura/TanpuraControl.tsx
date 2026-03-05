@@ -47,7 +47,7 @@ export function TanpuraControl({
   onSetFinePitch,
   onSetSpeed,
 }: TanpuraControlProps) {
-  const { note: saNote, octave: saOctave, cents: saCents } = usePitchStore();
+  const { note: saNote, octave: saOctave, cents: saCents, a4Freq } = usePitchStore();
   const created = useRef(false);
   const prevEnabled = useRef(config.enabled);
 
@@ -79,11 +79,11 @@ export function TanpuraControl({
     prevEnabled.current = config.enabled;
   }, [config.enabled, id, config, saNote, saOctave, saCents]);
 
-  // Update pitch when Sa changes
+  // Update pitch when Sa or A4 reference changes
   useEffect(() => {
     if (!created.current) return;
     updateTanpuraPitch(id, saNote, saOctave, saCents);
-  }, [id, saNote, saOctave, saCents]);
+  }, [id, saNote, saOctave, saCents, a4Freq]);
 
   // Update config when tuning/eq/speed/finePitch change
   const handleConfigChange = useCallback(

@@ -16,7 +16,10 @@ import {
 } from '@/audio/tuner';
 
 export function TunerPanel() {
-  const { note: appNote, octave: appOctave, cents: appCents, setPitch } = usePitchStore();
+  const { note: appNote, octave: appOctave, cents: appCents, a4Freq: _a4Freq, setPitch } = usePitchStore();
+  // _a4Freq is destructured to trigger re-render when A4 reference changes
+  // (noteToFreq reads the updated module-level a4Freq internally)
+  void _a4Freq;
 
   const [tunerActive, setTunerActive] = useState(false);
   const [micNote, setMicNote] = useState<NoteName | null>(null);

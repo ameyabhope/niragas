@@ -1,19 +1,41 @@
 /**
- * Pitch control: note up/down buttons + fine-tune slider.
+ * Pitch control: note up/down buttons + fine-tune slider + A4 reference toggle.
  * Controls the global Sa pitch that all instruments follow.
  */
 
-import { usePitchStore } from '@/store/pitch-store';
+import { usePitchStore, type A4Reference } from '@/store/pitch-store';
 import { PitchDisplay } from './PitchDisplay';
 
+const A4_OPTIONS: A4Reference[] = [440, 432];
+
 export function PitchControl() {
-  const { noteDown, noteUp, cents, setCents, adjustCents } = usePitchStore();
+  const { noteDown, noteUp, cents, setCents, adjustCents, a4Freq, setA4Freq } = usePitchStore();
 
   return (
     <div className="flex flex-col gap-3">
-      <label className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-        Sa Pitch
-      </label>
+      <div className="flex items-center justify-between">
+        <label className="text-xs text-text-muted uppercase tracking-wider font-semibold">
+          Sa Pitch
+        </label>
+
+        {/* A4 reference toggle */}
+        <div className="flex items-center gap-1">
+          {A4_OPTIONS.map((freq) => (
+            <button
+              key={freq}
+              onClick={() => setA4Freq(freq)}
+              className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
+                a4Freq === freq
+                  ? 'bg-saffron-600 text-white'
+                  : 'bg-surface-lighter text-text-muted hover:text-text-primary'
+              }`}
+              title={`Set A4 reference to ${freq} Hz`}
+            >
+              {freq}Hz
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="flex items-center gap-3">
         {/* Note down button */}

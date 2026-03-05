@@ -52,7 +52,11 @@ export function PresetPanel() {
       setActivePresetId(preset.id);
 
       if (loadOptions.pitch) {
-        usePitchStore.getState().setPitch(preset.pitch.note, preset.pitch.octave, preset.pitch.cents);
+        const ps = usePitchStore.getState();
+        ps.setPitch(preset.pitch.note, preset.pitch.octave, preset.pitch.cents);
+        if (preset.pitch.a4Freq) {
+          ps.setA4Freq(preset.pitch.a4Freq as 440 | 432);
+        }
       }
 
       if (loadOptions.tanpura) {
@@ -105,7 +109,7 @@ export function PresetPanel() {
       favorite: false,
       createdAt: now,
       updatedAt: now,
-      pitch: { note: pitch.note, octave: pitch.octave, cents: pitch.cents },
+      pitch: { note: pitch.note, octave: pitch.octave, cents: pitch.cents, a4Freq: pitch.a4Freq },
       tanpura1: tanpura.tanpura1,
       tanpura2: tanpura.tanpura2,
       tabla: {
