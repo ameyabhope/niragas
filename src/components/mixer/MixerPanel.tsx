@@ -8,6 +8,7 @@ import type { InstrumentId } from '@/audio/types';
 import { useMixerStore } from '@/store/mixer-store';
 import { setMasterVolume as setMasterVolumeAudio, setMasterMute } from '@/audio/mixer';
 import { ChannelStrip } from './ChannelStrip';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
 const INSTRUMENT_ORDER: InstrumentId[] = [
   'tanpura1',
@@ -36,9 +37,12 @@ export function MixerPanel() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-          Mixer
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
+            Mixer
+          </h2>
+          <InfoTooltip text="Control volume and stereo pan for each instrument independently. Toggle between Volume and Pan modes. Use the master fader to control overall output level." />
+        </div>
 
         {/* Volume / Pan mode toggle */}
         <div className="flex bg-surface-lighter rounded-lg overflow-hidden">

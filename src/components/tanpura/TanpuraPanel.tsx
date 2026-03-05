@@ -4,6 +4,7 @@
 
 import { useTanpuraStore } from '@/store/tanpura-store';
 import { TanpuraControl } from './TanpuraControl';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
 export function TanpuraPanel() {
   const {
@@ -18,9 +19,12 @@ export function TanpuraPanel() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-        Tanpura
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
+          Tanpura
+        </h2>
+        <InfoTooltip text="An electronic tanpura providing a continuous drone. Two independent tanpuras with Pa/Ma/Ni tuning, EQ variants, fine pitch, and speed control. Toggle each on/off independently." />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <TanpuraControl
