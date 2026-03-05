@@ -146,6 +146,12 @@ interface TablaInstance {
 let instance: TablaInstance | null = null;
 
 /**
+ * Pending beat callback — stored here so it survives the async gap
+ * between setTablaBeatCallback() and createTabla() resolving.
+ */
+let pendingOnBeat: ((matra: number, divisionLabel: string | null) => void) | null = null;
+
+/**
  * Create and connect the tabla audio chain.
  * Attempts to load samples first; falls back to synthesis if unavailable.
  */
@@ -179,7 +185,7 @@ export async function createTabla(): Promise<void> {
     styleId: '',
     playing: false,
     currentMatra: 1,
-    onBeat: null,
+    onBeat: pendingOnBeat,
   };
 
   console.log(`[Tabla] Created (${sampler ? 'sample-based' : 'synthesis'})`);
@@ -187,10 +193,12 @@ export async function createTabla(): Promise<void> {
 
 /**
  * Set the beat callback for UI updates.
+ * Stores the callback even if the instance doesn't exist yet (race-safe).
  */
 export function setTablaBeatCallback(
   cb: (matra: number, divisionLabel: string | null) => void
 ): void {
+  pendingOnBeat = cb;
   if (instance) instance.onBeat = cb;
 }
 
