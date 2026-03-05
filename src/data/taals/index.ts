@@ -3,6 +3,7 @@
  */
 
 import type { TaalDefinition } from '@/audio/types';
+import { METRONOME_TAALS } from './metronome';
 import { teentaal } from './teentaal';
 import { jhaptaal } from './jhaptaal';
 import { ektaal } from './ektaal';
@@ -57,6 +58,7 @@ import {
 
 /** All available taals, keyed by ID */
 export const TAAL_MAP: Record<string, TaalDefinition> = {
+  ...Object.fromEntries(METRONOME_TAALS.map((t) => [t.id, t])),
   teentaal,
   jhaptaal,
   ektaal,
@@ -108,6 +110,7 @@ export const TAAL_MAP: Record<string, TaalDefinition> = {
 
 /** Ordered list for display in taal selector */
 export const TAAL_LIST: TaalDefinition[] = [
+  ...METRONOME_TAALS,
   teentaal,
   jhaptaal,
   ektaal,
