@@ -1,9 +1,9 @@
 /**
- * Controls for a single tanpura: on/off, first-string tuning, cycle speed.
+ * Controls for a single tanpura: on/off, tuning, EQ, fine pitch, speed.
  */
 
 import { useCallback, useEffect, useRef } from 'react';
-import type { TanpuraConfig, SwarName } from '@/audio/types';
+import type { TanpuraConfig, TanpuraTuning, TanpuraEQ } from '@/audio/types';
 import { usePitchStore } from '@/store/pitch-store';
 import {
   createTanpura,
@@ -14,11 +14,16 @@ import {
   isTanpuraPlaying,
 } from '@/audio/tanpura';
 
-const FIRST_STRING_OPTIONS: { label: string; note: SwarName }[] = [
-  { label: 'Pa', note: 'Pa' },
-  { label: 'Ma', note: 'Ma' },
-  { label: 'Ni', note: 'Ni' },
-  { label: 'Dha', note: 'Dha' },
+const TUNING_OPTIONS: { label: string; value: TanpuraTuning }[] = [
+  { label: 'Pa', value: 'Pa' },
+  { label: 'Ma', value: 'Ma' },
+  { label: 'Ni', value: 'Ni' },
+];
+
+const EQ_OPTIONS: { label: string; value: TanpuraEQ }[] = [
+  { label: 'Neutral', value: 'neutral' },
+  { label: 'Bass', value: 'bass' },
+  { label: 'Treble', value: 'treble' },
 ];
 
 interface TanpuraControlProps {
@@ -26,8 +31,10 @@ interface TanpuraControlProps {
   label: string;
   config: TanpuraConfig;
   onToggle: () => void;
-  onSetFirstString: (note: SwarName) => void;
-  onSetCycleSpeed: (speed: number) => void;
+  onSetTuning: (tuning: TanpuraTuning) => void;
+  onSetEQ: (eq: TanpuraEQ) => void;
+  onSetFinePitch: (cents: number) => void;
+  onSetSpeed: (speed: number) => void;
 }
 
 export function TanpuraControl({
@@ -35,16 +42,18 @@ export function TanpuraControl({
   label,
   config,
   onToggle,
-  onSetFirstString,
-  onSetCycleSpeed,
+  onSetTuning,
+  onSetEQ,
+  onSetFinePitch,
+  onSetSpeed,
 }: TanpuraControlProps) {
-  const { note: saNote, octave: saOctave } = usePitchStore();
+  const { note: saNote, octave: saOctave, cents: saCents } = usePitchStore();
   const created = useRef(false);
   const prevEnabled = useRef(config.enabled);
 
   // Create tanpura instance on mount
   useEffect(() => {
-    createTanpura(id, config, saNote, saOctave).then(() => {
+    createTanpura(id, config, saNote, saOctave, saCents).then(() => {
       created.current = true;
     });
     return () => {
@@ -60,7 +69,7 @@ export function TanpuraControl({
 
     if (config.enabled && !prevEnabled.current) {
       // Just turned on
-      updateTanpura(id, config, saNote, saOctave);
+      updateTanpura(id, config, saNote, saOctave, saCents);
       startTanpura(id);
     } else if (!config.enabled && prevEnabled.current) {
       // Just turned off
@@ -68,24 +77,23 @@ export function TanpuraControl({
     }
 
     prevEnabled.current = config.enabled;
-  }, [config.enabled, id, config, saNote, saOctave]);
+  }, [config.enabled, id, config, saNote, saOctave, saCents]);
 
   // Update pitch when Sa changes
   useEffect(() => {
     if (!created.current) return;
-    updateTanpuraPitch(id, saNote, saOctave);
-  }, [id, saNote, saOctave]);
+    updateTanpuraPitch(id, saNote, saOctave, saCents);
+  }, [id, saNote, saOctave, saCents]);
 
-  // Update config when strings/speed change
+  // Update config when tuning/eq/speed/finePitch change
   const handleConfigChange = useCallback(
     (partial: Partial<TanpuraConfig>) => {
       if (!created.current) return;
-      updateTanpura(id, partial, saNote, saOctave);
+      updateTanpura(id, partial, saNote, saOctave, saCents);
     },
-    [id, saNote, saOctave]
+    [id, saNote, saOctave, saCents]
   );
 
-  const firstStringNote = config.strings[0]?.note ?? 'Pa';
   const isPlaying = config.enabled && isTanpuraPlaying(id);
 
   return (
@@ -111,24 +119,20 @@ export function TanpuraControl({
         </button>
       </div>
 
-      {/* First string tuning */}
+      {/* Tuning (first string) */}
       <div className="mb-3">
-        <label className="text-xs text-text-muted mb-1 block">First String</label>
+        <label className="text-xs text-text-muted mb-1 block">Tuning</label>
         <div className="flex gap-1">
-          {FIRST_STRING_OPTIONS.map(({ label: optLabel, note }) => (
+          {TUNING_OPTIONS.map(({ label: optLabel, value }) => (
             <button
-              key={note}
+              key={value}
               onClick={() => {
-                onSetFirstString(note);
-                handleConfigChange({
-                  strings: config.strings.map((s, i) =>
-                    i === 0 ? { ...s, note } : s
-                  ),
-                });
+                onSetTuning(value);
+                handleConfigChange({ tuning: value });
               }}
               disabled={!config.enabled}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                firstStringNote === note
+                config.tuning === value
                   ? 'bg-saffron-600 text-white'
                   : 'bg-surface-lighter text-text-secondary hover:text-text-primary'
               } disabled:opacity-40 disabled:cursor-not-allowed`}
@@ -139,26 +143,73 @@ export function TanpuraControl({
         </div>
       </div>
 
-      {/* Cycle speed */}
-      <div>
+      {/* EQ variant */}
+      <div className="mb-3">
+        <label className="text-xs text-text-muted mb-1 block">Tone</label>
+        <div className="flex gap-1">
+          {EQ_OPTIONS.map(({ label: optLabel, value }) => (
+            <button
+              key={value}
+              onClick={() => {
+                onSetEQ(value);
+                handleConfigChange({ eq: value });
+              }}
+              disabled={!config.enabled}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                config.eq === value
+                  ? 'bg-saffron-600 text-white'
+                  : 'bg-surface-lighter text-text-secondary hover:text-text-primary'
+              } disabled:opacity-40 disabled:cursor-not-allowed`}
+            >
+              {optLabel}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Fine pitch */}
+      <div className="mb-3">
         <label className="text-xs text-text-muted mb-1 block">
-          Cycle Speed: {config.cycleSpeed.toFixed(1)}s
+          Fine Pitch: {config.finePitchCents > 0 ? '+' : ''}{config.finePitchCents} cents
         </label>
         <input
           type="range"
-          min={2}
-          max={10}
-          step={0.5}
-          value={config.cycleSpeed}
+          min={-50}
+          max={50}
+          step={1}
+          value={config.finePitchCents}
           onChange={(e) => {
-            const speed = parseFloat(e.target.value);
-            onSetCycleSpeed(speed);
-            handleConfigChange({ cycleSpeed: speed });
+            const cents = parseInt(e.target.value, 10);
+            onSetFinePitch(cents);
+            handleConfigChange({ finePitchCents: cents });
           }}
           disabled={!config.enabled}
           className="w-full h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                      accent-saffron-500 disabled:opacity-40"
-          aria-label="Tanpura cycle speed"
+          aria-label="Tanpura fine pitch"
+        />
+      </div>
+
+      {/* Speed */}
+      <div>
+        <label className="text-xs text-text-muted mb-1 block">
+          Speed: {config.speed.toFixed(2)}x
+        </label>
+        <input
+          type="range"
+          min={0.7}
+          max={1.4}
+          step={0.01}
+          value={config.speed}
+          onChange={(e) => {
+            const speed = parseFloat(e.target.value);
+            onSetSpeed(speed);
+            handleConfigChange({ speed });
+          }}
+          disabled={!config.enabled}
+          className="w-full h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
+                     accent-saffron-500 disabled:opacity-40"
+          aria-label="Tanpura speed"
         />
       </div>
 

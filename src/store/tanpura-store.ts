@@ -1,10 +1,13 @@
 /**
  * Tanpura configuration state for both tanpuras.
+ *
+ * Now uses loop-based playback from pre-recorded electronic tanpura samples.
+ * Controls: tuning (Pa/Ma/Ni), EQ variant, fine pitch, speed.
  */
 
 import { create } from 'zustand';
-import type { TanpuraConfig, TanpuraStringConfig, SwarName, SwarVariant } from '@/audio/types';
-import { DEFAULT_TANPURA_STRINGS } from '@/audio/types';
+import type { TanpuraTuning, TanpuraEQ, TanpuraConfig } from '@/audio/types';
+import { DEFAULT_TANPURA_CONFIG } from '@/audio/tanpura';
 
 interface TanpuraState {
   tanpura1: TanpuraConfig;
@@ -12,56 +15,53 @@ interface TanpuraState {
 
   /** Toggle tanpura on/off */
   toggleTanpura: (id: 'tanpura1' | 'tanpura2') => void;
-  /** Set the first string tuning (Pa, Ma, Ni, etc.) */
-  setFirstString: (id: 'tanpura1' | 'tanpura2', note: SwarName, variant?: SwarVariant) => void;
-  /** Set a specific string's configuration */
-  setString: (id: 'tanpura1' | 'tanpura2', index: number, config: Partial<TanpuraStringConfig>) => void;
-  /** Set cycle speed (seconds per full cycle) */
-  setCycleSpeed: (id: 'tanpura1' | 'tanpura2', speed: number) => void;
+  /** Set the first string tuning (Pa, Ma, Ni) */
+  setTuning: (id: 'tanpura1' | 'tanpura2', tuning: TanpuraTuning) => void;
+  /** Set EQ variant (neutral, bass, treble) — only affects Pa+C samples */
+  setEQ: (id: 'tanpura1' | 'tanpura2', eq: TanpuraEQ) => void;
+  /** Set fine pitch adjustment in cents (-50 to +50) */
+  setFinePitch: (id: 'tanpura1' | 'tanpura2', cents: number) => void;
+  /** Set playback speed (0.7 to 1.4) */
+  setSpeed: (id: 'tanpura1' | 'tanpura2', speed: number) => void;
   /** Set full tanpura config */
   setTanpuraConfig: (id: 'tanpura1' | 'tanpura2', config: Partial<TanpuraConfig>) => void;
 }
 
-const defaultTanpura = (pan: number): TanpuraConfig => ({
-  enabled: false,
-  strings: DEFAULT_TANPURA_STRINGS.map((s) => ({ ...s })),
-  pan,
-  volume: 0.75,
-  cycleSpeed: 5, // 5 seconds per full cycle
-});
-
 export const useTanpuraStore = create<TanpuraState>((set) => ({
-  tanpura1: { ...defaultTanpura(-0.3), enabled: true },
-  tanpura2: defaultTanpura(0.3),
+  tanpura1: {
+    ...DEFAULT_TANPURA_CONFIG,
+    enabled: true,
+    pan: -0.3,
+  },
+  tanpura2: {
+    ...DEFAULT_TANPURA_CONFIG,
+    enabled: false,
+    pan: 0.3,
+  },
 
   toggleTanpura: (id) =>
     set((state) => ({
       [id]: { ...state[id], enabled: !state[id].enabled },
     })),
 
-  setFirstString: (id, note, variant = 'shuddha') =>
+  setTuning: (id, tuning) =>
     set((state) => ({
-      [id]: {
-        ...state[id],
-        strings: state[id].strings.map((s, i) =>
-          i === 0 ? { ...s, note, variant } : s
-        ),
-      },
+      [id]: { ...state[id], tuning },
     })),
 
-  setString: (id, index, config) =>
+  setEQ: (id, eq) =>
     set((state) => ({
-      [id]: {
-        ...state[id],
-        strings: state[id].strings.map((s, i) =>
-          i === index ? { ...s, ...config } : s
-        ),
-      },
+      [id]: { ...state[id], eq },
     })),
 
-  setCycleSpeed: (id, speed) =>
+  setFinePitch: (id, cents) =>
     set((state) => ({
-      [id]: { ...state[id], cycleSpeed: Math.max(2, Math.min(10, speed)) },
+      [id]: { ...state[id], finePitchCents: Math.max(-50, Math.min(50, cents)) },
+    })),
+
+  setSpeed: (id, speed) =>
+    set((state) => ({
+      [id]: { ...state[id], speed: Math.max(0.7, Math.min(1.4, speed)) },
     })),
 
   setTanpuraConfig: (id, config) =>

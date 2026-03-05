@@ -10,8 +10,10 @@ export function TanpuraPanel() {
     tanpura1,
     tanpura2,
     toggleTanpura,
-    setFirstString,
-    setCycleSpeed,
+    setTuning,
+    setEQ,
+    setFinePitch,
+    setSpeed,
   } = useTanpuraStore();
 
   return (
@@ -26,8 +28,10 @@ export function TanpuraPanel() {
           label="Tanpura 1"
           config={tanpura1}
           onToggle={() => toggleTanpura('tanpura1')}
-          onSetFirstString={(note) => setFirstString('tanpura1', note)}
-          onSetCycleSpeed={(speed) => setCycleSpeed('tanpura1', speed)}
+          onSetTuning={(t) => setTuning('tanpura1', t)}
+          onSetEQ={(eq) => setEQ('tanpura1', eq)}
+          onSetFinePitch={(c) => setFinePitch('tanpura1', c)}
+          onSetSpeed={(s) => setSpeed('tanpura1', s)}
         />
 
         <TanpuraControl
@@ -35,8 +39,10 @@ export function TanpuraPanel() {
           label="Tanpura 2"
           config={tanpura2}
           onToggle={() => toggleTanpura('tanpura2')}
-          onSetFirstString={(note) => setFirstString('tanpura2', note)}
-          onSetCycleSpeed={(speed) => setCycleSpeed('tanpura2', speed)}
+          onSetTuning={(t) => setTuning('tanpura2', t)}
+          onSetEQ={(eq) => setEQ('tanpura2', eq)}
+          onSetFinePitch={(c) => setFinePitch('tanpura2', c)}
+          onSetSpeed={(s) => setSpeed('tanpura2', s)}
         />
       </div>
     </div>

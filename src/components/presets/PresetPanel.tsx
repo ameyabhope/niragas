@@ -338,8 +338,8 @@ export function PresetPanel() {
                   <p className="text-sm text-text-primary truncate">{preset.name}</p>
                   <p className="text-[10px] text-text-muted truncate">
                     {preset.pitch.note}{preset.pitch.octave}
-                    {' | '}T1:{preset.tanpura1.strings[0]?.note}
-                    {' '}T2:{preset.tanpura2.strings[0]?.note}
+                    {' | '}T1:{preset.tanpura1.tuning}
+                    {' '}T2:{preset.tanpura2.tuning}
                     {' | '}{preset.tabla.taalId} @ {preset.tabla.tempo}bpm
                   </p>
                 </div>
