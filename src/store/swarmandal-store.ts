@@ -5,7 +5,7 @@
 import { create } from 'zustand';
 import type { SwarMandalStringConfig, SwarName, SwarVariant } from '@/audio/types';
 
-/** Default 15 strings: Sa Re Ga Ma Pa Dha Ni across ~2 octaves */
+/** Default 15 strings: Sa-Ni (low octave), Sa'-Ni' (high octave), Sa'' (top) */
 function defaultStrings(): SwarMandalStringConfig[] {
   const swaras: { note: SwarName; variant: SwarVariant; octave: number }[] = [
     { note: 'Sa', variant: 'shuddha', octave: 0 },

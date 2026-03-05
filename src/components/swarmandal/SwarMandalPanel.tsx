@@ -13,7 +13,9 @@ import {
   stopSwarMandalLoop,
   updateSwarMandal,
   updateSwarMandalPitch,
+  isSwarMandalPlaying,
 } from '@/audio/swarmandal';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
 const SWARA_OPTIONS: { note: SwarName; label: string; variant: SwarVariant }[] = [
   { note: 'Sa', label: 'Sa', variant: 'shuddha' },
@@ -45,8 +47,6 @@ export function SwarMandalPanel() {
 
   const { note: saNote, octave: saOctave } = usePitchStore();
   const created = useRef(false);
-  const prevEnabled = useRef(false);
-  const prevAutoLoop = useRef(false);
 
   // Create on mount
   useEffect(() => {
@@ -61,34 +61,43 @@ export function SwarMandalPanel() {
     updateSwarMandalPitch(saNote, saOctave);
   }, [saNote, saOctave]);
 
-  // Handle enable/disable and auto-loop changes
+  // Sync config to audio engine (strings, loopDuration changes)
+  useEffect(() => {
+    if (!created.current) return;
+    updateSwarMandal({ enabled, strings, autoLoop, loopDuration });
+  }, [strings, loopDuration]);
+
+  // Handle enable/disable and auto-loop start/stop
   useEffect(() => {
     if (!created.current) return;
 
+    const shouldLoop = enabled && autoLoop;
+    const isLooping = isSwarMandalPlaying();
+
+    // Sync config first
     updateSwarMandal({ enabled, strings, autoLoop, loopDuration });
 
-    if (enabled && autoLoop && !prevAutoLoop.current) {
+    if (shouldLoop && !isLooping) {
       startSwarMandalLoop();
-    } else if ((!enabled || !autoLoop) && prevAutoLoop.current) {
+    } else if (!shouldLoop && isLooping) {
       stopSwarMandalLoop();
     }
-
-    prevEnabled.current = enabled;
-    prevAutoLoop.current = enabled && autoLoop;
-  }, [enabled, autoLoop, strings, loopDuration]);
+  }, [enabled, autoLoop]);
 
   const handleStrum = useCallback(() => {
     if (!created.current) return;
-    updateSwarMandal({ enabled: true, strings, autoLoop, loopDuration });
     strumSwarMandal();
-  }, [strings, autoLoop, loopDuration]);
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-          Swar Mandal
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
+            Swar Mandal
+          </h2>
+          <InfoTooltip text="A harp-like instrument with configurable strings tuned to specific swaras. Enable/disable individual strings, strum once, or set auto-loop for repeating glissando. Great for filling harmonic space during practice." />
+        </div>
         <button
           onClick={toggle}
           className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
@@ -117,10 +126,10 @@ export function SwarMandalPanel() {
                     ? 'bg-saffron-600/80 text-white'
                     : 'bg-surface-lighter text-text-muted'
                 }`}
-                title={`String ${i + 1}: ${s.note} (${s.variant}) Oct${s.octaveOffset}`}
+                title={`String ${i + 1}: ${s.note} (${s.variant}) octave ${s.octaveOffset === 0 ? 'mandra' : s.octaveOffset === 1 ? 'madhya' : 'taar'}`}
               >
                 {s.note}
-                {s.octaveOffset > 0 ? "'" : s.octaveOffset < 0 ? ',' : ''}
+                {s.octaveOffset === 2 ? "''" : s.octaveOffset === 1 ? "'" : ''}
               </button>
             ))}
           </div>
