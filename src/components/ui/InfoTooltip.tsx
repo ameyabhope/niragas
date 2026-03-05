@@ -1,60 +1,33 @@
 /**
- * A small info icon that shows a tooltip/popover with a description.
- * Click to toggle, click outside or press Escape to dismiss.
+ * A small info icon that shows a tooltip on hover.
+ * On touch devices, tap to toggle.
  */
-
-import { useState, useRef, useEffect, useCallback } from 'react';
 
 interface InfoTooltipProps {
   text: string;
 }
 
 export function InfoTooltip({ text }: InfoTooltipProps) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  const close = useCallback(() => setOpen(false), []);
-
-  useEffect(() => {
-    if (!open) return;
-
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        close();
-      }
-    }
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') close();
-    }
-
-    document.addEventListener('mousedown', handleClick);
-    document.addEventListener('keydown', handleKey);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [open, close]);
-
   return (
-    <div className="relative inline-flex" ref={ref}>
-      <button
-        onClick={() => setOpen((v) => !v)}
+    <div className="relative inline-flex group">
+      <span
         className="w-5 h-5 flex items-center justify-center rounded-full
                    text-text-muted hover:text-text-secondary hover:bg-surface-lighter
-                   transition-colors text-xs leading-none"
+                   transition-colors text-xs leading-none cursor-help select-none"
         aria-label="Info"
-        title="Info"
+        tabIndex={0}
       >
         i
-      </button>
-      {open && (
-        <div
-          className="absolute right-0 top-7 z-50 w-64 rounded-lg border border-white/10
-                     bg-surface-card p-3 text-xs text-text-secondary leading-relaxed shadow-lg"
-        >
-          {text}
-        </div>
-      )}
+      </span>
+      <div
+        className="absolute right-0 top-7 z-50 w-64 rounded-lg border border-white/10
+                   bg-surface-card p-3 text-xs text-text-secondary leading-relaxed shadow-lg
+                   opacity-0 invisible group-hover:opacity-100 group-hover:visible
+                   group-focus-within:opacity-100 group-focus-within:visible
+                   transition-all duration-150 pointer-events-none group-hover:pointer-events-auto"
+      >
+        {text}
+      </div>
     </div>
   );
 }
