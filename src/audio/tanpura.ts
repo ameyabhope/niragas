@@ -4,9 +4,18 @@
  * Architecture (per tanpura instance):
  *
  *   Tone.Player (looping pre-recorded 20s tanpura drone)
+ *       │  playbackRate = pluck tempo ONLY (0.7–1.4x, pitch-safe)
+ *       ▼
+ *   Tone.PitchShift (pitch correction + fine tune, preserves tempo feel)
  *       │
- *       ├── playbackRate used for pitch correction + fine tuning
+ *       ├── compensates speed-induced shift so tempo never changes pitch
  *       │
+ *       ▼
+ *   Tone.Chorus (subtle width + jivari shimmer, wet ~0.18)
+ *       ▼
+ *   Tone.Tremolo (slow 0.4Hz breathing, depth 0.08 — not vibrato)
+ *       ▼
+ *   Tone.Freeverb (small room glue, wet ~0.15)
  *       ▼
  *   Mixer Channel
  *
@@ -20,11 +29,12 @@
  *   - 3 EQ variants for Pa+C: bass, neutral, treble
  *
  * Pitch matching: we find the closest sample to the user's chosen SA,
- * then apply a small playbackRate adjustment to hit the exact frequency.
+ * then correct the residual via PitchShift (not playbackRate) so the
+ * pluck cycle tempo and formants stay stable.
  *
- * Fine pitch: user can apply ±50 cents offset on top.
- * Speed: user can adjust playback speed (0.7x–1.4x) which also shifts pitch
- *        (this is natural — real tanpuras behave the same way).
+ * Fine pitch: user can apply ±50 cents offset on top (via PitchShift).
+ * Speed: pluck tempo 0.7x–1.4x, pitch-compensated — changing tempo
+ *        never changes pitch (unlike varispeed).
  */
 
 import * as Tone from 'tone';
@@ -96,13 +106,17 @@ export const DEFAULT_TANPURA_CONFIG: TanpuraConfig = {
 
 interface TanpuraInstance {
   player: Tone.Player | null;
+  pitchShift: Tone.PitchShift | null;
+  chorus: Tone.Chorus | null;
+  breathing: Tone.Tremolo | null;
+  room: Tone.Freeverb | null;
   config: TanpuraConfig;
   saNote: NoteName;
   saOctave: number;
   saCents: number;
   playing: boolean;
   currentSampleKey: string;  // e.g. "Pa_C" — tracks which sample is loaded
-  baseRate: number;          // playback rate for pitch correction (before speed/finePitch)
+  baseRate: number;          // sample-to-target ratio (before speed/finePitch)
   loading: boolean;
 }
 
@@ -110,10 +124,42 @@ const instances: Map<string, TanpuraInstance> = new Map();
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Compute the combined playback rate from base pitch correction + fine pitch + speed */
-function computePlaybackRate(baseRate: number, finePitchCents: number, speed: number): number {
-  const finePitchRatio = Math.pow(2, finePitchCents / 1200);
-  return baseRate * finePitchRatio * speed;
+/**
+ * PitchShift amount (semitones) needed so output pitch stays exact
+ * regardless of pluck tempo.
+ *
+ * Output = sampleFreq * speed * 2^(shiftSt/12) = target * fineRatio,
+ * so shiftSt = 12*log2(baseRate / speed) + fine/100.
+ */
+function computePitchShiftSt(
+  baseRate: number,
+  finePitchCents: number,
+  speed: number,
+  extraCents = 0
+): number {
+  const shiftSt = 12 * Math.log2(baseRate / speed) + (finePitchCents + extraCents) / 100;
+  // Tone.PitchShift degrades past ~±12st; our worst case is ~±9st.
+  return Math.max(-12, Math.min(12, shiftSt));
+}
+
+/** Small per-instance detune so tanpura1+tanpura2 on the same sample don't phase. */
+function dephaseCents(id: string): number {
+  return id === 'tanpura2' ? 4 : 0;
+}
+
+/** Apply tempo (Player) + pitch (PitchShift) from current config. */
+function applyTempoAndPitch(instance: TanpuraInstance, id: string): void {
+  if (instance.player) {
+    instance.player.playbackRate = instance.config.speed;
+  }
+  if (instance.pitchShift) {
+    instance.pitchShift.pitch = computePitchShiftSt(
+      instance.baseRate,
+      instance.config.finePitchCents,
+      instance.config.speed,
+      dephaseCents(id)
+    );
+  }
 }
 
 /** Static set of all valid tanpura sample URLs (no network check needed) */
@@ -136,6 +182,20 @@ function sampleExists(url: string): boolean {
   return VALID_SAMPLES.has(url);
 }
 
+/** Dispose the audio chain nodes (keeps config/pitch state). */
+function disposeChain(instance: TanpuraInstance): void {
+  instance.player?.dispose();
+  instance.player = null;
+  instance.pitchShift?.dispose();
+  instance.pitchShift = null;
+  instance.chorus?.dispose();
+  instance.chorus = null;
+  instance.breathing?.dispose();
+  instance.breathing = null;
+  instance.room?.dispose();
+  instance.room = null;
+}
+
 // ── Public API ──────────────────────────────────────────────────────────────
 
 /**
@@ -152,6 +212,10 @@ export async function createTanpura(
 
   const instance: TanpuraInstance = {
     player: null,
+    pitchShift: null,
+    chorus: null,
+    breathing: null,
+    room: null,
     config: { ...config },
     saNote,
     saOctave,
@@ -187,8 +251,7 @@ async function loadSampleForInstance(id: string): Promise<void> {
   // Don't reload if same sample is already loaded
   if (sampleKey === instance.currentSampleKey && instance.player) {
     instance.baseRate = rate;
-    const finalRate = computePlaybackRate(rate, instance.config.finePitchCents, instance.config.speed);
-    instance.player.playbackRate = finalRate;
+    applyTempoAndPitch(instance, id);
     return;
   }
 
@@ -196,9 +259,8 @@ async function loadSampleForInstance(id: string): Promise<void> {
   const wasPlaying = instance.playing;
   if (wasPlaying) stopTanpura(id);
 
-  // Dispose old player
-  instance.player?.dispose();
-  instance.player = null;
+  // Dispose old chain
+  disposeChain(instance);
 
   // Check if sample exists (synchronous static lookup)
   if (!sampleExists(sampleUrl)) {
@@ -235,6 +297,41 @@ async function loadPlayerFromUrl(
   const channelInput = getChannelInput(id as 'tanpura1' | 'tanpura2');
 
   return new Promise<void>((resolve) => {
+    // Build chain: Player -> PitchShift -> Chorus -> Tremolo -> Freeverb -> out.
+    // Nodes are created first so onload can set exact tempo + pitch.
+    const pitchShift = new Tone.PitchShift({
+      pitch: 0,
+      windowSize: 0.1,
+      delayTime: 0,
+      feedback: 0,
+      wet: 1,
+    });
+    const chorus = new Tone.Chorus({
+      frequency: 0.6,
+      delayTime: 14,
+      depth: 0.25,
+      wet: 0.18,
+      spread: 180,
+    }).start();
+    const breathing = new Tone.Tremolo({
+      frequency: 0.4,
+      depth: 0.08,
+      wet: 1,
+      spread: 180,
+      type: 'sine',
+    }).start();
+    const room = new Tone.Freeverb({
+      roomSize: 0.65,
+      dampening: 2800,
+      wet: 0.15,
+    });
+
+    // Wire chain to mixer
+    pitchShift.connect(chorus);
+    chorus.connect(breathing);
+    breathing.connect(room);
+    room.connect(channelInput);
+
     const player = new Tone.Player({
       url,
       loop: true,
@@ -242,28 +339,33 @@ async function loadPlayerFromUrl(
       fadeOut: 0.5,
       onload: () => {
         instance.player = player;
+        instance.pitchShift = pitchShift;
+        instance.chorus = chorus;
+        instance.breathing = breathing;
+        instance.room = room;
         instance.currentSampleKey = sampleKey;
         instance.baseRate = baseRate;
 
-        const finalRate = computePlaybackRate(
-          baseRate,
-          instance.config.finePitchCents,
-          instance.config.speed
-        );
-        player.playbackRate = finalRate;
+        applyTempoAndPitch(instance, id);
 
         log(
           `[Tanpura] Loaded ${sampleKey} for ${id} ` +
-          `(baseRate=${baseRate.toFixed(4)}, finalRate=${finalRate.toFixed(4)})`
+          `(baseRate=${baseRate.toFixed(4)}, ` +
+          `pitchShift=${pitchShift.pitch.toFixed(2)}st, tempo=${instance.config.speed.toFixed(2)}x)`
         );
         resolve();
       },
       onerror: (err) => {
         console.error(`[Tanpura] Failed to load ${url}:`, err);
         player.dispose();
+        pitchShift.dispose();
+        chorus.dispose();
+        breathing.dispose();
+        room.dispose();
         resolve();
       },
-    }).connect(channelInput);
+    });
+    player.connect(pitchShift);
   });
 }
 
@@ -275,7 +377,10 @@ export function startTanpura(id: string): void {
   if (!instance || instance.playing || !instance.player || instance.loading) return;
 
   try {
-    instance.player.start();
+    // Random offset into the 20s loop so tanpura1+tanpura2 never
+    // start phase-locked when they share the same sample.
+    const offset = Math.random() * 5;
+    instance.player.start(undefined, offset);
     instance.playing = true;
 
     if (Tone.getTransport().state !== 'started') {
@@ -306,7 +411,7 @@ export function stopTanpura(id: string): void {
 /**
  * Update the tanpura configuration.
  * If tuning, EQ, or SA pitch changed, reloads the sample.
- * If only fine pitch or speed changed, just adjusts playbackRate.
+ * If only fine pitch or tempo changed, just adjusts PitchShift/tempo.
  */
 export async function updateTanpura(
   id: 'tanpura1' | 'tanpura2',
@@ -341,16 +446,11 @@ export async function updateTanpura(
     // Need to reload sample
     await loadSampleForInstance(id);
   } else if (instance.player) {
-    // Just update playback rate
+    // Just update tempo + pitch correction (no reload)
     const targetFreq = noteToFreq(instance.saNote, instance.saOctave, instance.saCents);
     const { rate } = findClosestSample(targetFreq);
     instance.baseRate = rate;
-    const finalRate = computePlaybackRate(
-      rate,
-      instance.config.finePitchCents,
-      instance.config.speed
-    );
-    instance.player.playbackRate = finalRate;
+    applyTempoAndPitch(instance, id);
   }
 }
 
@@ -388,7 +488,7 @@ export function disposeTanpura(id: string): void {
   if (!instance) return;
 
   stopTanpura(id);
-  instance.player?.dispose();
+  disposeChain(instance);
   instances.delete(id);
 
   log(`[Tanpura] Disposed ${id}`);

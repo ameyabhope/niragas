@@ -190,10 +190,10 @@ export function TanpuraControl({
         />
       </div>
 
-      {/* Speed */}
+      {/* Speed (pitch-safe tempo) */}
       <div>
         <label className="text-xs text-text-muted mb-1 block">
-          Speed: {config.speed.toFixed(2)}x
+          Tempo (pitch-safe): {config.speed.toFixed(2)}x
         </label>
         <input
           type="range"
@@ -209,7 +209,7 @@ export function TanpuraControl({
           disabled={!config.enabled}
           className="w-full h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                      accent-saffron-500 disabled:opacity-40"
-          aria-label="Tanpura speed"
+          aria-label="Tanpura tempo (pitch-safe)"
         />
       </div>
 
