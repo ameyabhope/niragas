@@ -2,7 +2,7 @@
  * Controls for a single tanpura: on/off, tuning, EQ, fine pitch, speed.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TanpuraConfig, TanpuraTuning, TanpuraEQ } from '@/audio/types';
 import { usePitchStore } from '@/store/pitch-store';
 import {
@@ -11,7 +11,9 @@ import {
   stopTanpura,
   updateTanpura,
   updateTanpuraPitch,
-  isTanpuraPlaying,
+  subscribeTanpuraStatus,
+  getTanpuraStatus,
+  type TanpuraStatus,
 } from '@/audio/tanpura';
 
 const TUNING_OPTIONS: { label: string; value: TanpuraTuning }[] = [
@@ -50,27 +52,45 @@ export function TanpuraControl({
   const { note: saNote, octave: saOctave, cents: saCents, a4Freq } = usePitchStore();
   const created = useRef(false);
   const prevEnabled = useRef(false);
+  // Live enabled flag so mount-time creation can honor a toggle
+  // that happened while the sample was still loading.
+  const enabledRef = useRef(config.enabled);
+  enabledRef.current = config.enabled;
+
+  // Reactive engine status (loading / actually sounding / error)
+  const [status, setStatus] = useState<TanpuraStatus>(() => getTanpuraStatus(id));
+  useEffect(() => subscribeTanpuraStatus(id, setStatus), [id]);
 
   // Create tanpura instance on mount
   useEffect(() => {
+    let cancelled = false;
     createTanpura(id, config, saNote, saOctave, saCents).then(() => {
+      if (cancelled) return;
       created.current = true;
+      prevEnabled.current = enabledRef.current;
+      // Honor a toggle that happened while loading
+      if (enabledRef.current) {
+        startTanpura(id);
+      }
     });
     return () => {
+      cancelled = true;
       created.current = false;
     };
     // Only run on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // Handle enable/disable
+  // Handle enable/disable (awaited so start is never attempted mid-update)
   useEffect(() => {
     if (!created.current) return;
 
     if (config.enabled && !prevEnabled.current) {
-      // Just turned on
-      updateTanpura(id, config, saNote, saOctave, saCents);
-      startTanpura(id);
+      // Just turned on — start intent is queued if still loading
+      void (async () => {
+        await updateTanpura(id, config, saNote, saOctave, saCents);
+        startTanpura(id);
+      })();
     } else if (!config.enabled && prevEnabled.current) {
       // Just turned off
       stopTanpura(id);
@@ -94,7 +114,8 @@ export function TanpuraControl({
     [id, saNote, saOctave, saCents]
   );
 
-  const isPlaying = config.enabled && isTanpuraPlaying(id);
+  const isPlaying = status.playing;
+  const isLoading = status.loading;
 
   return (
     <div
@@ -213,11 +234,22 @@ export function TanpuraControl({
         />
       </div>
 
-      {/* Playing indicator */}
+      {/* Status: loading / playing / error (engine truth, not just the toggle) */}
+      {isLoading && (
+        <div className="mt-2 flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-saffron-500 animate-pulse" />
+          <span className="text-xs text-text-muted">Loading sample…</span>
+        </div>
+      )}
       {isPlaying && (
         <div className="mt-2 flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-active animate-pulse" />
           <span className="text-xs text-active">Playing</span>
+        </div>
+      )}
+      {status.error && (
+        <div className="mt-2 text-xs text-accent" role="alert">
+          {status.error}
         </div>
       )}
     </div>

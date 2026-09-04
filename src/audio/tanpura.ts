@@ -115,12 +115,61 @@ interface TanpuraInstance {
   saOctave: number;
   saCents: number;
   playing: boolean;
+  /** Start was requested while loading — honored as soon as the sample is ready. */
+  startRequested: boolean;
+  /** Last load/start error (surfaced to UI), null when healthy. */
+  error: string | null;
   currentSampleKey: string;  // e.g. "Pa_C" — tracks which sample is loaded
   baseRate: number;          // sample-to-target ratio (before speed/finePitch)
   loading: boolean;
 }
 
 const instances: Map<string, TanpuraInstance> = new Map();
+
+// ── Status subscription (reactive UI) ───────────────────────────────────────
+
+export interface TanpuraStatus {
+  loading: boolean;
+  playing: boolean;
+  error: string | null;
+}
+
+type StatusListener = (status: TanpuraStatus) => void;
+const statusListeners: Map<string, Set<StatusListener>> = new Map();
+
+function snapshot(id: string): TanpuraStatus {
+  const instance = instances.get(id);
+  return {
+    loading: instance?.loading ?? false,
+    playing: instance?.playing ?? false,
+    error: instance?.error ?? null,
+  };
+}
+
+function notify(id: string): void {
+  const listeners = statusListeners.get(id);
+  if (!listeners) return;
+  const status = snapshot(id);
+  for (const cb of listeners) cb(status);
+}
+
+/** Subscribe to loading/playing/error changes for a tanpura instance. */
+export function subscribeTanpuraStatus(id: string, cb: StatusListener): () => void {
+  let set = statusListeners.get(id);
+  if (!set) {
+    set = new Set();
+    statusListeners.set(id, set);
+  }
+  set.add(cb);
+  return () => {
+    set.delete(cb);
+  };
+}
+
+/** Current loading/playing/error snapshot (for useState initializers). */
+export function getTanpuraStatus(id: string): TanpuraStatus {
+  return snapshot(id);
+}
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -221,6 +270,8 @@ export async function createTanpura(
     saOctave,
     saCents,
     playing: false,
+    startRequested: false,
+    error: null,
     currentSampleKey: '',
     baseRate: 1.0,
     loading: false,
@@ -228,7 +279,7 @@ export async function createTanpura(
 
   instances.set(id, instance);
 
-  // Load the appropriate sample
+  // Load the appropriate sample (honors config.enabled on completion)
   await loadSampleForInstance(id);
 
   log(`[Tanpura] Created ${id}`);
@@ -256,31 +307,53 @@ async function loadSampleForInstance(id: string): Promise<void> {
   }
 
   instance.loading = true;
+  instance.error = null;
+  notify(id);
   const wasPlaying = instance.playing;
   if (wasPlaying) stopTanpura(id);
 
   // Dispose old chain
   disposeChain(instance);
 
-  // Check if sample exists (synchronous static lookup)
-  if (!sampleExists(sampleUrl)) {
-    console.warn(`[Tanpura] Sample not found: ${sampleUrl}, trying neutral EQ`);
-    // Fall back to neutral EQ
-    const fallbackUrl = getSampleUrl(tuning, entry.key, 'neutral');
-    if (!sampleExists(fallbackUrl)) {
-      console.error(`[Tanpura] No sample found for ${tuning} ${entry.key}`);
-      instance.loading = false;
-      return;
-    }
-    // Load fallback
-    await loadPlayerFromUrl(id, fallbackUrl, `${tuning}_${entry.key}_neutral`, rate);
+  // Primary URL first, then extension fallbacks (.ogg/.wav for browsers
+  // whose Web Audio can't decode AAC). Missing files 404 fast to next.
+  const candidates: Array<{ url: string; key: string }> = [];
+  if (sampleExists(sampleUrl)) {
+    candidates.push({ url: sampleUrl, key: sampleKey });
   } else {
-    await loadPlayerFromUrl(id, sampleUrl, sampleKey, rate);
+    console.warn(`[Tanpura] Sample not found: ${sampleUrl}, trying neutral EQ`);
+    const fallbackUrl = getSampleUrl(tuning, entry.key, 'neutral');
+    const fallbackKey = `${tuning}_${entry.key}_neutral`;
+    if (sampleExists(fallbackUrl)) {
+      candidates.push({ url: fallbackUrl, key: fallbackKey });
+    }
+  }
+  // Extension fallbacks for the chosen candidate (decode-failure path)
+  const primary = candidates[0];
+  if (primary) {
+    for (const ext of ['.ogg', '.wav']) {
+      candidates.push({
+        url: primary.url.replace(/\.m4a$/, ext),
+        key: primary.key,
+      });
+    }
+  }
+
+  let loaded = false;
+  for (const candidate of candidates) {
+    loaded = await loadPlayerFromUrl(id, candidate.url, candidate.key, rate);
+    if (loaded) break;
+  }
+
+  if (!loaded) {
+    instance.error = `Sample failed to load (${tuning} ${entry.key}) — format may be unsupported in this browser`;
+    console.error(`[Tanpura] ${instance.error}`);
   }
 
   instance.loading = false;
+  notify(id);
 
-  if (wasPlaying && instance.config.enabled) {
+  if ((wasPlaying || instance.startRequested) && instance.config.enabled && !instance.error) {
     startTanpura(id);
   }
 }
@@ -290,41 +363,60 @@ async function loadPlayerFromUrl(
   url: string,
   sampleKey: string,
   baseRate: number
-): Promise<void> {
+): Promise<boolean> {
   const instance = instances.get(id);
-  if (!instance) return;
+  if (!instance) return false;
 
   const channelInput = getChannelInput(id as 'tanpura1' | 'tanpura2');
 
-  return new Promise<void>((resolve) => {
+  return new Promise<boolean>((resolve) => {
     // Build chain: Player -> PitchShift -> Chorus -> Tremolo -> Freeverb -> out.
     // Nodes are created first so onload can set exact tempo + pitch.
-    const pitchShift = new Tone.PitchShift({
-      pitch: 0,
-      windowSize: 0.1,
-      delayTime: 0,
-      feedback: 0,
-      wet: 1,
-    });
-    const chorus = new Tone.Chorus({
-      frequency: 0.6,
-      delayTime: 14,
-      depth: 0.25,
-      wet: 0.18,
-      spread: 180,
-    }).start();
-    const breathing = new Tone.Tremolo({
-      frequency: 0.4,
-      depth: 0.08,
-      wet: 1,
-      spread: 180,
-      type: 'sine',
-    }).start();
-    const room = new Tone.Freeverb({
-      roomSize: 0.65,
-      dampening: 2800,
-      wet: 0.15,
-    });
+    let pitchShift: Tone.PitchShift | null = null;
+    let chorus: Tone.Chorus | null = null;
+    let breathing: Tone.Tremolo | null = null;
+    let room: Tone.Freeverb | null = null;
+    try {
+      pitchShift = new Tone.PitchShift({
+        pitch: 0,
+        windowSize: 0.1,
+        delayTime: 0,
+        feedback: 0,
+        wet: 1,
+      });
+      chorus = new Tone.Chorus({
+        frequency: 0.6,
+        delayTime: 14,
+        depth: 0.25,
+        wet: 0.18,
+        spread: 180,
+      }).start();
+      breathing = new Tone.Tremolo({
+        frequency: 0.4,
+        depth: 0.08,
+        wet: 1,
+        spread: 180,
+        type: 'sine',
+      }).start();
+      room = new Tone.Freeverb({
+        roomSize: 0.65,
+        dampening: 2800,
+        wet: 0.15,
+      });
+    } catch (err) {
+      console.error(`[Tanpura] Failed to build effect chain for ${id}:`, err);
+      // Dispose whatever was constructed before the throw
+      pitchShift?.dispose();
+      chorus?.dispose();
+      breathing?.dispose();
+      room?.dispose();
+      if (instance) {
+        instance.error = 'Audio effects unavailable in this browser';
+        notify(id);
+      }
+      resolve(false);
+      return;
+    }
 
     // Wire chain to mixer
     pitchShift.connect(chorus);
@@ -353,16 +445,16 @@ async function loadPlayerFromUrl(
           `(baseRate=${baseRate.toFixed(4)}, ` +
           `pitchShift=${pitchShift.pitch.toFixed(2)}st, tempo=${instance.config.speed.toFixed(2)}x)`
         );
-        resolve();
+        resolve(true);
       },
       onerror: (err) => {
-        console.error(`[Tanpura] Failed to load ${url}:`, err);
+        console.warn(`[Tanpura] Failed to load ${url}:`, err);
         player.dispose();
         pitchShift.dispose();
         chorus.dispose();
         breathing.dispose();
         room.dispose();
-        resolve();
+        resolve(false);
       },
     });
     player.connect(pitchShift);
@@ -371,17 +463,28 @@ async function loadPlayerFromUrl(
 
 /**
  * Start the tanpura drone.
+ * Safe to call while loading — the start intent is queued and honored
+ * once the sample finishes loading (if still enabled).
  */
 export function startTanpura(id: string): void {
   const instance = instances.get(id);
-  if (!instance || instance.playing || !instance.player || instance.loading) return;
+  if (!instance || instance.playing) return;
+
+  // Record intent first so a start during load isn't dropped.
+  instance.startRequested = true;
+
+  if (!instance.player || instance.loading || instance.error) {
+    notify(id);
+    return;
+  }
 
   try {
     // Random offset into the 20s loop so tanpura1+tanpura2 never
     // start phase-locked when they share the same sample.
     const offset = Math.random() * 5;
-    instance.player.start(undefined, offset);
+    instance.player.start(Tone.now(), offset);
     instance.playing = true;
+    instance.error = null;
 
     if (Tone.getTransport().state !== 'started') {
       Tone.getTransport().start();
@@ -390,7 +493,9 @@ export function startTanpura(id: string): void {
     log(`[Tanpura] Started ${id}`);
   } catch (err) {
     console.error(`[Tanpura] Error starting ${id}:`, err);
+    instance.error = 'Failed to start playback in this browser';
   }
+  notify(id);
 }
 
 /**
@@ -400,11 +505,14 @@ export function stopTanpura(id: string): void {
   const instance = instances.get(id);
   if (!instance) return;
 
+  instance.startRequested = false;
+
   if (instance.player?.state === 'started') {
     instance.player.stop();
   }
   instance.playing = false;
 
+  notify(id);
   log(`[Tanpura] Stopped ${id}`);
 }
 
@@ -490,6 +598,7 @@ export function disposeTanpura(id: string): void {
   stopTanpura(id);
   disposeChain(instance);
   instances.delete(id);
+  notify(id);
 
   log(`[Tanpura] Disposed ${id}`);
 }

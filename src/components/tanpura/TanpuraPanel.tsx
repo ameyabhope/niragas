@@ -5,6 +5,7 @@
 import { useTanpuraStore } from '@/store/tanpura-store';
 import { TanpuraControl } from './TanpuraControl';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
+import { useAudioEngine } from '@/hooks/useAudioEngine';
 
 export function TanpuraPanel() {
   const {
@@ -16,6 +17,13 @@ export function TanpuraPanel() {
     setFinePitch,
     setSpeed,
   } = useTanpuraStore();
+  const { initialize } = useAudioEngine();
+
+  // Resume the AudioContext first so the start that follows the store
+  // flip is never attempted while suspended (same user gesture).
+  const handleToggle = (id: 'tanpura1' | 'tanpura2') => {
+    void initialize().then(() => toggleTanpura(id));
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -31,7 +39,7 @@ export function TanpuraPanel() {
           id="tanpura1"
           label="Tanpura 1"
           config={tanpura1}
-          onToggle={() => toggleTanpura('tanpura1')}
+          onToggle={() => handleToggle('tanpura1')}
           onSetTuning={(t) => setTuning('tanpura1', t)}
           onSetEQ={(eq) => setEQ('tanpura1', eq)}
           onSetFinePitch={(c) => setFinePitch('tanpura1', c)}
@@ -42,7 +50,7 @@ export function TanpuraPanel() {
           id="tanpura2"
           label="Tanpura 2"
           config={tanpura2}
-          onToggle={() => toggleTanpura('tanpura2')}
+          onToggle={() => handleToggle('tanpura2')}
           onSetTuning={(t) => setTuning('tanpura2', t)}
           onSetEQ={(eq) => setEQ('tanpura2', eq)}
           onSetFinePitch={(c) => setFinePitch('tanpura2', c)}

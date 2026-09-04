@@ -138,6 +138,19 @@ export function initAudioSubscriptions(): void {
     prevEQ = state;
   });
 
+  // ── Initial mixer state ──
+  // Subscriptions only fire on state *changes*, so push the initial
+  // volumes/pans/mutes now — otherwise the 75%/80% sliders are fiction
+  // until first touched (channels boot at 0dB unmuted).
+  const initialMixer = useMixerStore.getState();
+  for (const id of INSTRUMENT_IDS) {
+    setChannelVolume(id, initialMixer.channels[id].volume);
+    setChannelPan(id, initialMixer.channels[id].pan);
+    setChannelMute(id, initialMixer.channels[id].muted);
+  }
+  setMasterVolume(initialMixer.masterVolume);
+  setMasterMute(initialMixer.masterMuted);
+
   // ── Initial EQ state ──
   // If EQ is already enabled at startup, create and insert it now.
   // The subscription above only fires on state *changes*, so it won't
