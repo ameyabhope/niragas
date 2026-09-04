@@ -27,10 +27,14 @@ interface MixerState {
   setPan: (id: InstrumentId, pan: number) => void;
   /** Toggle mute for an instrument */
   toggleMute: (id: InstrumentId) => void;
+  /** Set mute for an instrument */
+  setMuted: (id: InstrumentId, muted: boolean) => void;
   /** Set master volume */
   setMasterVolume: (volume: number) => void;
   /** Toggle master mute */
   toggleMasterMute: () => void;
+  /** Set master mute */
+  setMasterMuted: (muted: boolean) => void;
 }
 
 export const useMixerStore = create<MixerState>((set) => ({
@@ -82,9 +86,19 @@ export const useMixerStore = create<MixerState>((set) => ({
       },
     })),
 
+  setMuted: (id, muted) =>
+    set((state) => ({
+      channels: {
+        ...state.channels,
+        [id]: { ...state.channels[id], muted },
+      },
+    })),
+
   setMasterVolume: (volume) =>
     set({ masterVolume: Math.max(0, Math.min(1, volume)) }),
 
   toggleMasterMute: () =>
     set((state) => ({ masterMuted: !state.masterMuted })),
+
+  setMasterMuted: (masterMuted) => set({ masterMuted }),
 }));

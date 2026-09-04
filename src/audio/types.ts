@@ -132,6 +132,7 @@ export interface SwarMandalConfig {
 
 /** Preset data */
 export interface Preset {
+  schemaVersion: 2;
   id: string;
   name: string;
   favorite: boolean;
@@ -141,7 +142,7 @@ export interface Preset {
     note: NoteName;
     octave: number;
     cents: number;
-    a4Freq?: number;  // 440 or 432 (optional for backward compat with old presets)
+    a4Freq: 440 | 432;
   };
   tanpura1: TanpuraConfig;
   tanpura2: TanpuraConfig;
@@ -155,5 +156,6 @@ export interface Preset {
   swarMandal: SwarMandalConfig;
   manjira: { enabled: boolean; volume: number };
   mixer: Record<InstrumentId, ChannelState>;
+  master: { volume: number; muted: boolean };
   eq: EQState;
 }

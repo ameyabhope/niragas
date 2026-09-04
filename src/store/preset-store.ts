@@ -13,15 +13,10 @@ import {
   importPresetsJSON,
 } from '@/lib/storage';
 import { FACTORY_PRESETS } from '@/data/raag-presets';
+import type { PresetLoadOptions } from '@/lib/preset-state';
 
 /** Which parts of a preset to load */
-export interface LoadOptions {
-  pitch: boolean;
-  tanpura: boolean;
-  tabla: boolean;
-  mixer: boolean;
-  eq: boolean;
-}
+export type LoadOptions = PresetLoadOptions;
 
 interface PresetState {
   presets: Preset[];
@@ -62,6 +57,8 @@ export const usePresetStore = create<PresetState>((set, get) => ({
     pitch: true,
     tanpura: true,
     tabla: true,
+    surPeti: true,
+    swarMandal: true,
     mixer: true,
     eq: true,
   },

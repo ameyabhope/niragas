@@ -84,12 +84,13 @@ function makePreset(
 ): Preset {
   const now = Date.now();
   return {
+    schemaVersion: 2,
     id: `factory-${id}`,
     name,
     favorite: false,
     createdAt: now,
     updatedAt: now,
-    pitch: { note: note as Preset['pitch']['note'], octave, cents: 0 },
+    pitch: { note: note as Preset['pitch']['note'], octave, cents: 0, a4Freq: 440 },
     tanpura1: makeTanpura(firstString1, -0.3, true),
     tanpura2: makeTanpura(firstString2, 0.3, true),
     tabla: { taalId, styleId: 'theka', tempo, enabled: false },
@@ -97,6 +98,7 @@ function makePreset(
     swarMandal: defaultSwarMandal(),
     manjira: { enabled: false, volume: 0.5 },
     mixer: defaultMixer(),
+    master: { volume: 0.8, muted: false },
     eq: defaultEQ(),
   };
 }

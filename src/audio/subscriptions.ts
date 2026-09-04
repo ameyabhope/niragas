@@ -53,8 +53,7 @@ import {
   bypassEQ,
 } from './mixer';
 import {
-  setEQBandGain,
-  applyEQPreset,
+  setEQBand,
   createEQ,
 } from './eq';
 import { getTaal } from '@/data/taals';
@@ -270,28 +269,27 @@ export function initAudioSubscriptions(): void {
 
   let prevEQ = useEQStore.getState();
   useEQStore.subscribe((state) => {
-    // Band gains
+    // Complete band configuration
     for (let i = 0; i < state.bands.length; i++) {
-      if (state.bands[i].gain !== prevEQ.bands[i]?.gain) {
-        setEQBandGain(i, state.bands[i].gain);
+      const current = state.bands[i];
+      const previous = prevEQ.bands[i];
+      if (
+        !previous ||
+        current.gain !== previous.gain ||
+        current.frequency !== previous.frequency ||
+        current.Q !== previous.Q ||
+        current.type !== previous.type
+      ) {
+        setEQBand(i, current);
       }
-    }
-
-    // Preset applied
-    if (state.presetName !== prevEQ.presetName && state.presetName !== 'Custom') {
-      applyEQPreset(state.presetName);
     }
 
     // EQ enabled/disabled toggle
     if (state.enabled !== prevEQ.enabled) {
       if (state.enabled) {
         const { input, output } = createEQ();
-        // Restore current band gains
-        if (state.presetName !== 'Flat' && state.presetName !== 'Custom') {
-          applyEQPreset(state.presetName);
-        } else {
-          state.bands.forEach((band, i) => setEQBandGain(i, band.gain));
-        }
+        // Restore current band configuration
+        state.bands.forEach((band, i) => setEQBand(i, band));
         insertEQ(input, output);
       } else {
         bypassEQ();
@@ -358,11 +356,7 @@ export function initAudioSubscriptions(): void {
   const initialEQ = useEQStore.getState();
   if (initialEQ.enabled) {
     const { input, output } = createEQ();
-    if (initialEQ.presetName !== 'Flat' && initialEQ.presetName !== 'Custom') {
-      applyEQPreset(initialEQ.presetName);
-    } else {
-      initialEQ.bands.forEach((band, i) => setEQBandGain(i, band.gain));
-    }
+    initialEQ.bands.forEach((band, i) => setEQBand(i, band));
     insertEQ(input, output);
   }
 

@@ -305,6 +305,16 @@ export function setEQBandGain(bandIndex: number, gain: number): void {
   instance.bands[bandIndex].gain.value = Math.max(-12, Math.min(12, gain));
 }
 
+/** Apply the complete configuration for one EQ band. */
+export function setEQBand(bandIndex: number, config: EQBand): void {
+  if (!instance || bandIndex < 0 || bandIndex >= instance.bands.length) return;
+  const band = instance.bands[bandIndex];
+  band.type = config.type;
+  band.frequency.value = config.frequency;
+  band.gain.value = Math.max(-12, Math.min(12, config.gain));
+  band.Q.value = config.Q;
+}
+
 /**
  * Apply an EQ preset by name.
  */

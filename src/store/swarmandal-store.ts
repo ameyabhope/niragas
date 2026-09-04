@@ -3,7 +3,7 @@
  */
 
 import { create } from 'zustand';
-import type { SwarMandalStringConfig, SwarName, SwarVariant } from '@/audio/types';
+import type { SwarMandalConfig, SwarMandalStringConfig, SwarName, SwarVariant } from '@/audio/types';
 
 /** Default 15 strings: Sa-Ni (low octave), Sa'-Ni' (high octave), Sa'' (top) */
 function defaultStrings(): SwarMandalStringConfig[] {
@@ -45,6 +45,7 @@ interface SwarMandalState {
   setStringNote: (index: number, note: SwarName, variant?: SwarVariant) => void;
   setAutoLoop: (autoLoop: boolean) => void;
   setLoopDuration: (duration: number) => void;
+  setConfig: (config: SwarMandalConfig) => void;
 }
 
 export const useSwarMandalStore = create<SwarMandalState>((set) => ({
@@ -72,4 +73,11 @@ export const useSwarMandalStore = create<SwarMandalState>((set) => ({
 
   setAutoLoop: (autoLoop) => set({ autoLoop }),
   setLoopDuration: (duration) => set({ loopDuration: Math.max(2, Math.min(30, duration)) }),
+  setConfig: (config) =>
+    set({
+      enabled: config.enabled,
+      strings: config.strings.map((string) => ({ ...string })),
+      autoLoop: config.autoLoop,
+      loopDuration: Math.max(2, Math.min(30, config.loopDuration)),
+    }),
 }));

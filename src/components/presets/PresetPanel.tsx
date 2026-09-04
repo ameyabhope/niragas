@@ -5,12 +5,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import type { Preset } from '@/audio/types';
 import { usePresetStore, type LoadOptions } from '@/store/preset-store';
-import { usePitchStore } from '@/store/pitch-store';
-import { useTanpuraStore } from '@/store/tanpura-store';
-import { useTablaStore } from '@/store/tabla-store';
-import { useMixerStore } from '@/store/mixer-store';
-import { useEQStore } from '@/store/eq-store';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
+import { applyPresetState, capturePreset } from '@/lib/preset-state';
+import { MAX_PRESET_IMPORT_BYTES } from '@/lib/presets';
 
 export function PresetPanel() {
   const {
@@ -34,6 +31,8 @@ export function PresetPanel() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
   const [showLoadOptions, setShowLoadOptions] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load presets on mount
@@ -51,94 +50,29 @@ export function PresetPanel() {
   const applyPreset = useCallback(
     (preset: Preset) => {
       setActivePresetId(preset.id);
-
-      if (loadOptions.pitch) {
-        const ps = usePitchStore.getState();
-        ps.setPitch(preset.pitch.note, preset.pitch.octave, preset.pitch.cents);
-        if (preset.pitch.a4Freq) {
-          ps.setA4Freq(preset.pitch.a4Freq as 440 | 432);
-        }
-      }
-
-      if (loadOptions.tanpura) {
-        const ts = useTanpuraStore.getState();
-        ts.setTanpuraConfig('tanpura1', preset.tanpura1);
-        ts.setTanpuraConfig('tanpura2', preset.tanpura2);
-      }
-
-      if (loadOptions.tabla) {
-        const tab = useTablaStore.getState();
-        tab.setTaalId(preset.tabla.taalId);
-        tab.setStyleId(preset.tabla.styleId);
-        tab.setTempo(preset.tabla.tempo);
-      }
-
-      if (loadOptions.mixer) {
-        const mix = useMixerStore.getState();
-        for (const [id, ch] of Object.entries(preset.mixer)) {
-          mix.setVolume(id as keyof typeof preset.mixer, ch.volume);
-          mix.setPan(id as keyof typeof preset.mixer, ch.pan);
-        }
-        mix.setMasterVolume(0.8);
-      }
-
-      if (loadOptions.eq && preset.eq) {
-        const eq = useEQStore.getState();
-        preset.eq.bands.forEach((band, i) => {
-          eq.setBandGain(i, band.gain);
-        });
-      }
+      applyPresetState(preset, loadOptions);
     },
     [loadOptions, setActivePresetId]
   );
 
   // ── Save current state as preset ──
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!newPresetName.trim()) return;
 
-    const pitch = usePitchStore.getState();
-    const tanpura = useTanpuraStore.getState();
-    const tabla = useTablaStore.getState();
-    const mixer = useMixerStore.getState();
-    const eq = useEQStore.getState();
+    const preset = capturePreset(newPresetName);
 
-    const now = Date.now();
-    const preset: Preset = {
-      id: `custom-${now}`,
-      name: newPresetName.trim(),
-      favorite: false,
-      createdAt: now,
-      updatedAt: now,
-      pitch: { note: pitch.note, octave: pitch.octave, cents: pitch.cents, a4Freq: pitch.a4Freq },
-      tanpura1: tanpura.tanpura1,
-      tanpura2: tanpura.tanpura2,
-      tabla: {
-        taalId: tabla.taalId,
-        styleId: tabla.styleId,
-        tempo: tabla.tempo,
-        enabled: tabla.playing,
-      },
-      surPeti: { enabled: false, volume: 0.75 },
-      swarMandal: {
-        enabled: false,
-        strings: [],
-        autoLoop: false,
-        loopDuration: 8,
-        volume: 0.6,
-      },
-      manjira: { enabled: false, volume: 0.5 },
-      mixer: mixer.channels,
-      eq: {
-        enabled: eq.enabled,
-        bands: eq.bands,
-        presetName: eq.presetName,
-      },
-    };
-
-    createPreset(preset);
-    setNewPresetName('');
-    setShowSaveDialog(false);
+    try {
+      setError(null);
+      setSaving(true);
+      await createPreset(preset);
+      setNewPresetName('');
+      setShowSaveDialog(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save preset.');
+    } finally {
+      setSaving(false);
+    }
   }, [newPresetName, createPreset]);
 
   // ── Export ──
@@ -162,11 +96,15 @@ export function PresetPanel() {
       if (!file) return;
 
       try {
+        if (file.size > MAX_PRESET_IMPORT_BYTES) {
+          throw new Error('Preset file is larger than 2 MB');
+        }
         const text = await file.text();
         const count = await importFromJSON(text);
         alert(`Imported ${count} presets successfully.`);
-      } catch {
-        alert('Failed to import presets. Check file format.');
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown import error';
+        alert(`Failed to import presets: ${message}`);
       }
 
       // Reset file input
@@ -181,10 +119,11 @@ export function PresetPanel() {
         <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
           Presets
         </h2>
-        <InfoTooltip text="112 factory raag presets plus custom presets. Each preset stores Sa pitch, tanpura tuning, taal, tempo, mixer, and EQ settings. Use 'Options' to choose which settings to load. Export/import presets as JSON." />
+        <InfoTooltip text="Factory raag presets plus custom presets. Each preset stores pitch, instruments, playback state, mixer, and EQ settings. Use Options to choose which sections to load. Imports are validated before anything is saved." />
       </div>
 
       <div className="rounded-xl border border-white/5 bg-surface-card p-4 flex flex-col gap-3">
+        {error && <p className="text-xs text-accent" role="alert">{error}</p>}
         {/* Top controls */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* All / Favorites toggle */}
@@ -269,11 +208,11 @@ export function PresetPanel() {
             />
             <button
               onClick={handleSave}
-              disabled={!newPresetName.trim()}
+              disabled={!newPresetName.trim() || saving}
               className="px-3 py-1 bg-saffron-600 text-white text-xs rounded font-semibold
                          disabled:opacity-40 hover:bg-saffron-500 transition-colors"
             >
-              Save
+              {saving ? 'Saving...' : 'Save'}
             </button>
             <button
               onClick={() => setShowSaveDialog(false)}
@@ -295,7 +234,9 @@ export function PresetPanel() {
                   onChange={(e) => setLoadOption(key, e.target.checked)}
                   className="w-3 h-3 accent-saffron-500"
                 />
-                <span className="text-xs text-text-secondary capitalize">{key}</span>
+                <span className="text-xs text-text-secondary">
+                  {key === 'surPeti' ? 'Sur-Peti' : key === 'swarMandal' ? 'Swar Mandal' : key[0].toUpperCase() + key.slice(1)}
+                </span>
               </label>
             ))}
           </div>

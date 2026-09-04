@@ -5,6 +5,12 @@
 
 import { openDB, type IDBPDatabase } from 'idb';
 import type { Preset } from '@/audio/types';
+import {
+  MAX_PRESET_IMPORT_BYTES,
+  parsePreset,
+  parsePresetExport,
+  serializePresetExport,
+} from '@/lib/presets';
 
 const DB_NAME = 'niragas';
 const DB_VERSION = 1;
@@ -35,7 +41,15 @@ function getDB(): Promise<IDBPDatabase> {
  */
 export async function getAllPresets(): Promise<Preset[]> {
   const db = await getDB();
-  const presets = await db.getAll(PRESETS_STORE);
+  const stored: unknown[] = await db.getAll(PRESETS_STORE);
+  const presets: Preset[] = [];
+  for (const value of stored) {
+    try {
+      presets.push(parsePreset(value, 'stored preset'));
+    } catch (err) {
+      console.warn('[Storage] Ignoring invalid stored preset:', err);
+    }
+  }
   return presets.sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -44,7 +58,7 @@ export async function getAllPresets(): Promise<Preset[]> {
  */
 export async function savePreset(preset: Preset): Promise<void> {
   const db = await getDB();
-  await db.put(PRESETS_STORE, preset);
+  await db.put(PRESETS_STORE, parsePreset(preset));
 }
 
 /**
@@ -59,9 +73,10 @@ export async function deletePreset(id: string): Promise<void> {
  * Save multiple presets at once (for factory import).
  */
 export async function savePresets(presets: Preset[]): Promise<void> {
+  const validated = presets.map((preset, index) => parsePreset(preset, `presets[${index}]`));
   const db = await getDB();
   const tx = db.transaction(PRESETS_STORE, 'readwrite');
-  for (const preset of presets) {
+  for (const preset of validated) {
     await tx.store.put(preset);
   }
   await tx.done;
@@ -72,7 +87,7 @@ export async function savePresets(presets: Preset[]): Promise<void> {
  */
 export async function exportPresetsJSON(): Promise<string> {
   const presets = await getAllPresets();
-  return JSON.stringify(presets, null, 2);
+  return serializePresetExport(presets);
 }
 
 /**
@@ -80,8 +95,10 @@ export async function exportPresetsJSON(): Promise<string> {
  * Existing presets with the same ID are overwritten.
  */
 export async function importPresetsJSON(json: string): Promise<number> {
-  const presets: Preset[] = JSON.parse(json);
-  if (!Array.isArray(presets)) throw new Error('Invalid preset file format');
+  if (new Blob([json]).size > MAX_PRESET_IMPORT_BYTES) {
+    throw new Error('Preset file is larger than 2 MB');
+  }
+  const presets = parsePresetExport(JSON.parse(json) as unknown);
   await savePresets(presets);
   return presets.length;
 }
