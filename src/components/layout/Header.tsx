@@ -49,7 +49,7 @@ export function Header() {
 
   const handleGlobalToggle = useCallback(async () => {
     // Ensure audio engine is started (user gesture)
-    await initialize();
+    if (!(await initialize())) return;
 
     if (anyPlaying) {
       // ── STOP ALL ──

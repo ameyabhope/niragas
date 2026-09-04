@@ -2,20 +2,12 @@
  * Swar Mandal control panel: string grid, play once, auto-loop toggle.
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useSwarMandalStore } from '@/store/swarmandal-store';
-import { usePitchStore } from '@/store/pitch-store';
 import type { SwarName, SwarVariant } from '@/audio/types';
-import {
-  createSwarMandal,
-  strumSwarMandal,
-  startSwarMandalLoop,
-  stopSwarMandalLoop,
-  updateSwarMandal,
-  updateSwarMandalPitch,
-  isSwarMandalPlaying,
-} from '@/audio/swarmandal';
+import { strumSwarMandal } from '@/audio/swarmandal';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
+import { useAudioEngine } from '@/hooks/useAudioEngine';
 
 const SWARA_OPTIONS: { note: SwarName; label: string; variant: SwarVariant }[] = [
   { note: 'Sa', label: 'Sa', variant: 'shuddha' },
@@ -45,42 +37,13 @@ export function SwarMandalPanel() {
     setLoopDuration,
   } = useSwarMandalStore();
 
-  const { note: saNote, octave: saOctave } = usePitchStore();
-  const created = useRef(false);
-
-  // Create on mount
-  useEffect(() => {
-    createSwarMandal();
-    created.current = true;
-    return () => { created.current = false; };
-  }, []);
-
-  // Update pitch
-  useEffect(() => {
-    if (!created.current) return;
-    updateSwarMandalPitch(saNote, saOctave);
-  }, [saNote, saOctave]);
-
-  // Sync config to audio engine and manage loop lifecycle
-  useEffect(() => {
-    if (!created.current) return;
-
-    updateSwarMandal({ enabled, strings, autoLoop, loopDuration });
-
-    const shouldLoop = enabled && autoLoop;
-    const isLooping = isSwarMandalPlaying();
-
-    if (shouldLoop && !isLooping) {
-      startSwarMandalLoop();
-    } else if (!shouldLoop && isLooping) {
-      stopSwarMandalLoop();
-    }
-  }, [enabled, strings, autoLoop, loopDuration]);
+  const { initialize } = useAudioEngine();
 
   const handleStrum = useCallback(() => {
-    if (!created.current) return;
-    strumSwarMandal();
-  }, []);
+    void initialize().then((ready) => {
+      if (ready) strumSwarMandal();
+    });
+  }, [initialize]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -92,7 +55,15 @@ export function SwarMandalPanel() {
           <InfoTooltip text="A harp-like instrument with configurable strings tuned to specific swaras. Enable/disable individual strings, strum once, or set auto-loop for repeating glissando. Great for filling harmonic space during practice." />
         </div>
         <button
-          onClick={toggle}
+          onClick={() => {
+            if (enabled) {
+              toggle();
+              return;
+            }
+            void initialize().then((ready) => {
+              if (ready) toggle();
+            });
+          }}
           className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
             enabled
               ? 'bg-active text-white'

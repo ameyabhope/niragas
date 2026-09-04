@@ -10,22 +10,32 @@ import * as Tone from 'tone';
 import { log } from './log';
 
 let initialized = false;
+let initializationPromise: Promise<void> | null = null;
 
 /**
  * Initialize the audio engine. Must be called from a user gesture (click/tap).
  * This resumes the AudioContext which browsers require a user interaction for.
  */
 export async function initAudioEngine(): Promise<void> {
-  if (initialized) return;
+  const context = Tone.getContext();
+  if (initialized && context.state === 'running') return;
+  if (initializationPromise) return initializationPromise;
 
-  await Tone.start();
-  const ctx = Tone.getContext();
-  log('[AudioEngine] Tone.js started. Context state:', ctx.state);
+  initializationPromise = (async () => {
+    await Tone.start();
+    const ctx = Tone.getContext();
+    log('[AudioEngine] Tone.js started. Context state:', ctx.state);
 
-  // Set a reasonable latency hint for real-time playback
-  ctx.lookAhead = 0.05; // 50ms look-ahead for scheduling
+    // Set a reasonable latency hint for real-time playback
+    ctx.lookAhead = 0.05; // 50ms look-ahead for scheduling
+    initialized = true;
+  })();
 
-  initialized = true;
+  try {
+    await initializationPromise;
+  } finally {
+    initializationPromise = null;
+  }
 }
 
 /**
@@ -34,5 +44,4 @@ export async function initAudioEngine(): Promise<void> {
 export function isAudioEngineReady(): boolean {
   return initialized && Tone.getContext().state === 'running';
 }
-
 

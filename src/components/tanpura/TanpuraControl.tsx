@@ -2,15 +2,9 @@
  * Controls for a single tanpura: on/off, tuning, EQ, fine pitch, speed.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { TanpuraConfig, TanpuraTuning, TanpuraEQ } from '@/audio/types';
-import { usePitchStore } from '@/store/pitch-store';
 import {
-  createTanpura,
-  startTanpura,
-  stopTanpura,
-  updateTanpura,
-  updateTanpuraPitch,
   subscribeTanpuraStatus,
   getTanpuraStatus,
   type TanpuraStatus,
@@ -49,70 +43,9 @@ export function TanpuraControl({
   onSetFinePitch,
   onSetSpeed,
 }: TanpuraControlProps) {
-  const { note: saNote, octave: saOctave, cents: saCents, a4Freq } = usePitchStore();
-  const created = useRef(false);
-  const prevEnabled = useRef(false);
-  // Live enabled flag so mount-time creation can honor a toggle
-  // that happened while the sample was still loading.
-  const enabledRef = useRef(config.enabled);
-  enabledRef.current = config.enabled;
-
   // Reactive engine status (loading / actually sounding / error)
   const [status, setStatus] = useState<TanpuraStatus>(() => getTanpuraStatus(id));
   useEffect(() => subscribeTanpuraStatus(id, setStatus), [id]);
-
-  // Create tanpura instance on mount
-  useEffect(() => {
-    let cancelled = false;
-    createTanpura(id, config, saNote, saOctave, saCents).then(() => {
-      if (cancelled) return;
-      created.current = true;
-      prevEnabled.current = enabledRef.current;
-      // Honor a toggle that happened while loading
-      if (enabledRef.current) {
-        startTanpura(id);
-      }
-    });
-    return () => {
-      cancelled = true;
-      created.current = false;
-    };
-    // Only run on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
-  // Handle enable/disable (awaited so start is never attempted mid-update)
-  useEffect(() => {
-    if (!created.current) return;
-
-    if (config.enabled && !prevEnabled.current) {
-      // Just turned on — start intent is queued if still loading
-      void (async () => {
-        await updateTanpura(id, config, saNote, saOctave, saCents);
-        startTanpura(id);
-      })();
-    } else if (!config.enabled && prevEnabled.current) {
-      // Just turned off
-      stopTanpura(id);
-    }
-
-    prevEnabled.current = config.enabled;
-  }, [config.enabled, id, config, saNote, saOctave, saCents]);
-
-  // Update pitch when Sa or A4 reference changes
-  useEffect(() => {
-    if (!created.current) return;
-    updateTanpuraPitch(id, saNote, saOctave, saCents);
-  }, [id, saNote, saOctave, saCents, a4Freq]);
-
-  // Update config when tuning/eq/speed/finePitch change
-  const handleConfigChange = useCallback(
-    (partial: Partial<TanpuraConfig>) => {
-      if (!created.current) return;
-      updateTanpura(id, partial, saNote, saOctave, saCents);
-    },
-    [id, saNote, saOctave, saCents]
-  );
 
   const isPlaying = status.playing;
   const isLoading = status.loading;
@@ -149,7 +82,6 @@ export function TanpuraControl({
               key={value}
               onClick={() => {
                 onSetTuning(value);
-                handleConfigChange({ tuning: value });
               }}
               disabled={!config.enabled}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
@@ -173,7 +105,6 @@ export function TanpuraControl({
               key={value}
               onClick={() => {
                 onSetEQ(value);
-                handleConfigChange({ eq: value });
               }}
               disabled={!config.enabled}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
@@ -202,7 +133,6 @@ export function TanpuraControl({
           onChange={(e) => {
             const cents = parseInt(e.target.value, 10);
             onSetFinePitch(cents);
-            handleConfigChange({ finePitchCents: cents });
           }}
           disabled={!config.enabled}
           className="w-full h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
@@ -225,7 +155,6 @@ export function TanpuraControl({
           onChange={(e) => {
             const speed = parseFloat(e.target.value);
             onSetSpeed(speed);
-            handleConfigChange({ speed });
           }}
           disabled={!config.enabled}
           className="w-full h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer

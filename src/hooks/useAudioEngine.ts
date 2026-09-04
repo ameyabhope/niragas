@@ -6,7 +6,7 @@
  * AudioContext resume (Tone.start) requires a user gesture.
  */
 
-import { useState, useCallback } from 'react';
+import { useSyncExternalStore } from 'react';
 import { initAudioEngine, isAudioEngineReady } from '@/audio/engine';
 import { createMixer, isMixerReady } from '@/audio/mixer';
 import { initAudioSubscriptions } from '@/audio/subscriptions';
@@ -21,27 +21,63 @@ if (!isMixerReady()) {
 // They are safe to register even before Tone.start() since they only fire on state changes.
 initAudioSubscriptions();
 
-export function useAudioEngine() {
-  const [ready, setReady] = useState(isAudioEngineReady());
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface AudioStatus {
+  ready: boolean;
+  loading: boolean;
+  error: string | null;
+}
 
-  const initialize = useCallback(async () => {
-    if (ready) return;
-    setLoading(true);
-    setError(null);
+let status: AudioStatus = {
+  ready: isAudioEngineReady(),
+  loading: false,
+  error: null,
+};
+let initializationPromise: Promise<boolean> | null = null;
+const listeners = new Set<() => void>();
 
+function emit(next: AudioStatus): void {
+  status = next;
+  for (const listener of listeners) listener();
+}
+
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function getSnapshot(): AudioStatus {
+  return status;
+}
+
+async function initialize(): Promise<boolean> {
+  if (isAudioEngineReady()) {
+    if (!status.ready || status.error) {
+      emit({ ready: true, loading: false, error: null });
+    }
+    return true;
+  }
+  if (initializationPromise) return initializationPromise;
+
+  emit({ ready: false, loading: true, error: null });
+  initializationPromise = (async () => {
     try {
       await initAudioEngine();
-      setReady(true);
+      emit({ ready: true, loading: false, error: null });
+      return true;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to initialize audio';
-      setError(message);
+      emit({ ready: false, loading: false, error: message });
       console.error('[useAudioEngine]', err);
+      return false;
     } finally {
-      setLoading(false);
+      initializationPromise = null;
     }
-  }, [ready]);
+  })();
 
-  return { ready, loading, error, initialize };
+  return initializationPromise;
+}
+
+export function useAudioEngine() {
+  const current = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  return { ...current, initialize };
 }

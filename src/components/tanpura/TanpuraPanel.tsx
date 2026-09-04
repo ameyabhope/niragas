@@ -22,7 +22,14 @@ export function TanpuraPanel() {
   // Resume the AudioContext first so the start that follows the store
   // flip is never attempted while suspended (same user gesture).
   const handleToggle = (id: 'tanpura1' | 'tanpura2') => {
-    void initialize().then(() => toggleTanpura(id));
+    const enabled = useTanpuraStore.getState()[id].enabled;
+    if (enabled) {
+      toggleTanpura(id);
+      return;
+    }
+    void initialize().then((ready) => {
+      if (ready) toggleTanpura(id);
+    });
   };
 
   return (

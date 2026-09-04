@@ -2,16 +2,13 @@
  * Tabla control panel: taal selector, style, tempo controls, beat display, play/stop.
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useTablaStore } from '@/store/tabla-store';
 import { TAAL_LIST, getTaal } from '@/data/taals';
-import {
-  createTabla,
-  setTablaBeatCallback,
-} from '@/audio/tabla';
 import { BeatDisplay } from './BeatDisplay';
 import { useTapTempo } from '@/hooks/useTapTempo';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
+import { useAudioEngine } from '@/hooks/useAudioEngine';
 
 export function TablaPanel() {
   const {
@@ -27,11 +24,10 @@ export function TablaPanel() {
     halfTempo,
     doubleTempo,
     setPlaying,
-    setCurrentBeat,
   } = useTablaStore();
 
-  const created = useRef(false);
   const taal = getTaal(taalId);
+  const { initialize } = useAudioEngine();
 
   // Tap tempo — just updates the store, subscription propagates to audio
   const handleTapTempo = useCallback(
@@ -41,21 +37,6 @@ export function TablaPanel() {
     [setTempo]
   );
   const { tap } = useTapTempo(handleTapTempo);
-
-  // Create tabla on mount
-  useEffect(() => {
-    createTabla().then(() => {
-      created.current = true;
-    });
-    return () => { created.current = false; };
-  }, []);
-
-  // Register beat callback
-  useEffect(() => {
-    setTablaBeatCallback((matra, label) => {
-      setCurrentBeat(matra, label);
-    });
-  }, [setCurrentBeat]);
 
   // Get speed range label
   const getSpeedLabel = () => {
@@ -198,7 +179,15 @@ export function TablaPanel() {
         {/* Play / Stop buttons */}
         <div className="flex gap-3">
           <button
-            onClick={() => setPlaying(!playing)}
+            onClick={() => {
+              if (playing) {
+                setPlaying(false);
+                return;
+              }
+              void initialize().then((ready) => {
+                if (ready) setPlaying(true);
+              });
+            }}
             className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors ${
               playing
                 ? 'bg-accent text-white hover:bg-accent/80'

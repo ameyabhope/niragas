@@ -30,67 +30,40 @@ export function AppShell() {
     <div className="flex flex-col h-dvh bg-surface">
       <Header />
 
-      {/* Desktop layout */}
-      <div className="hidden md:flex flex-1 overflow-hidden">
-        {/* Left panel: Pitch + Mixer + EQ */}
-        <aside className="w-80 border-r border-white/5 overflow-y-auto p-4 flex flex-col gap-6">
+      {/* One component tree serves both layouts so audio-adjacent panels never mount twice. */}
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        <aside className={`${activeTab === 'mixer' ? 'flex flex-1' : 'hidden'} md:flex md:flex-none md:w-80 border-r border-white/5 overflow-y-auto p-4 flex-col gap-6`}>
           <PitchControl />
           <MixerPanel />
           <EQPanel />
         </aside>
 
-        {/* Right panel: Controls */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className={`${activeTab === 'mixer' ? 'hidden' : 'block'} md:block flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6`}>
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-            <div className="flex flex-col gap-6">
+            <div className={`${activeTab === 'controls' ? 'flex' : 'hidden'} md:flex flex-col gap-6`}>
               <TanpuraPanel />
               <SurPetiControl />
-              <TunerPanel />
+            </div>
+            <div className={`${activeTab === 'controls' ? 'flex' : 'hidden'} md:flex flex-col gap-6`}>
+              <TablaPanel />
+            </div>
+            <div className={`${activeTab === 'presets' ? 'block' : 'hidden'} md:block`}>
               <PresetPanel />
             </div>
-            <div className="flex flex-col gap-6">
-              <TablaPanel />
+            <div className={`${activeTab === 'swarmandal' ? 'block' : 'hidden'} md:block`}>
               <SwarMandalPanel />
+            </div>
+            <div className={`${activeTab === 'more' ? 'block' : 'hidden'} md:block`}>
+              <TunerPanel />
+            </div>
+            <div className={`${activeTab === 'more' ? 'block' : 'hidden'} md:block`}>
               <RecorderPanel />
             </div>
           </div>
         </main>
       </div>
 
-      {/* Mobile layout: tabbed */}
-      <div className="flex flex-col flex-1 md:hidden">
-        {/* Tab content */}
-        <main className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
-          {activeTab === 'mixer' && (
-            <>
-              <PitchControl />
-              <MixerPanel />
-              <EQPanel />
-            </>
-          )}
-          {activeTab === 'controls' && (
-            <>
-              <TanpuraPanel />
-              <SurPetiControl />
-              <TablaPanel />
-            </>
-          )}
-          {activeTab === 'presets' && (
-            <PresetPanel />
-          )}
-          {activeTab === 'swarmandal' && (
-            <SwarMandalPanel />
-          )}
-          {activeTab === 'more' && (
-            <>
-              <TunerPanel />
-              <RecorderPanel />
-            </>
-          )}
-        </main>
-
-        {/* Tab bar */}
-        <nav className="flex border-t border-white/5 bg-surface-light">
+      <nav className="flex md:hidden border-t border-white/5 bg-surface-light">
           {(
             [
               { id: 'mixer', label: 'Mixer' },
@@ -112,8 +85,7 @@ export function AppShell() {
               {label}
             </button>
           ))}
-        </nav>
-      </div>
+      </nav>
     </div>
   );
 }

@@ -45,16 +45,24 @@ export function MixerPanel() {
     switch (id) {
       case 'tanpura1':
       case 'tanpura2':
-        void initialize().then(() => useTanpuraStore.getState().toggleTanpura(id));
+        void initialize().then((ready) => {
+          if (ready) useTanpuraStore.getState().toggleTanpura(id);
+        });
         break;
       case 'tabla':
-        useTablaStore.getState().togglePlaying();
+        void initialize().then((ready) => {
+          if (ready) useTablaStore.getState().togglePlaying();
+        });
         break;
       case 'surpeti':
-        useSurPetiStore.getState().toggle();
+        void initialize().then((ready) => {
+          if (ready) useSurPetiStore.getState().toggle();
+        });
         break;
       case 'swarmandal':
-        useSwarMandalStore.getState().toggle();
+        void initialize().then((ready) => {
+          if (ready) useSwarMandalStore.getState().toggle();
+        });
         break;
       case 'manjira':
       case 'metronome':

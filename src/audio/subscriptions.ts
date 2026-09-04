@@ -13,12 +13,35 @@ import { useEQStore } from '@/store/eq-store';
 import { useTanpuraStore } from '@/store/tanpura-store';
 import { useSurPetiStore } from '@/store/surpeti-store';
 import { useSwarMandalStore } from '@/store/swarmandal-store';
+import { usePitchStore } from '@/store/pitch-store';
 import {
+  createTabla,
   setTablaTempo,
   loadTaal,
   startTabla,
   stopTabla,
+  setTablaBeatCallback,
 } from './tabla';
+import {
+  createTanpura,
+  startTanpura,
+  stopTanpura,
+  updateTanpura,
+} from './tanpura';
+import {
+  createSurPeti,
+  setSurPetiPitch,
+  startSurPeti,
+  stopSurPeti,
+} from './surpeti';
+import {
+  createSwarMandal,
+  isSwarMandalPlaying,
+  startSwarMandalLoop,
+  stopSwarMandalLoop,
+  updateSwarMandal,
+  updateSwarMandalPitch,
+} from './swarmandal';
 import {
   setChannelVolume,
   setChannelPan,
@@ -38,11 +61,117 @@ import type { InstrumentId } from './types';
 import { log } from './log';
 
 let initialized = false;
+let tablaReady = false;
+let tablaInitialization: Promise<void> | null = null;
+let tablaOperation = Promise.resolve();
+
+type TanpuraId = 'tanpura1' | 'tanpura2';
+const readyTanpuras = new Set<TanpuraId>();
+const tanpuraInitializations = new Map<TanpuraId, Promise<void>>();
+const tanpuraOperations = new Map<TanpuraId, Promise<void>>();
 
 const INSTRUMENT_IDS: InstrumentId[] = [
   'tanpura1', 'tanpura2', 'tabla', 'surpeti',
   'swarmandal', 'manjira', 'metronome',
 ];
+
+async function ensureTabla(): Promise<void> {
+  if (tablaReady) return;
+  if (!tablaInitialization) {
+    tablaInitialization = createTabla()
+      .then(() => {
+        tablaReady = true;
+      })
+      .finally(() => {
+        tablaInitialization = null;
+      });
+  }
+  await tablaInitialization;
+}
+
+function queueTablaSync(reloadTaal: boolean): void {
+  tablaOperation = tablaOperation
+    .then(async () => {
+      const beforeLoad = useTablaStore.getState();
+      if (!beforeLoad.playing && !tablaReady) return;
+
+      await ensureTabla();
+      const state = useTablaStore.getState();
+      if (!state.playing) {
+        stopTabla();
+        return;
+      }
+
+      if (reloadTaal) {
+        loadTaal(getTaal(state.taalId), state.styleId);
+      }
+      setTablaTempo(state.tempo);
+      startTabla();
+    })
+    .catch((err) => console.error('[Subscriptions] Tabla sync failed:', err));
+}
+
+async function ensureTanpura(id: TanpuraId): Promise<void> {
+  if (readyTanpuras.has(id)) return;
+  let initialization = tanpuraInitializations.get(id);
+  if (!initialization) {
+    const config = useTanpuraStore.getState()[id];
+    const pitch = usePitchStore.getState();
+    initialization = createTanpura(id, config, pitch.note, pitch.octave, pitch.cents)
+      .then(() => {
+        readyTanpuras.add(id);
+      })
+      .finally(() => {
+        tanpuraInitializations.delete(id);
+      });
+    tanpuraInitializations.set(id, initialization);
+  }
+  await initialization;
+}
+
+function queueTanpuraSync(id: TanpuraId): void {
+  const previous = tanpuraOperations.get(id) ?? Promise.resolve();
+  const operation = previous
+    .then(async () => {
+      const initialConfig = useTanpuraStore.getState()[id];
+      if (!initialConfig.enabled && !readyTanpuras.has(id)) return;
+
+      await ensureTanpura(id);
+      const config = useTanpuraStore.getState()[id];
+      const pitch = usePitchStore.getState();
+      await updateTanpura(id, config, pitch.note, pitch.octave, pitch.cents);
+
+      if (config.enabled) startTanpura(id);
+      else stopTanpura(id);
+    })
+    .catch((err) => console.error(`[Subscriptions] ${id} sync failed:`, err));
+  tanpuraOperations.set(id, operation);
+}
+
+function syncSurPeti(): void {
+  const pitch = usePitchStore.getState();
+  const { enabled } = useSurPetiStore.getState();
+  setSurPetiPitch(pitch.note, pitch.octave, pitch.cents);
+  if (enabled) startSurPeti(pitch.note, pitch.octave, pitch.cents);
+  else stopSurPeti();
+}
+
+function syncSwarMandal(): void {
+  const state = useSwarMandalStore.getState();
+  const pitch = usePitchStore.getState();
+  updateSwarMandal({
+    enabled: state.enabled,
+    strings: state.strings,
+    autoLoop: state.autoLoop,
+    loopDuration: state.loopDuration,
+  });
+  updateSwarMandalPitch(pitch.note, pitch.octave);
+  if (state.enabled && state.autoLoop) {
+    if (!isSwarMandalPlaying()) startSwarMandalLoop();
+  } else if (isSwarMandalPlaying()) {
+    stopSwarMandalLoop();
+  }
+}
 
 /**
  * Set up all Zustand → audio engine subscriptions.
@@ -54,24 +183,51 @@ export function initAudioSubscriptions(): void {
 
   // ── Tabla store ──
 
+  createSurPeti();
+  createSwarMandal();
+  setTablaBeatCallback((matra, label) => {
+    useTablaStore.getState().setCurrentBeat(matra, label);
+  });
+
   let prevTabla = useTablaStore.getState();
   useTablaStore.subscribe((state) => {
-    if (state.tempo !== prevTabla.tempo) {
+    const taalChanged = state.taalId !== prevTabla.taalId;
+    const styleChanged = state.styleId !== prevTabla.styleId;
+    const started = state.playing && !prevTabla.playing;
+
+    if (state.playing !== prevTabla.playing || (state.playing && (taalChanged || styleChanged))) {
+      queueTablaSync(started || taalChanged || styleChanged);
+    } else if (state.tempo !== prevTabla.tempo && tablaReady) {
       setTablaTempo(state.tempo);
     }
 
-    if (state.playing !== prevTabla.playing) {
-      if (state.playing) {
-        const taal = getTaal(state.taalId);
-        loadTaal(taal, state.styleId);
-        setTablaTempo(state.tempo);
-        startTabla();
-      } else {
-        stopTabla();
-      }
-    }
-
     prevTabla = state;
+  });
+
+  // ── Instrument stores and shared pitch ──
+
+  useTanpuraStore.subscribe(() => {
+    queueTanpuraSync('tanpura1');
+    queueTanpuraSync('tanpura2');
+  });
+
+  useSurPetiStore.subscribe(syncSurPeti);
+  useSwarMandalStore.subscribe(syncSwarMandal);
+
+  let prevPitch = usePitchStore.getState();
+  usePitchStore.subscribe((state) => {
+    if (
+      state.note !== prevPitch.note ||
+      state.octave !== prevPitch.octave ||
+      state.cents !== prevPitch.cents ||
+      state.a4Freq !== prevPitch.a4Freq
+    ) {
+      queueTanpuraSync('tanpura1');
+      queueTanpuraSync('tanpura2');
+      syncSurPeti();
+      syncSwarMandal();
+    }
+    prevPitch = state;
   });
 
   // ── Mixer store ──
@@ -187,6 +343,9 @@ export function initAudioSubscriptions(): void {
   syncMixerEnabled('tabla', useTablaStore.getState().playing);
   syncMixerEnabled('surpeti', useSurPetiStore.getState().enabled);
   syncMixerEnabled('swarmandal', useSwarMandalStore.getState().enabled);
+
+  syncSurPeti();
+  syncSwarMandal();
 
   // ── Initial EQ state ──
   // If EQ is already enabled at startup, create and insert it now.
