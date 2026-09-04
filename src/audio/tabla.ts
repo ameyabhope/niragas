@@ -138,6 +138,8 @@ interface TablaInstance {
   styleId: string;
   /** Whether tabla is playing */
   playing: boolean;
+  /** Next 1-indexed beat the step sequencer will play (wraps per cycle) */
+  nextBeat: number;
   /** Current matra (1-indexed, updated during playback) */
   currentMatra: number;
   /** Callback fired on each beat for UI updates */
@@ -185,6 +187,7 @@ export async function createTabla(): Promise<void> {
     taal: null,
     styleId: '',
     playing: false,
+    nextBeat: 1,
     currentMatra: 1,
     onBeat: pendingOnBeat,
   };
@@ -269,8 +272,11 @@ function getSpeedRangeKey(taal: TaalDefinition, bpm: number): SpeedRange {
 }
 
 /**
- * Schedule all bols for one full cycle of the current taal.
- * Uses Tone.Transport.scheduleRepeat for continuous looping.
+ * Schedule the theka as a step sequencer: one Transport repeat per beat.
+ * Each firing plays the bols falling in the next beat window, reading the
+ * live BPM for intra-beat offsets — so tempo changes glide without ever
+ * re-scheduling (no jump back to sam). Taal/style/theka are also resolved
+ * live, so style and speed-range switches apply on the next beat.
  */
 function scheduleThekaLoop(): void {
   if (!instance || !instance.taal) return;
@@ -278,56 +284,56 @@ function scheduleThekaLoop(): void {
   // Clear any previously scheduled events
   clearScheduledEvents();
 
-  const taal = instance.taal;
-  const style = taal.styles.find((s) => s.id === instance!.styleId) ?? taal.styles[0];
-  if (!style) return;
+  const eventId = Tone.getTransport().scheduleRepeat(
+    (time) => {
+      const taal = instance?.taal;
+      if (!instance || !taal) return;
 
-  const bpm = Tone.getTransport().bpm.value;
-  const speedRange = getSpeedRangeKey(taal, bpm);
+      const style = taal.styles.find((s) => s.id === instance!.styleId) ?? taal.styles[0];
+      if (!style) return;
 
-  // Find the best matching theka: exact speed match, or fall back to 'madhya'
-  const theka = style.thekas[speedRange] ?? style.thekas['madhya'];
-  if (!theka) return;
+      const bpm = Tone.getTransport().bpm.value;
+      const speedRange = getSpeedRangeKey(taal, bpm);
 
-  // Duration of one full taal cycle in seconds
-  const secondsPerBeat = 60 / bpm;
-  const cycleDuration = taal.matras * secondsPerBeat;
+      // Find the best matching theka: exact speed match, or fall back to 'madhya'
+      const theka = style.thekas[speedRange] ?? style.thekas['madhya'];
+      if (!theka) return;
 
-  // Build a division lookup: matra → division label
-  const divisionMap = new Map<number, string>();
-  for (const div of taal.divisions) {
-    divisionMap.set(div.matra, div.label);
-  }
+      const secondsPerBeat = 60 / bpm;
+      const beat = instance.nextBeat;
 
-  // Schedule a repeating callback for each bol
-  for (const bol of theka) {
-    // Position is 1-indexed, convert to 0-indexed offset
-    const offsetSeconds = (bol.position - 1) * secondsPerBeat;
+      // Build a division lookup: matra → division label
+      const divisionMap = new Map<number, string>();
+      for (const div of taal.divisions) {
+        divisionMap.set(div.matra, div.label);
+      }
 
-    const eventId = Tone.getTransport().scheduleRepeat(
-      (time) => {
-        triggerBol(bol, time);
+      // Play bols in this beat's window, preserving fractional offsets
+      for (const bol of theka) {
+        if (bol.position < beat || bol.position >= beat + 1) continue;
 
-        // Fire beat callback for UI (use whole-number matra positions only)
-        if (instance?.onBeat && Number.isInteger(bol.position)) {
+        const bolTime = time + (bol.position - beat) * secondsPerBeat;
+        triggerBol(bol, bolTime);
+
+        // Fire beat callback for UI (whole-number matra positions only)
+        if (instance.onBeat && Number.isInteger(bol.position)) {
           const label = divisionMap.get(bol.position) ?? null;
+          const position = bol.position;
           // Use Tone.Draw to sync with animation frame
           Tone.getDraw().schedule(() => {
-            instance?.onBeat?.(bol.position, label);
-          }, time);
+            instance?.onBeat?.(position, label);
+          }, bolTime);
         }
-      },
-      cycleDuration, // repeat interval = one full taal cycle
-      offsetSeconds   // start offset within the cycle
-    );
+      }
 
-    instance.scheduledEvents.push(eventId);
-  }
-
-  log(
-    `[Tabla] Scheduled ${theka.length} bols for ${taal.name} (${style.name}), ` +
-    `${speedRange}, cycle=${cycleDuration.toFixed(2)}s`
+      instance.nextBeat = (beat % taal.matras) + 1;
+    },
+    '4n' // one beat — follows Transport BPM smoothly
   );
+
+  instance.scheduledEvents.push(eventId);
+
+  log(`[Tabla] Scheduled step sequencer for ${instance.taal.name}`);
 }
 
 /**
@@ -353,6 +359,7 @@ export function loadTaal(taal: TaalDefinition, styleId?: string): void {
   instance.taal = taal;
   instance.styleId = styleId ?? taal.styles[0]?.id ?? '';
   instance.currentMatra = 1;
+  instance.nextBeat = 1;
 
   if (wasPlaying) startTabla();
 
@@ -361,6 +368,8 @@ export function loadTaal(taal: TaalDefinition, styleId?: string): void {
 
 /**
  * Set the tabla tempo (BPM).
+ * Ramps the Transport clock — the step sequencer follows it live,
+ * so tempo glides mid-cycle with no restart and no jump to sam.
  */
 export function setTablaTempo(bpm: number): void {
   if (!instance?.taal) return;
@@ -370,11 +379,10 @@ export function setTablaTempo(bpm: number): void {
     Math.min(instance.taal.tempoRange.max, bpm)
   );
 
-  Tone.getTransport().bpm.value = clampedBpm;
-
-  // Re-schedule if playing (tempo change affects cycle duration)
-  if (instance.playing) {
-    scheduleThekaLoop();
+  try {
+    Tone.getTransport().bpm.rampTo(clampedBpm, 0.3);
+  } catch {
+    Tone.getTransport().bpm.value = clampedBpm;
   }
 }
 
@@ -392,6 +400,7 @@ export function startTabla(): void {
 
   instance.playing = true;
   instance.currentMatra = 1;
+  instance.nextBeat = 1;
 
   log(`[Tabla] Started: ${instance.taal.name} at ${Tone.getTransport().bpm.value} BPM`);
 }
@@ -405,6 +414,7 @@ export function stopTabla(): void {
   clearScheduledEvents();
   instance.playing = false;
   instance.currentMatra = 1;
+  instance.nextBeat = 1;
 
   log('[Tabla] Stopped');
 }
