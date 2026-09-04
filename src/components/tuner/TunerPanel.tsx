@@ -3,7 +3,7 @@
  * Allows capturing the mic pitch as the new Sa.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { usePitchStore } from '@/store/pitch-store';
 import type { NoteName } from '@/audio/types';
 import { noteToFreq, noteToSwar } from '@/lib/notes';
@@ -12,7 +12,6 @@ import {
   startTuner,
   stopTuner,
   setTunerCallback,
-  isTunerRunning,
 } from '@/audio/tuner';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
@@ -29,8 +28,7 @@ export function TunerPanel() {
   const [micFreq, setMicFreq] = useState(0);
   const [clarity, setClarity] = useState(0);
   const [error, setError] = useState<string | null>(null);
-
-  const initRef = useRef(false);
+  const [loading, setLoading] = useState(false);
 
   const appFreq = noteToFreq(appNote, appOctave, appCents);
 
@@ -49,15 +47,14 @@ export function TunerPanel() {
     if (tunerActive) {
       stopTuner();
       setTunerActive(false);
+      setMicNote(null);
       return;
     }
 
     try {
       setError(null);
-      if (!initRef.current) {
-        await initTuner();
-        initRef.current = true;
-      }
+      setLoading(true);
+      await initTuner();
 
       setTunerCallback((freq, note, octave, cents, clar) => {
         setMicFreq(freq);
@@ -72,6 +69,8 @@ export function TunerPanel() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Microphone access denied';
       setError(msg);
+    } finally {
+      setLoading(false);
     }
   }, [tunerActive]);
 
@@ -93,9 +92,7 @@ export function TunerPanel() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (isTunerRunning()) {
-        stopTuner();
-      }
+      stopTuner();
     };
   }, []);
 
@@ -120,17 +117,18 @@ export function TunerPanel() {
         {/* Toggle button */}
         <button
           onClick={handleToggle}
+          disabled={loading}
           className={`w-full py-3 rounded-xl text-sm font-semibold transition-colors ${
             tunerActive
               ? 'bg-accent text-white hover:bg-accent/80'
               : 'bg-saffron-600 text-white hover:bg-saffron-500'
           }`}
         >
-          {tunerActive ? 'Stop Tuner' : 'Start Tuner'}
+          {loading ? 'Requesting microphone...' : tunerActive ? 'Stop Tuner' : 'Start Tuner'}
         </button>
 
         {error && (
-          <p className="text-xs text-accent">{error}</p>
+          <p className="text-xs text-accent" role="alert">{error}</p>
         )}
 
         {/* Pitch comparison */}

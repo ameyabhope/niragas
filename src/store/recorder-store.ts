@@ -34,6 +34,7 @@ interface RecorderStoreState {
   playingId: string | null;
   /** Current recording elapsed time in seconds */
   elapsed: number;
+  error: string | null;
 
   // Actions
   start: () => Promise<void>;
@@ -43,7 +44,7 @@ interface RecorderStoreState {
   cancel: () => void;
   toggleMic: () => void;
   deleteRecording: (id: string) => void;
-  downloadRecording: (id: string, format?: 'webm' | 'wav') => Promise<void>;
+  downloadRecording: (id: string, format?: 'original' | 'wav') => Promise<void>;
   setPlayingId: (id: string | null) => void;
   updateElapsed: () => void;
   /** Check if there are recordings that haven't been downloaded yet */
@@ -58,6 +59,7 @@ export const useRecorderStore = create<RecorderStoreState>((set, get) => {
     onStateChange: (state) => set({ state }),
     onRecordingComplete: (recording) =>
       set((s) => ({ recordings: [recording, ...s.recordings] })),
+    onError: (error) => set({ error }),
   });
 
   return {
@@ -67,13 +69,16 @@ export const useRecorderStore = create<RecorderStoreState>((set, get) => {
     downloadedIds: new Set(),
     playingId: null,
     elapsed: 0,
+    error: null,
 
     start: async () => {
       const { includeMic } = get();
+      set({ error: null });
       try {
         await startRec(includeMic);
       } catch (err) {
         console.error('[RecorderStore] Failed to start recording:', err);
+        set({ error: err instanceof Error ? err.message : 'Failed to start recording.' });
       }
     },
 
@@ -96,7 +101,7 @@ export const useRecorderStore = create<RecorderStoreState>((set, get) => {
         };
       }),
 
-    downloadRecording: async (id, format = 'webm') => {
+    downloadRecording: async (id, format = 'original') => {
       const rec = get().recordings.find((r) => r.id === id);
       if (!rec) return;
 
@@ -111,8 +116,9 @@ export const useRecorderStore = create<RecorderStoreState>((set, get) => {
           URL.revokeObjectURL(url);
         } catch (err) {
           console.error('[RecorderStore] WAV conversion failed:', err);
-          // Fallback to WebM
+          // Fall back to the browser-native recording.
           downloadRec(rec);
+          set({ error: 'WAV conversion failed; the original recording was downloaded instead.' });
         }
       } else {
         downloadRec(rec);
@@ -133,8 +139,8 @@ export const useRecorderStore = create<RecorderStoreState>((set, get) => {
     },
 
     hasUndownloadedRecordings: () => {
-      const { recordings, downloadedIds } = get();
-      return recordings.some((r) => !downloadedIds.has(r.id));
+      const { recordings, downloadedIds, state } = get();
+      return state !== 'idle' || recordings.some((r) => !downloadedIds.has(r.id));
     },
 
     revokeAll: () => {

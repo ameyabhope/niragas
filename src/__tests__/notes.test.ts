@@ -5,7 +5,9 @@ import {
   noteToSwar,
   swarToToneNote,
   setA4Freq,
+  normalizeSaPitch,
 } from '@/lib/notes';
+import { usePitchStore } from '@/store/pitch-store';
 
 beforeEach(() => {
   setA4Freq(440);
@@ -68,6 +70,24 @@ describe('freqToNote', () => {
     expect(result.note).toBe('F#');
     expect(result.octave).toBe(3);
     expect(result.cents).toBe(0);
+  });
+});
+
+describe('normalizeSaPitch', () => {
+  it('folds detected pitches into the supported Sa range', () => {
+    expect(normalizeSaPitch('A', 4, 70)).toEqual({ note: 'A', octave: 3, cents: 50 });
+    expect(normalizeSaPitch('F#', 4, -70)).toEqual({ note: 'F#', octave: 3, cents: -50 });
+    expect(normalizeSaPitch('C', 1, 0)).toEqual({ note: 'C', octave: 3, cents: 0 });
+  });
+
+  it('keeps semitone controls inside the supported range', () => {
+    usePitchStore.getState().setPitch('E', 4, 0);
+    usePitchStore.getState().noteUp();
+    expect(usePitchStore.getState()).toMatchObject({ note: 'E', octave: 4 });
+
+    usePitchStore.getState().setPitch('A', 2, 0);
+    usePitchStore.getState().noteDown();
+    expect(usePitchStore.getState()).toMatchObject({ note: 'A', octave: 2 });
   });
 });
 

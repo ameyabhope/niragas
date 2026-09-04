@@ -37,38 +37,47 @@ let instance: TunerInstance | null = null;
 export async function initTuner(): Promise<void> {
   if (instance?.running) return;
 
-  // Request microphone access
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: {
-      echoCancellation: false,
-      noiseSuppression: false,
-      autoGainControl: false,
-    },
-  });
+  stopTuner();
 
-  const audioContext = new AudioContext();
-  const analyserNode = audioContext.createAnalyser();
-  analyserNode.fftSize = 4096; // larger FFT for better low-frequency resolution
+  let stream: MediaStream | null = null;
+  let audioContext: AudioContext | null = null;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      },
+    });
 
-  const sourceNode = audioContext.createMediaStreamSource(stream);
-  sourceNode.connect(analyserNode);
-  // Do NOT connect analyser to destination (we don't want to hear the mic echo)
+    audioContext = new AudioContext();
+    if (audioContext.state === 'suspended') await audioContext.resume();
+    const analyserNode = audioContext.createAnalyser();
+    analyserNode.fftSize = 4096;
 
-  const bufferSize = analyserNode.fftSize;
-  const buffer = new Float32Array(bufferSize);
-  const detector = PitchDetector.forFloat32Array(bufferSize);
+    const sourceNode = audioContext.createMediaStreamSource(stream);
+    sourceNode.connect(analyserNode);
 
-  instance = {
-    audioContext,
-    analyserNode,
-    sourceNode,
-    stream,
-    detector,
-    buffer,
-    running: false,
-    animationFrameId: null,
-    onPitchDetected: null,
-  };
+    const bufferSize = analyserNode.fftSize;
+    const buffer = new Float32Array(bufferSize);
+    const detector = PitchDetector.forFloat32Array(bufferSize);
+
+    instance = {
+      audioContext,
+      analyserNode,
+      sourceNode,
+      stream,
+      detector,
+      buffer,
+      running: false,
+      animationFrameId: null,
+      onPitchDetected: null,
+    };
+  } catch (err) {
+    stream?.getTracks().forEach((track) => track.stop());
+    if (audioContext && audioContext.state !== 'closed') void audioContext.close();
+    throw err;
+  }
 
   log('[Tuner] Initialized with mic access');
 }
@@ -118,11 +127,17 @@ export function startTuner(): void {
 export function stopTuner(): void {
   if (!instance) return;
 
-  instance.running = false;
-  if (instance.animationFrameId !== null) {
-    cancelAnimationFrame(instance.animationFrameId);
-    instance.animationFrameId = null;
+  const current = instance;
+  current.running = false;
+  if (current.animationFrameId !== null) {
+    cancelAnimationFrame(current.animationFrameId);
   }
+
+  current.stream?.getTracks().forEach((track) => track.stop());
+  current.sourceNode?.disconnect();
+  current.analyserNode.disconnect();
+  if (current.audioContext.state !== 'closed') void current.audioContext.close();
+  instance = null;
 
   log('[Tuner] Stopped pitch detection');
 }
@@ -139,16 +154,6 @@ export function isTunerRunning(): boolean {
  */
 export function disposeTuner(): void {
   if (!instance) return;
-
   stopTuner();
-
-  // Stop all mic tracks
-  instance.stream?.getTracks().forEach((track) => track.stop());
-
-  instance.sourceNode?.disconnect();
-  instance.analyserNode.disconnect();
-  instance.audioContext.close();
-
-  instance = null;
   log('[Tuner] Disposed');
 }

@@ -6,7 +6,7 @@
 
 import { create } from 'zustand';
 import type { NoteName } from '@/audio/types';
-import { NOTE_NAMES, setA4Freq } from '@/lib/notes';
+import { NOTE_NAMES, normalizeSaPitch, setA4Freq } from '@/lib/notes';
 
 /** Supported A4 reference frequencies */
 export type A4Reference = 440 | 432;
@@ -45,29 +45,35 @@ export const usePitchStore = create<PitchState>((set) => ({
   cents: 0,
   a4Freq: 440,
 
-  setNote: (note) => set({ note }),
+  setNote: (note) =>
+    set((state) => {
+      try {
+        return normalizeSaPitch(note, state.octave, state.cents);
+      } catch {
+        return state;
+      }
+    }),
 
   noteUp: () =>
     set((state) => {
       const idx = NOTE_NAMES.indexOf(state.note);
+      if (idx === -1 || (state.octave === 4 && idx >= NOTE_NAMES.indexOf('E'))) return state;
       const nextIdx = (idx + 1) % 12;
       const octave = nextIdx === 0 ? Math.min(state.octave + 1, 4) : state.octave;
-      // Don't go above E4
-      if (octave === 4 && nextIdx > NOTE_NAMES.indexOf('E')) return state;
       return { note: NOTE_NAMES[nextIdx], octave };
     }),
 
   noteDown: () =>
     set((state) => {
       const idx = NOTE_NAMES.indexOf(state.note);
+      if (idx === -1 || (state.octave === 2 && idx <= NOTE_NAMES.indexOf('A'))) return state;
       const prevIdx = (idx - 1 + 12) % 12;
       const octave = prevIdx === 11 ? Math.max(state.octave - 1, 2) : state.octave;
-      // Don't go below A2
-      if (octave === 2 && prevIdx < NOTE_NAMES.indexOf('A')) return state;
       return { note: NOTE_NAMES[prevIdx], octave };
     }),
 
-  setOctave: (octave) => set({ octave: Math.max(2, Math.min(4, octave)) }),
+  setOctave: (octave) =>
+    set((state) => normalizeSaPitch(state.note, octave, state.cents)),
 
   setCents: (cents) => set({ cents: Math.max(-50, Math.min(50, cents)) }),
 
@@ -76,7 +82,14 @@ export const usePitchStore = create<PitchState>((set) => ({
       cents: Math.max(-50, Math.min(50, state.cents + delta)),
     })),
 
-  setPitch: (note, octave, cents) => set({ note, octave, cents }),
+  setPitch: (note, octave, cents) =>
+    set((state) => {
+      try {
+        return normalizeSaPitch(note, octave, cents);
+      } catch {
+        return state;
+      }
+    }),
 
   setA4Freq: (freq) => {
     // Update the module-level reference used by all frequency calculations

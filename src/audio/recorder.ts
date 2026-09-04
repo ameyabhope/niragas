@@ -9,7 +9,7 @@
  *                         ├─► MediaStreamDestination ──► MediaRecorder ──► Blob
  *   Mic (optional) ──────┘
  *
- * Output format: WebM/Opus (browser-native, widely supported).
+ * Output format: the browser's preferred MediaRecorder audio format.
  * For WAV export we convert the recorded Blob in a second pass.
  */
 
@@ -25,6 +25,7 @@ export interface Recording {
   url: string;
   duration: number; // seconds
   createdAt: number;
+  mimeType: string;
 }
 
 // ── Internal state ──────────────────────────────────────────────────────────
@@ -37,10 +38,13 @@ let micSource: MediaStreamAudioSourceNode | null = null;
 let recordingStartTime = 0;
 let pausedDuration = 0;
 let pauseStartTime = 0;
+let durationLimitTimer: number | null = null;
+const MAX_RECORDING_MS = 30 * 60 * 1000;
 
 // Callbacks
 let onStateChange: ((state: RecordingState) => void) | null = null;
 let onRecordingComplete: ((recording: Recording) => void) | null = null;
+let onError: ((message: string) => void) | null = null;
 
 /**
  * Register callbacks for state changes and recording completion.
@@ -48,9 +52,11 @@ let onRecordingComplete: ((recording: Recording) => void) | null = null;
 export function setRecorderCallbacks(callbacks: {
   onStateChange?: (state: RecordingState) => void;
   onRecordingComplete?: (recording: Recording) => void;
+  onError?: (message: string) => void;
 }): void {
   onStateChange = callbacks.onStateChange ?? null;
   onRecordingComplete = callbacks.onRecordingComplete ?? null;
+  onError = callbacks.onError ?? null;
 }
 
 /**
@@ -68,80 +74,80 @@ export async function startRecording(includeMic = false): Promise<void> {
     throw new Error('Mixer not initialized. Cannot record.');
   }
 
+  if (typeof MediaRecorder === 'undefined') {
+    throw new Error('Recording is not supported by this browser.');
+  }
+
   // Get the raw AudioContext from Tone.js
   const ctx = Tone.getContext();
   const rawCtx = (ctx as unknown as { rawContext: AudioContext }).rawContext;
 
-  // Create a MediaStreamDestination to capture audio
-  streamDestination = rawCtx.createMediaStreamDestination();
+  try {
+    streamDestination = rawCtx.createMediaStreamDestination();
+    masterNode.connect(streamDestination);
 
-  // Connect the master bus to the stream destination
-  // We need to access Tone.js's internal node
-  const masterOutput = (masterNode as unknown as { output: AudioNode }).output;
-  if (masterOutput) {
-    masterOutput.connect(streamDestination);
-  } else {
-    // Fallback: connect via Tone's connect method
-    // Create a native gain node as bridge
-    const bridge = rawCtx.createGain();
-    bridge.connect(streamDestination);
-    masterNode.connect(new Tone.Gain().connect(Tone.getDestination()));
-  }
-
-  // Optionally add mic input
-  if (includeMic) {
-    try {
+    if (includeMic) {
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       micSource = rawCtx.createMediaStreamSource(micStream);
       micSource.connect(streamDestination);
-    } catch (err) {
-      console.warn('[Recorder] Could not access microphone:', err);
-      // Continue recording without mic
     }
-  }
 
-  // Determine supported MIME type
-  const mimeType = getSupportedMimeType();
+    const mimeType = getSupportedMimeType();
+    const options: MediaRecorderOptions = { audioBitsPerSecond: 128000 };
+    if (mimeType) options.mimeType = mimeType;
 
-  recordedChunks = [];
-  mediaRecorder = new MediaRecorder(streamDestination.stream, {
-    mimeType,
-    audioBitsPerSecond: 128000,
-  });
+    recordedChunks = [];
+    const recorder = new MediaRecorder(streamDestination.stream, options);
+    mediaRecorder = recorder;
 
-  mediaRecorder.ondataavailable = (event) => {
-    if (event.data.size > 0) {
-      recordedChunks.push(event.data);
-    }
-  };
-
-  mediaRecorder.onstop = () => {
-    const duration = (performance.now() - recordingStartTime - pausedDuration) / 1000;
-    const blob = new Blob(recordedChunks, { type: mimeType });
-    const url = URL.createObjectURL(blob);
-
-    const recording: Recording = {
-      id: `rec-${Date.now()}`,
-      name: `Recording ${new Date().toLocaleTimeString()}`,
-      blob,
-      url,
-      duration,
-      createdAt: Date.now(),
+    recorder.ondataavailable = (event) => {
+      if (event.data.size > 0) recordedChunks.push(event.data);
     };
 
-    // Cleanup connections
+    recorder.onerror = (event) => {
+      const recorderError = (event as Event & { error?: DOMException }).error;
+      const message = recorderError?.message ?? 'Recording failed unexpectedly.';
+      recorder.onstop = null;
+      cleanupConnections();
+      recordedChunks = [];
+      onError?.(message);
+      onStateChange?.('idle');
+    };
+
+    recorder.onstop = () => {
+      const duration = Math.max(0, (performance.now() - recordingStartTime - pausedDuration) / 1000);
+      const actualMimeType = recorder.mimeType || mimeType || recordedChunks[0]?.type || 'audio/webm';
+      const blob = new Blob(recordedChunks, { type: actualMimeType });
+      const url = URL.createObjectURL(blob);
+
+      const recording: Recording = {
+        id: `rec-${Date.now()}`,
+        name: `Recording ${new Date().toLocaleTimeString()}`,
+        blob,
+        url,
+        duration,
+        createdAt: Date.now(),
+        mimeType: actualMimeType,
+      };
+
+      cleanupConnections();
+      onRecordingComplete?.(recording);
+      onStateChange?.('idle');
+    };
+
+    recordingStartTime = performance.now();
+    pausedDuration = 0;
+    recorder.start(1000);
+    durationLimitTimer = window.setTimeout(stopRecording, MAX_RECORDING_MS);
+
+    onStateChange?.('recording');
+  } catch (err) {
     cleanupConnections();
-
-    onRecordingComplete?.(recording);
-    onStateChange?.('idle');
-  };
-
-  // Request data every second for progressive capture
-  mediaRecorder.start(1000);
-  recordingStartTime = performance.now();
-  pausedDuration = 0;
-
-  onStateChange?.('recording');
+    if (includeMic && err instanceof DOMException && err.name === 'NotAllowedError') {
+      throw new Error('Microphone permission was denied. Disable Include mic or allow access.');
+    }
+    throw err;
+  }
 }
 
 /**
@@ -171,6 +177,9 @@ export function resumeRecording(): void {
  */
 export function stopRecording(): void {
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    if (mediaRecorder.state === 'paused') {
+      pausedDuration += performance.now() - pauseStartTime;
+    }
     mediaRecorder.stop();
   }
 }
@@ -203,11 +212,19 @@ export function getRecordingDuration(): number {
  * Download a recording as a file.
  */
 export function downloadRecording(recording: Recording, filename?: string): void {
-  const name = filename ?? `${recording.name.replace(/[^a-zA-Z0-9 ]/g, '')}.webm`;
+  const extension = getRecordingExtension(recording);
+  const name = filename ?? `${recording.name.replace(/[^a-zA-Z0-9 ]/g, '')}.${extension}`;
   const a = document.createElement('a');
   a.href = recording.url;
   a.download = name;
   a.click();
+}
+
+export function getRecordingExtension(recording: Pick<Recording, 'blob' | 'mimeType'>): string {
+  const mimeType = recording.mimeType || recording.blob.type;
+  if (mimeType.includes('ogg')) return 'ogg';
+  if (mimeType.includes('mp4')) return 'm4a';
+  return 'webm';
 }
 
 /**
@@ -217,13 +234,18 @@ export function downloadRecording(recording: Recording, filename?: string): void
 export async function convertToWAV(recording: Recording): Promise<Blob> {
   const arrayBuffer = await recording.blob.arrayBuffer();
   const audioCtx = new AudioContext();
-
-  // Decode the audio
-  const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-  await audioCtx.close();
+  let audioBuffer: AudioBuffer;
+  try {
+    audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+  } finally {
+    await audioCtx.close();
+  }
+  if (audioBuffer.duration > MAX_RECORDING_MS / 1000) {
+    throw new Error('WAV export is limited to 30-minute recordings.');
+  }
 
   // Create WAV from AudioBuffer
-  return audioBufferToWAV(audioBuffer);
+  return await audioBufferToWAV(audioBuffer);
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -238,19 +260,21 @@ function cleanupConnections(): void {
     micStream = null;
   }
   if (streamDestination) {
+    streamDestination.stream.getTracks().forEach((track) => track.stop());
     // Disconnect the master node from the stream destination
     try {
       const masterNode = getMasterNode();
       if (masterNode) {
-        const masterOutput = (masterNode as unknown as { output: AudioNode }).output;
-        if (masterOutput) {
-          masterOutput.disconnect(streamDestination);
-        }
+        masterNode.disconnect(streamDestination);
       }
     } catch {
       // May already be disconnected
     }
     streamDestination = null;
+  }
+  if (durationLimitTimer !== null) {
+    clearTimeout(durationLimitTimer);
+    durationLimitTimer = null;
   }
   mediaRecorder = null;
 }
@@ -271,7 +295,7 @@ function getSupportedMimeType(): string {
 /**
  * Encode an AudioBuffer as a WAV Blob.
  */
-function audioBufferToWAV(buffer: AudioBuffer): Blob {
+async function audioBufferToWAV(buffer: AudioBuffer): Promise<Blob> {
   const numChannels = buffer.numberOfChannels;
   const sampleRate = buffer.sampleRate;
   const format = 1; // PCM
@@ -279,13 +303,15 @@ function audioBufferToWAV(buffer: AudioBuffer): Blob {
 
   // Interleave channels
   let interleaved: Float32Array;
-  if (numChannels === 2) {
-    const left = buffer.getChannelData(0);
-    const right = buffer.getChannelData(1);
-    interleaved = new Float32Array(left.length + right.length);
-    for (let i = 0; i < left.length; i++) {
-      interleaved[i * 2] = left[i];
-      interleaved[i * 2 + 1] = right[i];
+  if (numChannels > 1) {
+    interleaved = new Float32Array(buffer.length * numChannels);
+    for (let frame = 0; frame < buffer.length; frame++) {
+      for (let channel = 0; channel < numChannels; channel++) {
+        interleaved[frame * numChannels + channel] = buffer.getChannelData(channel)[frame];
+      }
+      if (frame > 0 && frame % 1_000_000 === 0) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      }
     }
   } else {
     interleaved = buffer.getChannelData(0);
@@ -324,6 +350,9 @@ function audioBufferToWAV(buffer: AudioBuffer): Blob {
     const int16 = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
     view.setInt16(offset, int16, true);
     offset += 2;
+    if (i > 0 && i % 1_000_000 === 0) {
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    }
   }
 
   return new Blob([arrayBuffer], { type: 'audio/wav' });

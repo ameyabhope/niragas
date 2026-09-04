@@ -8,6 +8,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useRecorderStore } from '@/store/recorder-store';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
+import { getRecordingExtension } from '@/audio/recorder';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -23,6 +24,7 @@ export function RecorderPanel() {
     downloadedIds,
     playingId,
     elapsed,
+    error,
     start,
     pause,
     resume,
@@ -34,7 +36,6 @@ export function RecorderPanel() {
     setPlayingId,
     updateElapsed,
     hasUndownloadedRecordings,
-    revokeAll,
   } = useRecorderStore();
 
   // Warn user before leaving if there are undownloaded recordings
@@ -50,11 +51,6 @@ export function RecorderPanel() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUndownloadedRecordings]);
-
-  // Revoke all blob URLs on unmount (page navigation within SPA)
-  useEffect(() => {
-    return () => revokeAll();
-  }, [revokeAll]);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<number>(0);
@@ -110,7 +106,7 @@ export function RecorderPanel() {
         <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
           Recorder
         </h2>
-        <InfoTooltip text="Record your practice session. Optionally include mic input. Recordings exist only in memory for this session — download as WebM or WAV before closing the page. Nothing is saved to disk or sent anywhere." />
+        <InfoTooltip text="Record up to 30 minutes of your practice session. Optionally include mic input. Recordings exist only in memory for this session; download the browser-native format or WAV before closing the page. Nothing is sent anywhere." />
       </div>
 
       <div className="rounded-xl border border-white/5 bg-surface-card p-4 flex flex-col gap-4">
@@ -185,6 +181,10 @@ export function RecorderPanel() {
           )}
         </div>
 
+        {error && (
+          <p className="text-xs text-accent" role="alert">{error}</p>
+        )}
+
         {/* Recordings list */}
         {recordings.length > 0 && (
           <div className="flex flex-col gap-1">
@@ -201,6 +201,7 @@ export function RecorderPanel() {
             <div className="max-h-48 overflow-y-auto flex flex-col gap-1">
               {recordings.map((rec) => {
                 const isDownloaded = downloadedIds.has(rec.id);
+                const originalFormat = getRecordingExtension(rec).toUpperCase();
                 return (
                   <div
                     key={rec.id}
@@ -239,14 +240,14 @@ export function RecorderPanel() {
                       </p>
                     </div>
 
-                    {/* Download WebM */}
+                    {/* Download browser-native format */}
                     <button
-                      onClick={() => downloadRecording(rec.id, 'webm')}
+                      onClick={() => downloadRecording(rec.id, 'original')}
                       className="px-2 py-1 text-[10px] text-text-muted hover:text-saffron-400 
                                  transition-colors"
-                      title="Download as WebM"
+                      title={`Download as ${originalFormat}`}
                     >
-                      WebM
+                      {originalFormat}
                     </button>
 
                     {/* Download WAV */}

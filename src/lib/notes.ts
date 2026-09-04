@@ -13,6 +13,9 @@ export const NOTE_NAMES: NoteName[] = [
   'F#', 'G', 'G#', 'A', 'A#', 'B',
 ];
 
+const MIN_SA_MIDI = 45; // A2
+const MAX_SA_MIDI = 64; // E4
+
 /** A4 reference frequency — configurable (440 or 432 Hz) */
 let a4Freq = 440;
 const A4_MIDI = 69;
@@ -39,6 +42,28 @@ export function noteToFreq(note: NoteName, octave: number, cents = 0): number {
   if (noteIndex === -1) throw new Error(`Invalid note: ${note}`);
   const midi = (octave + 1) * 12 + noteIndex;
   return a4Freq * Math.pow(2, (midi - A4_MIDI + cents / 100) / 12);
+}
+
+/** Fold a pitch class into the supported A2-E4 Sa range and clamp fine tuning. */
+export function normalizeSaPitch(
+  note: NoteName,
+  octave: number,
+  cents: number
+): { note: NoteName; octave: number; cents: number } {
+  const noteIndex = NOTE_NAMES.indexOf(note);
+  if (noteIndex === -1) throw new Error(`Invalid note: ${note}`);
+
+  const safeOctave = Number.isFinite(octave) ? Math.round(octave) : 3;
+  let midi = (safeOctave + 1) * 12 + noteIndex;
+  while (midi < MIN_SA_MIDI) midi += 12;
+  while (midi > MAX_SA_MIDI) midi -= 12;
+  midi = Math.max(MIN_SA_MIDI, Math.min(MAX_SA_MIDI, midi));
+
+  return {
+    note: NOTE_NAMES[midi % 12],
+    octave: Math.floor(midi / 12) - 1,
+    cents: Number.isFinite(cents) ? Math.max(-50, Math.min(50, Math.round(cents))) : 0,
+  };
 }
 
 /**
