@@ -10,6 +10,9 @@
 import { useTablaStore } from '@/store/tabla-store';
 import { useMixerStore } from '@/store/mixer-store';
 import { useEQStore } from '@/store/eq-store';
+import { useTanpuraStore } from '@/store/tanpura-store';
+import { useSurPetiStore } from '@/store/surpeti-store';
+import { useSwarMandalStore } from '@/store/swarmandal-store';
 import {
   setTablaTempo,
   loadTaal,
@@ -138,6 +141,32 @@ export function initAudioSubscriptions(): void {
     prevEQ = state;
   });
 
+  // ── Mixer enabled mirror ──
+  // Mixer dots are display-only: instrument stores own on/off.
+  // Mirror them here so dots/sliders always reflect engine truth.
+  const syncMixerEnabled = (id: InstrumentId, enabled: boolean) => {
+    if (useMixerStore.getState().channels[id].enabled !== enabled) {
+      useMixerStore.getState().setEnabled(id, enabled);
+    }
+  };
+
+  useTanpuraStore.subscribe((state) => {
+    syncMixerEnabled('tanpura1', state.tanpura1.enabled);
+    syncMixerEnabled('tanpura2', state.tanpura2.enabled);
+  });
+
+  useTablaStore.subscribe((state) => {
+    syncMixerEnabled('tabla', state.playing);
+  });
+
+  useSurPetiStore.subscribe((state) => {
+    syncMixerEnabled('surpeti', state.enabled);
+  });
+
+  useSwarMandalStore.subscribe((state) => {
+    syncMixerEnabled('swarmandal', state.enabled);
+  });
+
   // ── Initial mixer state ──
   // Subscriptions only fire on state *changes*, so push the initial
   // volumes/pans/mutes now — otherwise the 75%/80% sliders are fiction
@@ -150,6 +179,14 @@ export function initAudioSubscriptions(): void {
   }
   setMasterVolume(initialMixer.masterVolume);
   setMasterMute(initialMixer.masterMuted);
+
+  // Mirror current engine truth into mixer dots at boot
+  const tanpuraInit = useTanpuraStore.getState();
+  syncMixerEnabled('tanpura1', tanpuraInit.tanpura1.enabled);
+  syncMixerEnabled('tanpura2', tanpuraInit.tanpura2.enabled);
+  syncMixerEnabled('tabla', useTablaStore.getState().playing);
+  syncMixerEnabled('surpeti', useSurPetiStore.getState().enabled);
+  syncMixerEnabled('swarmandal', useSwarMandalStore.getState().enabled);
 
   // ── Initial EQ state ──
   // If EQ is already enabled at startup, create and insert it now.

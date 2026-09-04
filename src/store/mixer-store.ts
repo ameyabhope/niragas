@@ -17,8 +17,10 @@ interface MixerState {
   masterVolume: number;
   masterMuted: boolean;
 
-  /** Toggle an instrument on/off */
-  toggleEnabled: (id: InstrumentId) => void;
+  /** Mirror an instrument's engine state (called by audio subscriptions only).
+   *  UI toggles must act on the instrument stores, never here, so there is
+   *  a single source of truth for on/off. */
+  setEnabled: (id: InstrumentId, enabled: boolean) => void;
   /** Set volume for an instrument (0-1) */
   setVolume: (id: InstrumentId, volume: number) => void;
   /** Set pan for an instrument (-1 to 1) */
@@ -44,13 +46,17 @@ export const useMixerStore = create<MixerState>((set) => ({
   masterVolume: 0.8,
   masterMuted: false,
 
-  toggleEnabled: (id) =>
-    set((state) => ({
-      channels: {
-        ...state.channels,
-        [id]: { ...state.channels[id], enabled: !state.channels[id].enabled },
-      },
-    })),
+  setEnabled: (id, enabled) =>
+    set((state) =>
+      state.channels[id].enabled === enabled
+        ? state
+        : {
+            channels: {
+              ...state.channels,
+              [id]: { ...state.channels[id], enabled },
+            },
+          }
+    ),
 
   setVolume: (id, volume) =>
     set((state) => ({

@@ -30,6 +30,9 @@ interface ChannelStripProps {
   channel: ChannelState;
   mode: 'volume' | 'pan';
   onToggleEnabled: () => void;
+  /** Disable the enable-dot (engine can't start this instrument yet) */
+  toggleDisabled?: boolean;
+  toggleTitle?: string;
   onSetVolume: (v: number) => void;
   onSetPan: (v: number) => void;
   onToggleMute: () => void;
@@ -40,6 +43,8 @@ export function ChannelStrip({
   channel,
   mode,
   onToggleEnabled,
+  toggleDisabled = false,
+  toggleTitle,
   onSetVolume,
   onSetPan,
   onToggleMute,
@@ -63,11 +68,13 @@ export function ChannelStrip({
       {/* Enable/disable toggle */}
       <button
         onClick={onToggleEnabled}
+        disabled={toggleDisabled}
+        title={toggleTitle}
         className={`w-2.5 h-2.5 rounded-full border-2 transition-colors flex-shrink-0 ${
           channel.enabled
             ? 'bg-active border-active'
             : 'bg-transparent border-text-muted'
-        }`}
+        } disabled:opacity-30 disabled:cursor-not-allowed`}
         aria-label={`Toggle ${INSTRUMENT_FULL_NAMES[id]}`}
       />
 
