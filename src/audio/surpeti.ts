@@ -17,7 +17,7 @@ import { getChannelInput } from './mixer';
 import { log } from './log';
 
 interface SurPetiInstance {
-  /** Oscillators for each partial */
+  /** Oscillators for each partial (recreated on every start — a stopped osc can't restart) */
   oscillators: Tone.Oscillator[];
   /** Gains for mixing partials */
   gains: Tone.Gain[];
@@ -29,6 +29,8 @@ interface SurPetiInstance {
   masterGain: Tone.Gain;
   /** Whether currently playing */
   playing: boolean;
+  /** Bumps on every start/stop so a stale stop timer can't kill a new drone */
+  generation: number;
 }
 
 let instance: SurPetiInstance | null = null;
@@ -73,18 +75,6 @@ export function createSurPeti(): void {
   const oscillators: Tone.Oscillator[] = [];
   const gains: Tone.Gain[] = [];
 
-  for (const partial of PARTIALS) {
-    const gain = new Tone.Gain(partial.amplitude).connect(tremolo);
-    const osc = new Tone.Oscillator({
-      frequency: 261.63, // placeholder C4, will be updated
-      type: 'sine',
-      detune: partial.detune,
-    }).connect(gain);
-
-    oscillators.push(osc);
-    gains.push(gain);
-  }
-
   instance = {
     oscillators,
     gains,
@@ -92,9 +82,41 @@ export function createSurPeti(): void {
     filter,
     masterGain,
     playing: false,
+    generation: 0,
   };
 
   log('[SurPeti] Created');
+}
+
+/** (Re)create the partial oscillators. Stopped oscillators can't restart. */
+function ensureOscillators(saNote: NoteName, saOctave: number, saCents = 0): void {
+  if (!instance || instance.oscillators.length > 0) return;
+
+  const fundamentalFreq = noteToFreq(saNote, saOctave, saCents);
+
+  for (const partial of PARTIALS) {
+    const gain = new Tone.Gain(partial.amplitude).connect(instance.tremolo);
+    const osc = new Tone.Oscillator({
+      frequency: fundamentalFreq * partial.ratio,
+      type: 'sine',
+      detune: partial.detune,
+    }).connect(gain);
+
+    instance.oscillators.push(osc);
+    instance.gains.push(gain);
+  }
+}
+
+/** Dispose just the oscillators/gains (persistent chain survives). */
+function teardownOscillators(): void {
+  if (!instance) return;
+  for (const osc of instance.oscillators) {
+    try { osc.stop(); } catch { /* already stopped */ }
+    osc.dispose();
+  }
+  for (const gain of instance.gains) gain.dispose();
+  instance.oscillators = [];
+  instance.gains = [];
 }
 
 /**
@@ -117,6 +139,8 @@ export function setSurPetiPitch(
 
 /**
  * Start the Sur-Peti drone.
+ * Safe to call immediately after stop: oscillators are recreated per
+ * start and a generation guard stops stale timers from killing the drone.
  */
 export function startSurPeti(
   saNote: NoteName,
@@ -125,6 +149,8 @@ export function startSurPeti(
 ): void {
   if (!instance || instance.playing) return;
 
+  instance.generation += 1;
+  ensureOscillators(saNote, saOctave, saCents);
   setSurPetiPitch(saNote, saOctave, saCents);
 
   // Fade in smoothly
@@ -132,7 +158,11 @@ export function startSurPeti(
   instance.masterGain.gain.linearRampToValueAtTime(1, Tone.now() + 1.5);
 
   for (const osc of instance.oscillators) {
-    osc.start();
+    try {
+      osc.start();
+    } catch {
+      // Already started — keep droning
+    }
   }
 
   instance.playing = true;
@@ -145,17 +175,18 @@ export function startSurPeti(
 export function stopSurPeti(): void {
   if (!instance || !instance.playing) return;
 
+  instance.generation += 1;
+  const generation = instance.generation;
+
   // Fade out smoothly
   const now = Tone.now();
   instance.masterGain.gain.setValueAtTime(instance.masterGain.gain.value, now);
   instance.masterGain.gain.linearRampToValueAtTime(0, now + 0.5);
 
-  // Stop oscillators after fade out
-  const oscillators = instance.oscillators;
+  // Tear down oscillators after fade out — unless a new start happened
   setTimeout(() => {
-    for (const osc of oscillators) {
-      try { osc.stop(); } catch { /* may already be stopped */ }
-    }
+    if (!instance || generation !== instance.generation || instance.playing) return;
+    teardownOscillators();
   }, 600);
 
   instance.playing = false;
