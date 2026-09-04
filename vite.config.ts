@@ -11,7 +11,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg', 'samples/**/*'],
+      includeAssets: ['icon.svg'],
       manifest: {
         name: 'Niragas - Indian Classical Music Practice',
         short_name: 'Niragas',

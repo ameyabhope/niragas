@@ -18,8 +18,8 @@ const TUNING_OPTIONS: { label: string; value: TanpuraTuning }[] = [
 
 const EQ_OPTIONS: { label: string; value: TanpuraEQ }[] = [
   { label: 'Neutral', value: 'neutral' },
-  { label: 'Bass', value: 'bass' },
-  { label: 'Treble', value: 'treble' },
+  { label: 'Bass (Pa/C)', value: 'bass' },
+  { label: 'Treble (Pa/C)', value: 'treble' },
 ];
 
 interface TanpuraControlProps {
@@ -83,12 +83,11 @@ export function TanpuraControl({
               onClick={() => {
                 onSetTuning(value);
               }}
-              disabled={!config.enabled}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 config.tuning === value
                   ? 'bg-saffron-600 text-white'
                   : 'bg-surface-lighter text-text-secondary hover:text-text-primary'
-              } disabled:opacity-40 disabled:cursor-not-allowed`}
+              }`}
             >
               {optLabel}
             </button>
@@ -106,12 +105,11 @@ export function TanpuraControl({
               onClick={() => {
                 onSetEQ(value);
               }}
-              disabled={!config.enabled}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 config.eq === value
                   ? 'bg-saffron-600 text-white'
                   : 'bg-surface-lighter text-text-secondary hover:text-text-primary'
-              } disabled:opacity-40 disabled:cursor-not-allowed`}
+              }`}
             >
               {optLabel}
             </button>
@@ -134,9 +132,8 @@ export function TanpuraControl({
             const cents = parseInt(e.target.value, 10);
             onSetFinePitch(cents);
           }}
-          disabled={!config.enabled}
           className="w-full h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
-                     accent-saffron-500 disabled:opacity-40"
+                     accent-saffron-500"
           aria-label="Tanpura fine pitch"
         />
       </div>
@@ -156,9 +153,8 @@ export function TanpuraControl({
             const speed = parseFloat(e.target.value);
             onSetSpeed(speed);
           }}
-          disabled={!config.enabled}
           className="w-full h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
-                     accent-saffron-500 disabled:opacity-40"
+                     accent-saffron-500"
           aria-label="Tanpura tempo (pitch-safe)"
         />
       </div>

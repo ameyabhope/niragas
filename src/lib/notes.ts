@@ -72,7 +72,7 @@ const SWARA_SEMITONES: Record<SwarName, number> = {
 /**
  * Get the semitone offset of a swara from Sa.
  */
-function swarToSemitones(
+export function swarToSemitones(
   note: SwarName,
   variant: SwarVariant = 'shuddha'
 ): number {
@@ -88,6 +88,19 @@ function swarToSemitones(
   }
 
   return semitones;
+}
+
+/** Convert a swara relative to Sa into an exact frequency. */
+export function swarToFreq(
+  saNote: NoteName,
+  saOctave: number,
+  saCents: number,
+  swar: SwarName,
+  variant: SwarVariant = 'shuddha',
+  octaveOffset = 0
+): number {
+  const semitones = swarToSemitones(swar, variant) + octaveOffset * 12;
+  return noteToFreq(saNote, saOctave, saCents) * Math.pow(2, semitones / 12);
 }
 
 /**

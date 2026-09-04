@@ -3,6 +3,12 @@
  */
 
 import { create } from 'zustand';
+import { getTaal } from '@/data/taals';
+
+function clampTempo(taalId: string, bpm: number): number {
+  const { min, max } = getTaal(taalId).tempoRange;
+  return Math.max(min, Math.min(max, Math.round(bpm)));
+}
 
 interface TablaState {
   /** Selected taal ID */
@@ -37,24 +43,33 @@ export const useTablaStore = create<TablaState>((set) => ({
   currentMatra: 1,
   currentDivisionLabel: null,
 
-  setTaalId: (id) => set({ taalId: id, styleId: 'theka', currentMatra: 1 }),
+  setTaalId: (id) =>
+    set((state) => {
+      const taal = getTaal(id);
+      return {
+        taalId: taal.id,
+        styleId: taal.styles[0]?.id ?? '',
+        tempo: clampTempo(taal.id, state.tempo),
+        currentMatra: 1,
+      };
+    }),
   setStyleId: (id) => set({ styleId: id }),
 
-  setTempo: (bpm) => set({ tempo: Math.max(10, Math.min(700, bpm)) }),
+  setTempo: (bpm) => set((state) => ({ tempo: clampTempo(state.taalId, bpm) })),
 
   adjustTempo: (delta) =>
     set((state) => ({
-      tempo: Math.max(10, Math.min(700, state.tempo + delta)),
+      tempo: clampTempo(state.taalId, state.tempo + delta),
     })),
 
   halfTempo: () =>
     set((state) => ({
-      tempo: Math.max(10, Math.round(state.tempo / 2)),
+      tempo: clampTempo(state.taalId, state.tempo / 2),
     })),
 
   doubleTempo: () =>
     set((state) => ({
-      tempo: Math.min(700, state.tempo * 2),
+      tempo: clampTempo(state.taalId, state.tempo * 2),
     })),
 
   setPlaying: (playing) => set({ playing }),

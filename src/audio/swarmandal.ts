@@ -15,18 +15,19 @@
 
 import * as Tone from 'tone';
 import type { SwarMandalConfig, NoteName } from './types';
-import { swarToToneNote } from '@/lib/notes';
+import { swarToFreq } from '@/lib/notes';
 import { getChannelInput } from './mixer';
 import { log } from './log';
 
 interface SwarMandalInstance {
-  synth: Tone.PolySynth;
+  synths: Tone.PluckSynth[];
   reverb: Tone.Reverb;
   loop: Tone.Loop | null;
   playing: boolean;
   config: SwarMandalConfig;
   saNote: NoteName;
   saOctave: number;
+  saCents: number;
 }
 
 let instance: SwarMandalInstance | null = null;
@@ -45,22 +46,19 @@ export function createSwarMandal(): void {
     preDelay: 0.01,
   }).connect(channelInput);
 
-  // Use a basic synth with pluck-like envelope
-  const synth = new Tone.PolySynth(Tone.Synth);
-  synth.maxPolyphony = 24;
-  synth.set({
-    oscillator: { type: 'triangle' },
-    envelope: {
-      attack: 0.002,
-      decay: 1.5,
-      sustain: 0,
-      release: 2.0,
-    },
+  const synths = Array.from({ length: 20 }, () => {
+    const synth = new Tone.PluckSynth({
+      attackNoise: 1.2,
+      dampening: 4200,
+      resonance: 0.92,
+      release: 1.8,
+    });
+    synth.connect(reverb);
+    return synth;
   });
-  synth.connect(reverb);
 
   instance = {
-    synth,
+    synths,
     reverb,
     loop: null,
     playing: false,
@@ -73,6 +71,7 @@ export function createSwarMandal(): void {
     },
     saNote: 'C#',
     saOctave: 3,
+    saCents: 0,
   };
 
   log('[SwarMandal] Created');
@@ -84,24 +83,28 @@ export function createSwarMandal(): void {
 export function strumSwarMandal(): void {
   if (!instance) return;
 
-  const enabledStrings = instance.config.strings.filter((s) => s.enabled);
+  const enabledStrings = instance.config.strings
+    .map((config, index) => ({ config, index }))
+    .filter(({ config }) => config.enabled);
   if (enabledStrings.length === 0) return;
 
   const now = Tone.now();
   const staggerMs = 0.035; // 35ms between each string
 
-  enabledStrings.forEach((stringConfig, i) => {
-    const toneNote = swarToToneNote(
+  enabledStrings.forEach(({ config: stringConfig, index }, i) => {
+    const frequency = swarToFreq(
       instance!.saNote,
       instance!.saOctave,
+      instance!.saCents,
       stringConfig.note,
       stringConfig.variant,
       stringConfig.octaveOffset
     );
 
     const time = now + i * staggerMs;
-    const velocity = 0.4 + Math.random() * 0.2; // slight variation
-    instance!.synth.triggerAttackRelease(toneNote, '2n', time, velocity);
+    const synth = instance!.synths[index % instance!.synths.length];
+    synth.volume.value = -8 + Math.random() * 2;
+    synth.triggerAttack(frequency, time);
   });
 }
 
@@ -118,7 +121,7 @@ export function startSwarMandalLoop(): void {
     strumSwarMandal();
   }, instance.config.loopDuration);
 
-  instance.loop.start(0);
+  instance.loop.start(Tone.getTransport().seconds + instance.config.loopDuration);
   instance.playing = true;
 
   if (Tone.getTransport().state !== 'started') {
@@ -138,7 +141,7 @@ export function stopSwarMandalLoop(): void {
   instance.loop?.dispose();
   instance.loop = null;
   instance.playing = false;
-  instance.synth.releaseAll();
+  for (const synth of instance.synths) synth.triggerRelease();
 
   log('[SwarMandal] Auto-loop stopped');
 }
@@ -176,10 +179,11 @@ export function isSwarMandalPlaying(): boolean {
 /**
  * Update pitch reference.
  */
-export function updateSwarMandalPitch(saNote: NoteName, saOctave: number): void {
+export function updateSwarMandalPitch(saNote: NoteName, saOctave: number, saCents = 0): void {
   if (!instance) return;
   instance.saNote = saNote;
   instance.saOctave = saOctave;
+  instance.saCents = saCents;
 }
 
 /**
@@ -189,7 +193,7 @@ export function disposeSwarMandal(): void {
   if (!instance) return;
 
   stopSwarMandalLoop();
-  instance.synth.dispose();
+  for (const synth of instance.synths) synth.dispose();
   instance.reverb.dispose();
   instance = null;
 

@@ -61,6 +61,27 @@ const SAMPLE_PITCHES: SampleEntry[] = [
   { key: 'Fs', saFreq: 185.0,  saNote: 'F#', saOctave: 3 },
 ];
 
+/** Per-recording gain compensation toward a common -19 LUFS target. */
+export const TANPURA_SAMPLE_GAIN_DB: Record<string, number> = {
+  Ma_A_neutral: -1.2,
+  Ma_C_neutral: -0.6,
+  Ma_D_neutral: -1.6,
+  Ma_E_neutral: 0,
+  Ma_Fs_neutral: -1.7,
+  Ni_A_neutral: -1.1,
+  Ni_C_neutral: 0.1,
+  Ni_D_neutral: -0.1,
+  Ni_E_neutral: -1.5,
+  Ni_Fs_neutral: 2.3,
+  Pa_A_neutral: -2.3,
+  Pa_C_bass: -1.4,
+  Pa_C_treble: 0.3,
+  Pa_C_neutral: -1,
+  Pa_D_neutral: -0.1,
+  Pa_E_neutral: 0.5,
+  Pa_Fs_neutral: -0.6,
+};
+
 /** Build the URL for a given tuning + pitch + eq variant */
 function getSampleUrl(tuning: TanpuraTuning, pitchKey: string, eq: TanpuraEQ = 'neutral'): string {
   // EQ variants only exist for Pa + C
@@ -122,6 +143,7 @@ interface TanpuraInstance {
   currentSampleKey: string;  // e.g. "Pa_C" — tracks which sample is loaded
   baseRate: number;          // sample-to-target ratio (before speed/finePitch)
   loading: boolean;
+  loadGeneration: number;
 }
 
 const instances: Map<string, TanpuraInstance> = new Map();
@@ -180,24 +202,18 @@ export function getTanpuraStatus(id: string): TanpuraStatus {
  * Output = sampleFreq * speed * 2^(shiftSt/12) = target * fineRatio,
  * so shiftSt = 12*log2(baseRate / speed) + fine/100.
  */
-function computePitchShiftSt(
+export function computePitchShiftSt(
   baseRate: number,
   finePitchCents: number,
-  speed: number,
-  extraCents = 0
+  speed: number
 ): number {
-  const shiftSt = 12 * Math.log2(baseRate / speed) + (finePitchCents + extraCents) / 100;
-  // Tone.PitchShift degrades past ~±12st; our worst case is ~±9st.
-  return Math.max(-12, Math.min(12, shiftSt));
-}
-
-/** Small per-instance detune so tanpura1+tanpura2 on the same sample don't phase. */
-function dephaseCents(id: string): number {
-  return id === 'tanpura2' ? 4 : 0;
+  // Accuracy is preferable to silently going several semitones flat at high Sa.
+  // Additional upper-register source recordings can reduce extreme shifts later.
+  return 12 * Math.log2(baseRate / speed) + finePitchCents / 100;
 }
 
 /** Apply tempo (Player) + pitch (PitchShift) from current config. */
-function applyTempoAndPitch(instance: TanpuraInstance, id: string): void {
+function applyTempoAndPitch(instance: TanpuraInstance): void {
   if (instance.player) {
     instance.player.playbackRate = instance.config.speed;
   }
@@ -205,8 +221,7 @@ function applyTempoAndPitch(instance: TanpuraInstance, id: string): void {
     instance.pitchShift.pitch = computePitchShiftSt(
       instance.baseRate,
       instance.config.finePitchCents,
-      instance.config.speed,
-      dephaseCents(id)
+      instance.config.speed
     );
   }
 }
@@ -275,6 +290,7 @@ export async function createTanpura(
     currentSampleKey: '',
     baseRate: 1.0,
     loading: false,
+    loadGeneration: 0,
   };
 
   instances.set(id, instance);
@@ -291,6 +307,7 @@ export async function createTanpura(
 async function loadSampleForInstance(id: string): Promise<void> {
   const instance = instances.get(id);
   if (!instance) return;
+  const generation = ++instance.loadGeneration;
 
   const { tuning, eq } = instance.config;
   const targetFreq = noteToFreq(instance.saNote, instance.saOctave, instance.saCents);
@@ -302,7 +319,7 @@ async function loadSampleForInstance(id: string): Promise<void> {
   // Don't reload if same sample is already loaded
   if (sampleKey === instance.currentSampleKey && instance.player) {
     instance.baseRate = rate;
-    applyTempoAndPitch(instance, id);
+    applyTempoAndPitch(instance);
     return;
   }
 
@@ -341,9 +358,12 @@ async function loadSampleForInstance(id: string): Promise<void> {
 
   let loaded = false;
   for (const candidate of candidates) {
-    loaded = await loadPlayerFromUrl(id, candidate.url, candidate.key, rate);
+    loaded = await loadPlayerFromUrl(id, candidate.url, candidate.key, rate, generation);
+    if (instances.get(id) !== instance || instance.loadGeneration !== generation) return;
     if (loaded) break;
   }
+
+  if (instances.get(id) !== instance || instance.loadGeneration !== generation) return;
 
   if (!loaded) {
     instance.error = `Sample failed to load (${tuning} ${entry.key}) — format may be unsupported in this browser`;
@@ -362,7 +382,8 @@ async function loadPlayerFromUrl(
   id: string,
   url: string,
   sampleKey: string,
-  baseRate: number
+  baseRate: number,
+  generation: number
 ): Promise<boolean> {
   const instance = instances.get(id);
   if (!instance) return false;
@@ -430,6 +451,15 @@ async function loadPlayerFromUrl(
       fadeIn: 0.5,
       fadeOut: 0.5,
       onload: () => {
+        if (instances.get(id) !== instance || instance.loadGeneration !== generation) {
+          player.dispose();
+          pitchShift.dispose();
+          chorus.dispose();
+          breathing.dispose();
+          room.dispose();
+          resolve(false);
+          return;
+        }
         instance.player = player;
         instance.pitchShift = pitchShift;
         instance.chorus = chorus;
@@ -437,8 +467,9 @@ async function loadPlayerFromUrl(
         instance.room = room;
         instance.currentSampleKey = sampleKey;
         instance.baseRate = baseRate;
+        player.volume.value = TANPURA_SAMPLE_GAIN_DB[sampleKey] ?? 0;
 
-        applyTempoAndPitch(instance, id);
+        applyTempoAndPitch(instance);
 
         log(
           `[Tanpura] Loaded ${sampleKey} for ${id} ` +
@@ -485,10 +516,6 @@ export function startTanpura(id: string): void {
     instance.player.start(Tone.now(), offset);
     instance.playing = true;
     instance.error = null;
-
-    if (Tone.getTransport().state !== 'started') {
-      Tone.getTransport().start();
-    }
 
     log(`[Tanpura] Started ${id}`);
   } catch (err) {
@@ -558,7 +585,7 @@ export async function updateTanpura(
     const targetFreq = noteToFreq(instance.saNote, instance.saOctave, instance.saCents);
     const { rate } = findClosestSample(targetFreq);
     instance.baseRate = rate;
-    applyTempoAndPitch(instance, id);
+    applyTempoAndPitch(instance);
   }
 }
 
@@ -602,5 +629,3 @@ export function disposeTanpura(id: string): void {
 
   log(`[Tanpura] Disposed ${id}`);
 }
-
-

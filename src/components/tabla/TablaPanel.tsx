@@ -9,6 +9,7 @@ import { BeatDisplay } from './BeatDisplay';
 import { useTapTempo } from '@/hooks/useTapTempo';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
+import { getSpeedLabel } from '@/lib/taal';
 
 export function TablaPanel() {
   const {
@@ -37,16 +38,6 @@ export function TablaPanel() {
     [setTempo]
   );
   const { tap } = useTapTempo(handleTapTempo);
-
-  // Get speed range label
-  const getSpeedLabel = () => {
-    const bp = taal.speedBreakpoints;
-    if (bp.atiVilambit && tempo < bp.atiVilambit) return 'Ati-Vilambit';
-    if (tempo < bp.vilambit) return 'Vilambit';
-    if (tempo < bp.madhya) return 'Madhya';
-    if (tempo < bp.drut) return 'Drut';
-    return 'Ati-Drut';
-  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -119,7 +110,7 @@ export function TablaPanel() {
               </span>
               <span className="text-xs text-text-muted">BPM</span>
               <span className="text-xs text-saffron-400 ml-1">
-                {getSpeedLabel()}
+                {getSpeedLabel(taal, tempo)}
               </span>
             </div>
           </div>

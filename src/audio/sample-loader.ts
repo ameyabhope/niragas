@@ -16,9 +16,6 @@ import { log } from './log';
 // ── State ───────────────────────────────────────────────────────────────────
 
 /** Tracks whether tabla samples have been loaded */
-let tablaLoaded = false;
-let tablaFailed = false;
-
 // ── Expected sample files ───────────────────────────────────────────────────
 
 /**
@@ -46,17 +43,34 @@ const TABLA_SAMPLE_MAP: Record<string, string> = {
 
 // ── Loading ─────────────────────────────────────────────────────────────────
 
-/**
- * Check if a sample file exists by attempting a HEAD request.
- */
-async function sampleExists(url: string): Promise<boolean> {
-  try {
-    const response = await fetch(url, { method: 'HEAD' });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
+const BOL_TO_NOTE: Record<string, string> = {
+  'Dha': 'C1', 'Dhin': 'C#1', 'Dhi': 'D1',
+  'Na': 'D#1', 'Ta': 'E1', 'Tin': 'F1', 'Tun': 'F#1',
+  'Ge': 'G1', 'Ghe': 'G#1', 'Ke': 'A1', 'Ka': 'A#1',
+  'Ti': 'B1', 'Tu': 'C2', 'Te': 'C#2',
+  'Trkt': 'D2', 'Kat': 'D#2',
+};
+
+/** Conventional spelling variants mapped to the closest recorded stroke. */
+export const BOL_SAMPLE_ALIASES: Record<string, string> = {
+  Di: 'Dhi',
+  Ga: 'Ge',
+  Gad: 'Ge',
+  Ghen: 'Ghe',
+  Ghir: 'Ghe',
+  Ki: 'Ke',
+  Kt: 'Kat',
+  Tit: 'Ti',
+};
+
+/** Conservative attenuation for unusually hot, short source recordings. */
+export const BOL_GAIN: Record<string, number> = {
+  Dhin: 0.58,
+  Ghe: 0.87,
+  Ka: 0.5,
+  Kat: 0.6,
+  Ke: 0.48,
+};
 
 /**
  * Create a Tone.Sampler for tabla bols.
@@ -66,28 +80,9 @@ async function sampleExists(url: string): Promise<boolean> {
 export async function loadTablaSampler(
   outputNode: Tone.InputNode
 ): Promise<Tone.Sampler | null> {
-  if (tablaFailed) return null;
-  if (!tablaLoaded) {
-    const exists = await sampleExists(TABLA_SAMPLE_MAP['Dha']);
-    if (!exists) {
-      log('[SampleLoader] No tabla samples found, using synthesis');
-      tablaFailed = true;
-      return null;
-    }
-  }
-
-  // Map each bol to an arbitrary MIDI note for Tone.Sampler
-  const bolToNote: Record<string, string> = {
-    'Dha': 'C1', 'Dhin': 'C#1', 'Dhi': 'D1',
-    'Na': 'D#1', 'Ta': 'E1', 'Tin': 'F1', 'Tun': 'F#1',
-    'Ge': 'G1', 'Ghe': 'G#1', 'Ke': 'A1', 'Ka': 'A#1',
-    'Ti': 'B1', 'Tu': 'C2', 'Te': 'C#2',
-    'Trkt': 'D2', 'Kat': 'D#2',
-  };
-
   // Build the sample URL map for Tone.Sampler
   const urls: Record<string, string> = {};
-  for (const [bol, note] of Object.entries(bolToNote)) {
+  for (const [bol, note] of Object.entries(BOL_TO_NOTE)) {
     if (TABLA_SAMPLE_MAP[bol]) {
       urls[note] = TABLA_SAMPLE_MAP[bol];
     }
@@ -97,13 +92,11 @@ export async function loadTablaSampler(
     const sampler = new Tone.Sampler({
       urls,
       onload: () => {
-        tablaLoaded = true;
         log('[SampleLoader] Tabla samples loaded');
         resolve(sampler);
       },
       onerror: (err) => {
         console.warn('[SampleLoader] Failed to load tabla samples:', err);
-        tablaFailed = true;
         sampler.dispose();
         resolve(null);
       },
@@ -115,12 +108,11 @@ export async function loadTablaSampler(
  * Get the MIDI note key for a tabla bol name (used with the sampler).
  */
 export function getBolSamplerNote(bolName: string): string | null {
-  const map: Record<string, string> = {
-    'Dha': 'C1', 'Dhin': 'C#1', 'Dhi': 'D1',
-    'Na': 'D#1', 'Ta': 'E1', 'Tin': 'F1', 'Tun': 'F#1',
-    'Ge': 'G1', 'Ghe': 'G#1', 'Ke': 'A1', 'Ka': 'A#1',
-    'Ti': 'B1', 'Tu': 'C2', 'Te': 'C#2',
-    'Trkt': 'D2', 'Kat': 'D#2',
-  };
-  return map[bolName] ?? null;
+  const canonicalBol = BOL_SAMPLE_ALIASES[bolName] ?? bolName;
+  return BOL_TO_NOTE[canonicalBol] ?? null;
+}
+
+export function getBolGain(bolName: string): number {
+  const canonicalBol = BOL_SAMPLE_ALIASES[bolName] ?? bolName;
+  return BOL_GAIN[canonicalBol] ?? 1;
 }

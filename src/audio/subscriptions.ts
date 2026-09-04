@@ -21,6 +21,7 @@ import {
   startTabla,
   stopTabla,
   setTablaBeatCallback,
+  setTablaPitch,
 } from './tabla';
 import {
   createTanpura,
@@ -106,6 +107,8 @@ function queueTablaSync(reloadTaal: boolean): void {
         loadTaal(getTaal(state.taalId), state.styleId);
       }
       setTablaTempo(state.tempo);
+      const pitch = usePitchStore.getState();
+      setTablaPitch(pitch.note, pitch.octave, pitch.cents);
       startTabla();
     })
     .catch((err) => console.error('[Subscriptions] Tabla sync failed:', err));
@@ -165,7 +168,7 @@ function syncSwarMandal(): void {
     autoLoop: state.autoLoop,
     loopDuration: state.loopDuration,
   });
-  updateSwarMandalPitch(pitch.note, pitch.octave);
+  updateSwarMandalPitch(pitch.note, pitch.octave, pitch.cents);
   if (state.enabled && state.autoLoop) {
     if (!isSwarMandalPlaying()) startSwarMandalLoop();
   } else if (isSwarMandalPlaying()) {
@@ -226,6 +229,7 @@ export function initAudioSubscriptions(): void {
       queueTanpuraSync('tanpura2');
       syncSurPeti();
       syncSwarMandal();
+      if (tablaReady) setTablaPitch(state.note, state.octave, state.cents);
     }
     prevPitch = state;
   });

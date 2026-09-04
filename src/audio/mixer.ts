@@ -25,6 +25,8 @@ let preMasterGain: Tone.Gain | null = null;
 
 /** Master volume node */
 let masterVolume: Tone.Volume | null = null;
+let masterLimiter: Tone.Limiter | null = null;
+let masterMeter: Tone.Meter | null = null;
 
 /** Currently inserted EQ nodes */
 let eqInput: Tone.Gain | null = null;
@@ -37,7 +39,10 @@ let eqOutput: Tone.Gain | null = null;
 export function createMixer(): void {
   if (masterVolume) return; // already created
 
-  masterVolume = new Tone.Volume(0).toDestination();
+  masterLimiter = new Tone.Limiter(-1).toDestination();
+  masterMeter = new Tone.Meter({ smoothing: 0.85, normalRange: false, channelCount: 2 });
+  masterLimiter.connect(masterMeter);
+  masterVolume = new Tone.Volume(0).connect(masterLimiter);
   preMasterGain = new Tone.Gain(1).connect(masterVolume);
 
   const instrumentIds: InstrumentId[] = [
@@ -158,8 +163,18 @@ export function setChannelMute(id: InstrumentId, muted: boolean): void {
 /**
  * Get the master volume node (for recording tap).
  */
-export function getMasterNode(): Tone.Volume | null {
-  return masterVolume;
+export function getMasterNode(): Tone.Limiter | null {
+  return masterLimiter;
+}
+
+export function getMasterLevel(): number {
+  if (!masterMeter) return -Infinity;
+  const value = masterMeter.getValue();
+  return Array.isArray(value) ? Math.max(...value) : value;
+}
+
+export function getLimiterReduction(): number {
+  return masterLimiter?.reduction ?? 0;
 }
 
 /**
@@ -177,6 +192,10 @@ export function disposeMixer(): void {
   eqOutput = null;
   masterVolume?.dispose();
   masterVolume = null;
+  masterMeter?.dispose();
+  masterMeter = null;
+  masterLimiter?.dispose();
+  masterLimiter = null;
 }
 
 /**

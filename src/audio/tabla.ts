@@ -18,9 +18,12 @@
  */
 
 import * as Tone from 'tone';
-import type { TaalDefinition, Bol, SpeedRange } from './types';
+import type { TaalDefinition, Bol } from './types';
 import { getChannelInput } from './mixer';
-import { loadTablaSampler, getBolSamplerNote } from './sample-loader';
+import { loadTablaSampler, getBolGain, getBolSamplerNote } from './sample-loader';
+import { noteToFreq } from '@/lib/notes';
+import type { NoteName } from './types';
+import { getSpeedRange, getThekaForSpeed } from '@/lib/taal';
 import { log } from './log';
 
 // ── Bol Synth Definitions ──────────────────────────────────────────────────
@@ -77,6 +80,7 @@ const BOL_CATEGORIES: Record<string, BolCategory> = {
   'Dha': 'bass+treble',
   'Dhin': 'bass+treble',
   'Dhi': 'bass+treble',
+  'Di': 'bass+treble',
 
   // Treble only (daya)
   'Na': 'treble',
@@ -89,11 +93,18 @@ const BOL_CATEGORIES: Record<string, BolCategory> = {
   'Ghe': 'bass',
   'Ke': 'bass',
   'Ka': 'bass',
+  'Ga': 'bass',
+  'Gad': 'bass',
+  'Ghen': 'bass',
+  'Ghir': 'bass',
+  'Ki': 'bass',
 
   // Light tap
   'Ti': 'tap',
   'Tu': 'tap',
   'Te': 'tap',
+  'Kt': 'tap',
+  'Tit': 'tap',
 };
 
 /** Treble pitch varies slightly by bol for tonal differentiation */
@@ -126,6 +137,8 @@ interface TablaInstance {
   trebleSynth: Tone.MembraneSynth;
   bassSynth: Tone.MembraneSynth;
   noiseSynth: Tone.NoiseSynth;
+  noiseGain: Tone.Gain;
+  pitchShift: Tone.PitchShift;
   /** Sample-based player (null if samples not available) */
   sampler: Tone.Sampler | null;
   /** Whether to use sampler or synth */
@@ -147,6 +160,7 @@ interface TablaInstance {
 }
 
 let instance: TablaInstance | null = null;
+const TABLA_REFERENCE_FREQ = 440 * Math.pow(2, (49 - 69) / 12); // C#3 at A4=440
 
 /**
  * Pending beat callback — stored here so it survives the async gap
@@ -162,25 +176,34 @@ export async function createTabla(): Promise<void> {
   disposeTabla();
 
   const channelInput = getChannelInput('tabla');
+  const pitchShift = new Tone.PitchShift({
+    pitch: 0,
+    windowSize: 0.04,
+    delayTime: 0,
+    feedback: 0,
+    wet: 0,
+  }).connect(channelInput);
 
   const trebleSynth = createTrebleSynth();
-  trebleSynth.connect(channelInput);
+  trebleSynth.connect(pitchShift);
 
   const bassSynth = createBassSynth();
-  bassSynth.connect(channelInput);
+  bassSynth.connect(pitchShift);
 
   const noiseSynth = createNoiseSynth();
   // Reduce noise volume relative to membrane synths
-  const noiseGain = new Tone.Gain(0.3).connect(channelInput);
+  const noiseGain = new Tone.Gain(0.3).connect(pitchShift);
   noiseSynth.connect(noiseGain);
 
   // Try loading samples
-  const sampler = await loadTablaSampler(channelInput);
+  const sampler = await loadTablaSampler(pitchShift);
 
   instance = {
     trebleSynth,
     bassSynth,
     noiseSynth,
+    noiseGain,
+    pitchShift,
     sampler,
     useSamples: sampler !== null,
     scheduledEvents: [],
@@ -219,7 +242,10 @@ function triggerBol(bol: Bol, time: number): void {
   if (instance.useSamples && instance.sampler) {
     const note = getBolSamplerNote(bol.name);
     if (note) {
-      instance.sampler.triggerAttackRelease(note, '4n', time, velocity);
+      const level = Math.min(1, velocity * getBolGain(bol.name) * (0.97 + Math.random() * 0.06));
+      // Let each one-shot sample play to its natural end. Musical note lengths
+      // made resonance shrink as BPM increased.
+      instance.sampler.triggerAttack(note, time, level);
       return;
     }
     // If this specific bol has no sample, fall through to synthesis
@@ -259,19 +285,6 @@ function triggerBol(bol: Bol, time: number): void {
 }
 
 /**
- * Get the appropriate speed range key for the current tempo.
- */
-function getSpeedRangeKey(taal: TaalDefinition, bpm: number): SpeedRange {
-  const bp = taal.speedBreakpoints;
-  if (bp.atiVilambit && bpm < bp.atiVilambit) return 'ati-vilambit';
-  if (bpm < bp.vilambit) return 'vilambit';
-  if (bpm < bp.madhya) return 'madhya';
-  if (bpm < bp.drut) return 'drut';
-  if (bp.atiDrut && bpm >= bp.atiDrut) return 'ati-drut';
-  return 'drut';
-}
-
-/**
  * Schedule the theka as a step sequencer: one Transport repeat per beat.
  * Each firing plays the bols falling in the next beat window, reading the
  * live BPM for intra-beat offsets — so tempo changes glide without ever
@@ -284,7 +297,8 @@ function scheduleThekaLoop(): void {
   // Clear any previously scheduled events
   clearScheduledEvents();
 
-  const eventId = Tone.getTransport().scheduleRepeat(
+  const transport = Tone.getTransport();
+  const eventId = transport.scheduleRepeat(
     (time) => {
       const taal = instance?.taal;
       if (!instance || !taal) return;
@@ -293,10 +307,9 @@ function scheduleThekaLoop(): void {
       if (!style) return;
 
       const bpm = Tone.getTransport().bpm.value;
-      const speedRange = getSpeedRangeKey(taal, bpm);
+      const speedRange = getSpeedRange(taal, bpm);
 
-      // Find the best matching theka: exact speed match, or fall back to 'madhya'
-      const theka = style.thekas[speedRange] ?? style.thekas['madhya'];
+      const theka = getThekaForSpeed(style, speedRange);
       if (!theka) return;
 
       const secondsPerBeat = 60 / bpm;
@@ -308,6 +321,14 @@ function scheduleThekaLoop(): void {
         divisionMap.set(div.matra, div.label);
       }
 
+      instance.currentMatra = beat;
+      if (instance.onBeat) {
+        const label = divisionMap.get(beat) ?? null;
+        Tone.getDraw().schedule(() => {
+          instance?.onBeat?.(beat, label);
+        }, time);
+      }
+
       // Play bols in this beat's window, preserving fractional offsets
       for (const bol of theka) {
         if (bol.position < beat || bol.position >= beat + 1) continue;
@@ -315,25 +336,26 @@ function scheduleThekaLoop(): void {
         const bolTime = time + (bol.position - beat) * secondsPerBeat;
         triggerBol(bol, bolTime);
 
-        // Fire beat callback for UI (whole-number matra positions only)
-        if (instance.onBeat && Number.isInteger(bol.position)) {
-          const label = divisionMap.get(bol.position) ?? null;
-          const position = bol.position;
-          // Use Tone.Draw to sync with animation frame
-          Tone.getDraw().schedule(() => {
-            instance?.onBeat?.(position, label);
-          }, bolTime);
-        }
       }
 
       instance.nextBeat = (beat % taal.matras) + 1;
     },
-    '4n' // one beat — follows Transport BPM smoothly
+    '4n', // one beat — follows Transport BPM smoothly
+    transport.seconds + 0.05
   );
 
   instance.scheduledEvents.push(eventId);
 
   log(`[Tabla] Scheduled step sequencer for ${instance.taal.name}`);
+}
+
+/** Tune tonal tabla strokes to the shared Sa reference. */
+export function setTablaPitch(note: NoteName, octave: number, cents = 0): void {
+  if (!instance) return;
+  const target = noteToFreq(note, octave, cents);
+  const semitones = 12 * Math.log2(target / TABLA_REFERENCE_FREQ);
+  instance.pitchShift.pitch = semitones;
+  instance.pitchShift.wet.rampTo(Math.abs(semitones) < 0.01 ? 0 : 1, 0.02);
 }
 
 /**
@@ -436,10 +458,10 @@ export function disposeTabla(): void {
   instance.trebleSynth.dispose();
   instance.bassSynth.dispose();
   instance.noiseSynth.dispose();
+  instance.noiseGain.dispose();
+  instance.pitchShift.dispose();
   instance.sampler?.dispose();
   instance = null;
 
   log('[Tabla] Disposed');
 }
-
-
