@@ -2,6 +2,7 @@
   "name": "niragas",
   "private": true,
   "version": "0.1.0",
+  "license": "SEE LICENSE IN LICENSE",
   "description": "Indian Classical Music Practice Companion - Tabla, Tanpura, and more",
   "type": "module",
   "scripts": {

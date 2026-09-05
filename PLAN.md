@@ -1,5 +1,8 @@
 # Niragas - Indian Classical Music Practice Companion
 
+> Historical implementation plan. It does not describe the current feature
+> set or shortcuts; see [README.md](README.md) for current behavior.
+
 A web application replicating the full feature set of iTabla Pro: a realistic electronic
 tabla, tanpura, sur-peti, swar mandal, and manjira player for Indian Classical music
 practice (riyaaz).

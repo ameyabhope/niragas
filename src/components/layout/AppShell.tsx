@@ -73,6 +73,16 @@ export function AppShell() {
               <div><RecorderPanel /></div>
             </section>
           </div>
+          <footer className="mt-8 text-center">
+            <a
+              href="/SAMPLE-CREDITS.md"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-11 items-center text-xs text-text-muted underline underline-offset-4 hover:text-text-primary"
+            >
+              Audio sample credits and licenses
+            </a>
+          </footer>
         </main>
       </div>
 
