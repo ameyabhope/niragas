@@ -3,10 +3,11 @@ import { TAAL_LIST, getTaal } from '@/data/taals';
 import { getBolSamplerNote } from '@/audio/sample-loader';
 import {
   computePitchShiftSt,
+  resolveTanpuraSample,
   TANPURA_SAMPLE_GAIN_DB,
 } from '@/audio/tanpura';
 import { getSpeedRange, getThekaForSpeed } from '@/lib/taal';
-import { setA4Freq, swarToFreq } from '@/lib/notes';
+import { noteToFreq, setA4Freq, swarToFreq } from '@/lib/notes';
 import { useTablaStore } from '@/store/tabla-store';
 
 afterEach(() => {
@@ -37,6 +38,17 @@ describe('audio data coverage', () => {
   it('has gain compensation for every tanpura source recording', () => {
     expect(Object.keys(TANPURA_SAMPLE_GAIN_DB)).toHaveLength(17);
     expect(Object.values(TANPURA_SAMPLE_GAIN_DB).every(Number.isFinite)).toBe(true);
+  });
+
+  it('routes G3 through audible F-sharp sources for every tanpura tuning', () => {
+    const g3 = noteToFreq('G', 3);
+    for (const tuning of ['Pa', 'Ma', 'Ni'] as const) {
+      const selection = resolveTanpuraSample(tuning, 'bass', g3);
+      expect(selection.url).toBe(`/samples/tanpura/${tuning}_Fs.m4a`);
+      expect(selection.key).toBe(`${tuning}_Fs_neutral`);
+      expect(TANPURA_SAMPLE_GAIN_DB[selection.key]).toBeTypeOf('number');
+      expect(computePitchShiftSt(selection.baseRate, 0, 1)).toBeCloseTo(1, 2);
+    }
   });
 });
 

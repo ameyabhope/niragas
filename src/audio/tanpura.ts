@@ -113,6 +113,33 @@ function findClosestSample(targetFreq: number): { entry: SampleEntry; rate: numb
   return { entry: best, rate: bestRatio };
 }
 
+export interface TanpuraSampleSelection {
+  url: string;
+  key: string;
+  pitchKey: string;
+  sourcePitch: NoteName;
+  sourceOctave: number;
+  baseRate: number;
+}
+
+/** Resolve the real source recording and correction ratio for a target Sa. */
+export function resolveTanpuraSample(
+  tuning: TanpuraTuning,
+  eq: TanpuraEQ,
+  targetFreq: number
+): TanpuraSampleSelection {
+  const { entry, rate } = findClosestSample(targetFreq);
+  const effectiveEQ = tuning === 'Pa' && entry.key === 'C' ? eq : 'neutral';
+  return {
+    url: getSampleUrl(tuning, entry.key, effectiveEQ),
+    key: `${tuning}_${entry.key}_${effectiveEQ}`,
+    pitchKey: entry.key,
+    sourcePitch: entry.saNote,
+    sourceOctave: entry.saOctave,
+    baseRate: rate,
+  };
+}
+
 // ── Tanpura Instance ────────────────────────────────────────────────────────
 
 export const DEFAULT_TANPURA_CONFIG: TanpuraConfig = {
@@ -311,10 +338,10 @@ async function loadSampleForInstance(id: string): Promise<void> {
 
   const { tuning, eq } = instance.config;
   const targetFreq = noteToFreq(instance.saNote, instance.saOctave, instance.saCents);
-  const { entry, rate } = findClosestSample(targetFreq);
-
-  const sampleKey = `${tuning}_${entry.key}_${eq}`;
-  const sampleUrl = getSampleUrl(tuning, entry.key, eq);
+  const selection = resolveTanpuraSample(tuning, eq, targetFreq);
+  const sampleKey = selection.key;
+  const sampleUrl = selection.url;
+  const rate = selection.baseRate;
 
   // Don't reload if same sample is already loaded
   if (sampleKey === instance.currentSampleKey && instance.player) {
@@ -339,8 +366,8 @@ async function loadSampleForInstance(id: string): Promise<void> {
     candidates.push({ url: sampleUrl, key: sampleKey });
   } else {
     console.warn(`[Tanpura] Sample not found: ${sampleUrl}, trying neutral EQ`);
-    const fallbackUrl = getSampleUrl(tuning, entry.key, 'neutral');
-    const fallbackKey = `${tuning}_${entry.key}_neutral`;
+    const fallbackUrl = getSampleUrl(tuning, selection.pitchKey, 'neutral');
+    const fallbackKey = `${tuning}_${selection.pitchKey}_neutral`;
     if (sampleExists(fallbackUrl)) {
       candidates.push({ url: fallbackUrl, key: fallbackKey });
     }
@@ -366,7 +393,7 @@ async function loadSampleForInstance(id: string): Promise<void> {
   if (instances.get(id) !== instance || instance.loadGeneration !== generation) return;
 
   if (!loaded) {
-    instance.error = `Sample failed to load (${tuning} ${entry.key}) — format may be unsupported in this browser`;
+    instance.error = `Sample failed to load (${selection.key}) — format may be unsupported in this browser`;
     console.error(`[Tanpura] ${instance.error}`);
   }
 
