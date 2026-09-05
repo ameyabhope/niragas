@@ -103,9 +103,9 @@ export function Header() {
   }, [anyPlaying, tanpura1Playing, tanpura2Playing, tablaPlaying, surpetiPlaying, swarmandalPlaying, initialize]);
 
   return (
-    <header className="flex items-center justify-between px-4 py-3 bg-surface-light border-b border-white/5">
-      <div className="flex items-center gap-3">
-        <h1 className="text-xl font-bold text-saffron-400 tracking-tight">
+    <header className="flex items-center justify-between gap-2 px-2 sm:px-4 py-3 bg-surface-light border-b border-white/5">
+      <div className="flex items-center gap-3 shrink-0">
+        <h1 className="text-lg sm:text-xl font-bold text-saffron-400 tracking-tight">
           Niragas
         </h1>
         <span className="text-xs text-text-muted hidden sm:inline">
@@ -113,14 +113,17 @@ export function Header() {
         </span>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
         {/* Global Start / Stop */}
         <button
+          type="button"
           onClick={handleGlobalToggle}
-          className={`px-4 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-colors ${
+          aria-label={anyPlaying ? 'Stop all instruments' : 'Start instruments'}
+          aria-pressed={anyPlaying}
+          className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-colors ${
             anyPlaying
-              ? 'bg-accent text-white hover:bg-accent/80'
-              : 'bg-saffron-600 text-white hover:bg-saffron-500'
+              ? 'bg-accent-control text-white hover:bg-accent-muted'
+              : 'bg-action text-white hover:bg-saffron-800'
           }`}
           title={anyPlaying ? 'Stop all instruments' : 'Start instruments'}
         >
@@ -129,6 +132,7 @@ export function Header() {
 
         {/* Theme toggle */}
         <button
+          type="button"
           onClick={toggleTheme}
           className="w-8 h-8 flex items-center justify-center rounded-lg
                      bg-surface-lighter text-text-secondary hover:text-text-primary

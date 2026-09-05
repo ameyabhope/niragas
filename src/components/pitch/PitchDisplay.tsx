@@ -20,15 +20,15 @@ export function PitchDisplay() {
     cents === 0 ? '0' : cents > 0 ? `+${cents}` : `${cents}`;
 
   return (
-    <div className="flex items-center gap-2 bg-surface-card rounded-lg px-4 py-2 border border-white/10">
+    <div className="flex items-center gap-1 sm:gap-2 bg-surface-card rounded-lg px-2 sm:px-4 py-2 border border-white/10">
       {/* Cent offset */}
       <span className={`text-xs font-mono ${centColor}`}>
         {centLabel}c
       </span>
 
       {/* Main note display */}
-      <div className="text-center min-w-[3rem]">
-        <span className="text-2xl font-bold text-text-primary">
+      <div className="text-center min-w-8 sm:min-w-12">
+        <span className="text-xl sm:text-2xl font-bold text-text-primary">
           {note}
         </span>
       </div>

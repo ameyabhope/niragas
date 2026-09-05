@@ -9,6 +9,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useRecorderStore } from '@/store/recorder-store';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { getRecordingExtension } from '@/audio/recorder';
+import { useAudioEngine } from '@/hooks/useAudioEngine';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -37,6 +38,11 @@ export function RecorderPanel() {
     updateElapsed,
     hasUndownloadedRecordings,
   } = useRecorderStore();
+  const { initialize } = useAudioEngine();
+
+  const handleStart = useCallback(async () => {
+    if (await initialize()) await start();
+  }, [initialize, start]);
 
   // Warn user before leaving if there are undownloaded recordings
   useEffect(() => {
@@ -106,7 +112,7 @@ export function RecorderPanel() {
         <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
           Recorder
         </h2>
-        <InfoTooltip text="Record up to 30 minutes of your practice session. Optionally include mic input. Recordings exist only in memory for this session; download the browser-native format or WAV before closing the page. Nothing is sent anywhere." />
+        <InfoTooltip label="About recording" text="Record up to 30 minutes of your practice session. Optionally include mic input. Recordings exist only in memory for this session; download the browser-native format or WAV before closing the page. Nothing is sent anywhere." />
       </div>
 
       <div className="rounded-xl border border-white/5 bg-surface-card p-4 flex flex-col gap-4">
@@ -116,7 +122,9 @@ export function RecorderPanel() {
             <>
               {/* Record button */}
               <button
-                onClick={start}
+                type="button"
+                onClick={() => void handleStart()}
+                aria-label="Start recording"
                 className="w-12 h-12 rounded-full bg-accent hover:bg-accent/80 
                            flex items-center justify-center transition-colors shadow-lg"
                 title="Start recording"
@@ -154,6 +162,7 @@ export function RecorderPanel() {
 
               {/* Pause / Resume */}
               <button
+                type="button"
                 onClick={state === 'recording' ? pause : resume}
                 className="px-3 py-1.5 bg-surface-lighter text-text-secondary text-xs 
                            rounded-lg hover:text-text-primary transition-colors"
@@ -163,15 +172,17 @@ export function RecorderPanel() {
 
               {/* Stop */}
               <button
+                type="button"
                 onClick={stop}
-                className="px-3 py-1.5 bg-saffron-600 text-white text-xs font-semibold 
-                           rounded-lg hover:bg-saffron-500 transition-colors"
+                className="px-3 py-1.5 bg-action text-white text-xs font-semibold
+                           rounded-lg hover:bg-saffron-800 transition-colors"
               >
                 Stop
               </button>
 
               {/* Cancel */}
               <button
+                type="button"
                 onClick={cancel}
                 className="px-2 py-1.5 text-text-muted text-xs hover:text-accent transition-colors"
               >
@@ -213,11 +224,14 @@ export function RecorderPanel() {
                   >
                     {/* Play/Stop */}
                     <button
+                      type="button"
                       onClick={() => handlePlay(rec)}
-                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs
+                      aria-label={`${playingId === rec.id ? 'Stop' : 'Play'} ${rec.name}`}
+                      aria-pressed={playingId === rec.id}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-xs
                                  transition-colors ${
                         playingId === rec.id
-                          ? 'bg-saffron-600 text-white'
+                          ? 'bg-action text-white'
                           : 'bg-surface text-text-secondary hover:text-text-primary'
                       }`}
                       title={playingId === rec.id ? 'Stop' : 'Play'}
@@ -242,26 +256,31 @@ export function RecorderPanel() {
 
                     {/* Download browser-native format */}
                     <button
+                      type="button"
                       onClick={() => downloadRecording(rec.id, 'original')}
                       className="px-2 py-1 text-[10px] text-text-muted hover:text-saffron-400 
                                  transition-colors"
                       title={`Download as ${originalFormat}`}
+                      aria-label={`Download ${rec.name} as ${originalFormat}`}
                     >
                       {originalFormat}
                     </button>
 
                     {/* Download WAV */}
                     <button
+                      type="button"
                       onClick={() => downloadRecording(rec.id, 'wav')}
                       className="px-2 py-1 text-[10px] text-text-muted hover:text-saffron-400 
                                  transition-colors"
                       title="Download as WAV"
+                      aria-label={`Download ${rec.name} as WAV`}
                     >
                       WAV
                     </button>
 
                     {/* Delete */}
                     <button
+                      type="button"
                       onClick={() => {
                         if (confirm('Delete this recording?')) {
                           if (playingId === rec.id && audioRef.current) {
@@ -271,8 +290,9 @@ export function RecorderPanel() {
                           deleteRecording(rec.id);
                         }
                       }}
-                      className="text-text-muted/40 hover:text-accent text-xs transition-colors"
+                      className="w-10 h-10 text-text-muted/40 hover:text-accent text-xs transition-colors"
                       title="Delete"
+                      aria-label={`Delete ${rec.name}`}
                     >
                       x
                     </button>

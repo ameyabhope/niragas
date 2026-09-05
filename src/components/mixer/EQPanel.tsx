@@ -40,7 +40,7 @@ export function EQPanel() {
           <h3 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
             Equalizer
           </h3>
-          <InfoTooltip text="7-band parametric EQ applied to the master output. Choose from 22 presets or adjust individual frequency bands manually. Useful for shaping the overall tone of your practice session." align="left" />
+          <InfoTooltip label="About the equalizer" text="7-band parametric EQ applied to the master output. Choose from 22 presets or adjust individual frequency bands manually. Useful for shaping the overall tone of your practice session." align="left" />
         </div>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -57,6 +57,7 @@ export function EQPanel() {
 
       {/* Preset selector */}
       <select
+        aria-label="Equalizer preset"
         value={presetName}
         onChange={(e) => handlePresetChange(e.target.value)}
         disabled={!enabled}
@@ -94,7 +95,7 @@ export function EQPanel() {
                     handleBandGainChange(i, parseFloat(e.target.value))
                   }
                   disabled={!enabled}
-                  className="absolute w-20 h-1.5 bg-surface-lighter rounded-lg appearance-none
+                  className="eq-range absolute w-20 h-1.5 bg-surface-lighter rounded-lg appearance-none
                              cursor-pointer accent-saffron-500 disabled:opacity-30
                              origin-center -rotate-90"
                   aria-label={`EQ band ${BAND_LABELS[i]} Hz`}
@@ -111,6 +112,7 @@ export function EQPanel() {
 
         {/* Reset button */}
         <button
+          type="button"
           onClick={resetToFlat}
           disabled={!enabled}
           className="mt-2 w-full text-xs text-text-muted hover:text-text-primary

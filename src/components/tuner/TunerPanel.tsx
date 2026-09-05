@@ -110,18 +110,20 @@ export function TunerPanel() {
         <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
           Tuner
         </h2>
-        <InfoTooltip text="Uses your microphone to detect pitch in real-time. Compares your voice/instrument to the current Sa and shows the offset in cents. Use 'Capture as Sa' to set your detected pitch as the new reference." align="left" />
+        <InfoTooltip label="About the tuner" text="Uses your microphone to detect pitch in real-time. Compares your voice/instrument to the current Sa and shows the offset in cents. Use 'Capture as Sa' to set your detected pitch as the new reference." align="left" />
       </div>
 
       <div className="rounded-xl border border-white/5 bg-surface-card p-4 flex flex-col gap-4">
         {/* Toggle button */}
         <button
+          type="button"
           onClick={handleToggle}
           disabled={loading}
+          aria-pressed={tunerActive}
           className={`w-full py-3 rounded-xl text-sm font-semibold transition-colors ${
             tunerActive
-              ? 'bg-accent text-white hover:bg-accent/80'
-              : 'bg-saffron-600 text-white hover:bg-saffron-500'
+              ? 'bg-accent-control text-white hover:bg-accent-muted'
+              : 'bg-action text-white hover:bg-saffron-800'
           }`}
         >
           {loading ? 'Requesting microphone...' : tunerActive ? 'Stop Tuner' : 'Start Tuner'}
@@ -210,6 +212,7 @@ export function TunerPanel() {
         {tunerActive && micNote && (
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={() => handleOctaveShift(-1)}
               className="px-3 py-2 bg-surface-lighter text-text-secondary text-xs rounded-lg
                          hover:bg-surface-lighter/80 transition-colors"
@@ -217,13 +220,15 @@ export function TunerPanel() {
               Oct -
             </button>
             <button
+              type="button"
               onClick={handleCapture}
-              className="flex-1 py-2 bg-saffron-600 text-white text-sm font-semibold rounded-lg
-                         hover:bg-saffron-500 transition-colors"
+              className="flex-1 py-2 bg-action text-white text-sm font-semibold rounded-lg
+                         hover:bg-saffron-800 transition-colors"
             >
               Capture as Sa
             </button>
             <button
+              type="button"
               onClick={() => handleOctaveShift(1)}
               className="px-3 py-2 bg-surface-lighter text-text-secondary text-xs rounded-lg
                          hover:bg-surface-lighter/80 transition-colors"

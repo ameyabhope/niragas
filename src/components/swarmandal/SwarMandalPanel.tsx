@@ -52,9 +52,10 @@ export function SwarMandalPanel() {
           <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
             Swar Mandal
           </h2>
-          <InfoTooltip text="A harp-like instrument with configurable strings tuned to specific swaras. Enable/disable individual strings, strum once, or set auto-loop for repeating glissando. Great for filling harmonic space during practice." />
+          <InfoTooltip label="About Swar Mandal" text="A harp-like instrument with configurable strings tuned to specific swaras. Enable/disable individual strings, strum once, or set auto-loop for repeating glissando. Great for filling harmonic space during practice." />
         </div>
         <button
+          type="button"
           onClick={() => {
             if (enabled) {
               toggle();
@@ -64,9 +65,11 @@ export function SwarMandalPanel() {
               if (ready) toggle();
             });
           }}
+          aria-label={`${enabled ? 'Turn off' : 'Turn on'} Swar Mandal`}
+          aria-pressed={enabled}
           className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
             enabled
-              ? 'bg-active text-white'
+              ? 'bg-active-control text-white'
               : 'bg-surface-lighter text-text-muted'
           }`}
         >
@@ -76,18 +79,21 @@ export function SwarMandalPanel() {
 
       <div className="rounded-xl border border-white/5 bg-surface-card p-4 flex flex-col gap-4">
         {/* String grid */}
-        <div>
-          <label className="text-xs text-text-muted mb-2 block">
+        <fieldset>
+          <legend className="text-xs text-text-muted mb-2">
             Strings ({strings.filter((s) => s.enabled).length} / {strings.length} enabled)
-          </label>
+          </legend>
           <div className="flex flex-wrap gap-1">
             {strings.map((s, i) => (
               <button
+                type="button"
                 key={i}
                 onClick={() => toggleString(i)}
+                aria-label={`String ${i + 1}: ${s.note}, ${s.variant}, ${s.octaveOffset === 0 ? 'mandra' : s.octaveOffset === 1 ? 'madhya' : 'taar'} octave`}
+                aria-pressed={s.enabled}
                 className={`px-2 py-1 rounded text-xs font-mono transition-colors ${
                   s.enabled
-                    ? 'bg-saffron-600/80 text-white'
+                    ? 'bg-action text-white'
                     : 'bg-surface-lighter text-text-muted'
                 }`}
                 title={`String ${i + 1}: ${s.note} (${s.variant}) octave ${s.octaveOffset === 0 ? 'mandra' : s.octaveOffset === 1 ? 'madhya' : 'taar'}`}
@@ -97,11 +103,11 @@ export function SwarMandalPanel() {
               </button>
             ))}
           </div>
-        </div>
+        </fieldset>
 
         {/* Note assignment for selected string (simplified: show first few for quick editing) */}
-        <div>
-          <label className="text-xs text-text-muted mb-1 block">Quick Tune (first string)</label>
+        <fieldset>
+          <legend className="text-xs text-text-muted mb-1">Quick Tune (first string)</legend>
           <div className="flex flex-wrap gap-1">
             {SWARA_OPTIONS.map((opt) => {
               const isActive =
@@ -109,11 +115,13 @@ export function SwarMandalPanel() {
                 strings[0]?.variant === opt.variant;
               return (
                 <button
+                  type="button"
                   key={`${opt.note}-${opt.variant}`}
                   onClick={() => setStringNote(0, opt.note, opt.variant)}
+                  aria-pressed={isActive}
                   className={`px-2 py-1 rounded text-xs transition-colors ${
                     isActive
-                      ? 'bg-saffron-600 text-white'
+                      ? 'bg-action text-white'
                       : 'bg-surface-lighter text-text-secondary hover:text-text-primary'
                   }`}
                 >
@@ -122,10 +130,11 @@ export function SwarMandalPanel() {
               );
             })}
           </div>
-        </div>
+        </fieldset>
 
         {/* Play once button */}
         <button
+          type="button"
           onClick={handleStrum}
           className="w-full py-3 bg-surface-lighter text-text-primary text-sm font-semibold
                      rounded-xl hover:bg-saffron-700 transition-colors"

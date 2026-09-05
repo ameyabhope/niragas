@@ -77,26 +77,30 @@ export function MixerPanel() {
           <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
             Mixer
           </h2>
-          <InfoTooltip text="Control volume and stereo pan for each instrument independently. Toggle between Volume and Pan modes. Use the master fader to control overall output level." align="left" />
+          <InfoTooltip label="About the mixer" text="Control volume and stereo pan for each instrument independently. Toggle between Volume and Pan modes. Use the master fader to control overall output level." align="left" />
         </div>
 
         {/* Volume / Pan mode toggle */}
-        <div className="flex bg-surface-lighter rounded-lg overflow-hidden">
+        <div className="flex bg-surface-lighter rounded-lg overflow-hidden" role="group" aria-label="Mixer adjustment">
           <button
+            type="button"
             onClick={() => setMode('volume')}
+            aria-pressed={mode === 'volume'}
             className={`px-3 py-1 text-xs font-medium transition-colors ${
               mode === 'volume'
-                ? 'bg-saffron-600 text-white'
+                ? 'bg-action text-white'
                 : 'text-text-muted hover:text-text-primary'
             }`}
           >
             Volume
           </button>
           <button
+            type="button"
             onClick={() => setMode('pan')}
+            aria-pressed={mode === 'pan'}
             className={`px-3 py-1 text-xs font-medium transition-colors ${
               mode === 'pan'
-                ? 'bg-saffron-600 text-white'
+                ? 'bg-action text-white'
                 : 'text-text-muted hover:text-text-primary'
             }`}
           >
@@ -132,11 +136,15 @@ export function MixerPanel() {
         {/* Master */}
         <div className="flex items-center gap-2 py-1.5">
           <button
+            type="button"
             onClick={toggleMasterMute}
+            aria-label={masterMuted ? 'Unmute master output' : 'Mute master output'}
+            aria-pressed={masterMuted}
+            aria-keyshortcuts="Alt+M"
             className={`text-[10px] px-2 py-0.5 rounded font-semibold flex-shrink-0 ${
               masterMuted
-                ? 'bg-accent text-white'
-                : 'bg-saffron-600 text-white'
+                ? 'bg-accent-control text-white'
+                : 'bg-action text-white'
             }`}
           >
             {masterMuted ? 'MUTED' : 'MASTER'}

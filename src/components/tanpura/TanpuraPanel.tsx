@@ -38,7 +38,7 @@ export function TanpuraPanel() {
         <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
           Tanpura
         </h2>
-        <InfoTooltip text="An electronic tanpura providing a continuous drone. Two independent tanpuras with Pa/Ma/Ni tuning, EQ variants, fine pitch, and speed control. Toggle each on/off independently." />
+        <InfoTooltip label="About Tanpura" text="An electronic tanpura providing a continuous drone. Two independent tanpuras with Pa/Ma/Ni tuning, EQ variants, fine pitch, and speed control. Toggle each on/off independently." />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -45,7 +45,7 @@ export function TablaPanel() {
         <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
           Tabla
         </h2>
-        <InfoTooltip text="Electronic tabla with 47 taals and real tabla samples. Select a taal and style, adjust tempo with the slider or tap tempo, then press Play. Speed-dependent thekas available for core taals." />
+        <InfoTooltip label="About Tabla" text="Electronic tabla with 47 named taals and nine simple beat patterns. Select a taal and style, adjust tempo with the slider or tap tempo, then press Play. Speed-dependent thekas are available for selected taals." />
       </div>
 
       <div className="rounded-xl border border-white/5 bg-surface-card p-4 flex flex-col gap-4">
@@ -53,8 +53,9 @@ export function TablaPanel() {
         <div className="flex flex-wrap gap-3">
           {/* Taal selector */}
           <div className="flex-1 min-w-[140px]">
-            <label className="text-xs text-text-muted mb-1 block">Taal</label>
+            <label htmlFor="tabla-taal" className="text-xs text-text-muted mb-1 block">Taal</label>
             <select
+              id="tabla-taal"
               value={taalId}
               onChange={(e) => {
                 setTaalId(e.target.value);
@@ -76,8 +77,9 @@ export function TablaPanel() {
           {/* Style selector — only shown when taal has multiple styles */}
           {taal.styles.length > 1 && (
             <div className="flex-1 min-w-[120px]">
-              <label className="text-xs text-text-muted mb-1 block">Style</label>
+              <label htmlFor="tabla-style" className="text-xs text-text-muted mb-1 block">Style</label>
               <select
+                id="tabla-style"
                 value={styleId}
                 onChange={(e) => setStyleId(e.target.value)}
                 className="w-full bg-surface-lighter text-text-primary text-sm rounded-lg px-3 py-2
@@ -130,6 +132,7 @@ export function TablaPanel() {
           {/* Tempo buttons */}
           <div className="flex items-center gap-2 justify-center">
             <button
+              type="button"
               onClick={halfTempo}
               className="px-2 py-1 bg-surface-lighter text-text-secondary text-xs rounded-lg
                          hover:bg-surface-lighter/80 transition-colors"
@@ -137,13 +140,16 @@ export function TablaPanel() {
               x/2
             </button>
             <button
+              type="button"
               onClick={() => adjustTempo(-1)}
+              aria-label="Decrease tempo by 1 BPM"
               className="w-8 h-8 bg-surface-lighter text-text-secondary rounded-lg
                          hover:bg-surface-lighter/80 transition-colors font-bold"
             >
               -
             </button>
             <button
+              type="button"
               onClick={tap}
               className="px-4 py-2 bg-surface-lighter text-text-primary text-xs font-semibold
                          rounded-lg hover:bg-saffron-700 transition-colors"
@@ -151,13 +157,16 @@ export function TablaPanel() {
               TAP
             </button>
             <button
+              type="button"
               onClick={() => adjustTempo(1)}
+              aria-label="Increase tempo by 1 BPM"
               className="w-8 h-8 bg-surface-lighter text-text-secondary rounded-lg
                          hover:bg-surface-lighter/80 transition-colors font-bold"
             >
               +
             </button>
             <button
+              type="button"
               onClick={doubleTempo}
               className="px-2 py-1 bg-surface-lighter text-text-secondary text-xs rounded-lg
                          hover:bg-surface-lighter/80 transition-colors"
@@ -170,6 +179,7 @@ export function TablaPanel() {
         {/* Play / Stop buttons */}
         <div className="flex gap-3">
           <button
+            type="button"
             onClick={() => {
               if (playing) {
                 setPlaying(false);
@@ -179,10 +189,12 @@ export function TablaPanel() {
                 if (ready) setPlaying(true);
               });
             }}
+            aria-pressed={playing}
+            aria-keyshortcuts="Space"
             className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors ${
               playing
-                ? 'bg-accent text-white hover:bg-accent/80'
-                : 'bg-saffron-600 text-white hover:bg-saffron-500'
+                ? 'bg-accent-control text-white hover:bg-accent-muted'
+                : 'bg-action text-white hover:bg-saffron-800'
             }`}
           >
             {playing ? 'Stop' : 'Play'}

@@ -14,19 +14,21 @@ export function PitchControl() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <label className="text-xs text-text-muted uppercase tracking-wider font-semibold">
+        <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
           Sa Pitch
-        </label>
+        </h2>
 
         {/* A4 reference toggle */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1" role="group" aria-label="A4 reference frequency">
           {A4_OPTIONS.map((freq) => (
             <button
+              type="button"
               key={freq}
               onClick={() => setA4Freq(freq)}
+              aria-pressed={a4Freq === freq}
               className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
                 a4Freq === freq
-                  ? 'bg-saffron-600 text-white'
+                  ? 'bg-action text-white'
                   : 'bg-surface-lighter text-text-muted hover:text-text-primary'
               }`}
               title={`Set A4 reference to ${freq} Hz`}
@@ -40,6 +42,7 @@ export function PitchControl() {
       <div className="flex items-center gap-3">
         {/* Note down button */}
         <button
+          type="button"
           onClick={noteDown}
           className="w-10 h-10 rounded-lg bg-surface-lighter text-text-primary
                      hover:bg-saffron-700 transition-colors text-lg font-bold
@@ -54,6 +57,7 @@ export function PitchControl() {
 
         {/* Note up button */}
         <button
+          type="button"
           onClick={noteUp}
           className="w-10 h-10 rounded-lg bg-surface-lighter text-text-primary
                      hover:bg-saffron-700 transition-colors text-lg font-bold
@@ -67,9 +71,9 @@ export function PitchControl() {
       {/* Fine-tune slider */}
       <div className="flex items-center gap-2">
         <button
+          type="button"
           onClick={() => adjustCents(-1)}
-          className="text-xs text-tune-flat hover:text-tune-flat/80 px-1 py-0.5
-                     focus:outline-none"
+          className="w-10 h-10 text-xs text-tune-flat hover:text-tune-flat/80 rounded-lg"
           aria-label="Fine-tune down 1 cent"
         >
           &#9837;
@@ -87,9 +91,9 @@ export function PitchControl() {
         />
 
         <button
+          type="button"
           onClick={() => adjustCents(1)}
-          className="text-xs text-tune-sharp hover:text-tune-sharp/80 px-1 py-0.5
-                     focus:outline-none"
+          className="w-10 h-10 text-xs text-tune-sharp hover:text-tune-sharp/80 rounded-lg"
           aria-label="Fine-tune up 1 cent"
         >
           &#9839;

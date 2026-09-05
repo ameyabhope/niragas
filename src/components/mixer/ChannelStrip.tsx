@@ -67,16 +67,23 @@ export function ChannelStrip({
     <div className="flex items-center gap-2 py-1.5">
       {/* Enable/disable toggle */}
       <button
+        type="button"
         onClick={onToggleEnabled}
         disabled={toggleDisabled}
         title={toggleTitle}
-        className={`w-2.5 h-2.5 rounded-full border-2 transition-colors flex-shrink-0 ${
-          channel.enabled
-            ? 'bg-active border-active'
-            : 'bg-transparent border-text-muted'
-        } disabled:opacity-30 disabled:cursor-not-allowed`}
-        aria-label={`Toggle ${INSTRUMENT_FULL_NAMES[id]}`}
-      />
+        className="w-10 h-10 flex items-center justify-center rounded-lg flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
+        aria-label={toggleDisabled && toggleTitle
+          ? `${INSTRUMENT_FULL_NAMES[id]} unavailable: ${toggleTitle}`
+          : `${channel.enabled ? 'Disable' : 'Enable'} ${INSTRUMENT_FULL_NAMES[id]}`}
+        aria-pressed={channel.enabled}
+      >
+        <span className={`w-2.5 h-2.5 rounded-full border-2 transition-colors ${
+            channel.enabled
+              ? 'bg-active border-active'
+              : 'bg-transparent border-text-muted'
+          }`}
+        />
+      </button>
 
       {/* Label */}
       <span
@@ -90,13 +97,15 @@ export function ChannelStrip({
 
       {/* Mute button */}
       <button
+        type="button"
         onClick={onToggleMute}
-        className={`text-[10px] w-5 h-5 flex items-center justify-center rounded font-mono flex-shrink-0 ${
+        className={`text-[10px] w-10 h-10 flex items-center justify-center rounded-lg font-mono flex-shrink-0 ${
           channel.muted
-            ? 'bg-accent text-white'
+            ? 'bg-accent-control text-white'
             : 'bg-surface-lighter text-text-muted hover:text-text-primary'
         }`}
-        aria-label={`Mute ${INSTRUMENT_FULL_NAMES[id]}`}
+        aria-label={`${channel.muted ? 'Unmute' : 'Mute'} ${INSTRUMENT_FULL_NAMES[id]}`}
+        aria-pressed={channel.muted}
       >
         M
       </button>

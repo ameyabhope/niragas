@@ -62,10 +62,14 @@ export function TanpuraControl({
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-text-primary">{label}</h3>
         <button
+          type="button"
           onClick={onToggle}
+          aria-label={`${config.enabled ? 'Turn off' : 'Turn on'} ${label}`}
+          aria-pressed={config.enabled}
+          aria-keyshortcuts={id === 'tanpura1' ? 'Alt+T' : 'Alt+Shift+T'}
           className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
             config.enabled
-              ? 'bg-active text-white'
+              ? 'bg-active-control text-white'
               : 'bg-surface-lighter text-text-muted'
           }`}
         >
@@ -74,18 +78,20 @@ export function TanpuraControl({
       </div>
 
       {/* Tuning (first string) */}
-      <div className="mb-3">
-        <label className="text-xs text-text-muted mb-1 block">Tuning</label>
+      <fieldset className="mb-3">
+        <legend className="text-xs text-text-muted mb-1">Tuning</legend>
         <div className="flex gap-1">
           {TUNING_OPTIONS.map(({ label: optLabel, value }) => (
             <button
+              type="button"
               key={value}
               onClick={() => {
                 onSetTuning(value);
               }}
+              aria-pressed={config.tuning === value}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 config.tuning === value
-                  ? 'bg-saffron-600 text-white'
+                  ? 'bg-action text-white'
                   : 'bg-surface-lighter text-text-secondary hover:text-text-primary'
               }`}
             >
@@ -93,21 +99,23 @@ export function TanpuraControl({
             </button>
           ))}
         </div>
-      </div>
+      </fieldset>
 
       {/* EQ variant */}
-      <div className="mb-3">
-        <label className="text-xs text-text-muted mb-1 block">Tone</label>
+      <fieldset className="mb-3">
+        <legend className="text-xs text-text-muted mb-1">Tone</legend>
         <div className="flex gap-1">
           {EQ_OPTIONS.map(({ label: optLabel, value }) => (
             <button
+              type="button"
               key={value}
               onClick={() => {
                 onSetEQ(value);
               }}
+              aria-pressed={config.eq === value}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 config.eq === value
-                  ? 'bg-saffron-600 text-white'
+                  ? 'bg-action text-white'
                   : 'bg-surface-lighter text-text-secondary hover:text-text-primary'
               }`}
             >
@@ -115,7 +123,7 @@ export function TanpuraControl({
             </button>
           ))}
         </div>
-      </div>
+      </fieldset>
 
       {/* Fine pitch */}
       <div className="mb-3">
@@ -134,7 +142,7 @@ export function TanpuraControl({
           }}
           className="w-full h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                      accent-saffron-500"
-          aria-label="Tanpura fine pitch"
+          aria-label={`${label} fine pitch`}
         />
       </div>
 
@@ -155,19 +163,19 @@ export function TanpuraControl({
           }}
           className="w-full h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                      accent-saffron-500"
-          aria-label="Tanpura tempo (pitch-safe)"
+          aria-label={`${label} tempo (pitch-safe)`}
         />
       </div>
 
       {/* Status: loading / playing / error (engine truth, not just the toggle) */}
       {isLoading && (
-        <div className="mt-2 flex items-center gap-1.5">
+        <div className="mt-2 flex items-center gap-1.5" role="status">
           <span className="w-2 h-2 rounded-full bg-saffron-500 animate-pulse" />
           <span className="text-xs text-text-muted">Loading sample…</span>
         </div>
       )}
       {isPlaying && (
-        <div className="mt-2 flex items-center gap-1.5">
+        <div className="mt-2 flex items-center gap-1.5" role="status">
           <span className="w-2 h-2 rounded-full bg-active animate-pulse" />
           <span className="text-xs text-active">Playing</span>
         </div>
