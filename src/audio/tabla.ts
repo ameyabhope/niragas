@@ -20,7 +20,7 @@
 import * as Tone from 'tone';
 import type { TaalDefinition, Bol } from './types';
 import { getChannelInput } from './mixer';
-import { loadTablaSampler, getBolGain, getBolSamplerNote, getBolPlaybackRate, BOL_SAMPLE_ALIASES } from './sample-loader';
+import { loadTablaSampler, getBolGain, getBolSample, getBolPlaybackRate, BOL_SAMPLE_ALIASES } from './sample-loader';
 import type { TablaSamplePlayer } from './sample-loader';
 import { noteToFreq } from '@/lib/notes';
 import type { NoteName } from './types';
@@ -245,12 +245,12 @@ function triggerBol(bol: Bol, time: number): void {
 
   // ── Sample-based playback ──
   if (instance.useSamples && instance.sampler) {
-    const note = getBolSamplerNote(bol.name);
-    if (note) {
+    const sample = getBolSample(bol.name);
+    if (sample) {
       const level = Math.min(1, velocity * getBolGain(bol.name) * (0.97 + Math.random() * 0.06));
       // Let each one-shot sample play to its natural end. Musical note lengths
       // made resonance shrink as BPM increased.
-      instance.sampler.triggerAttack(note, time, level, getBolPlaybackRate(name, instance.targetHz));
+      instance.sampler.triggerAttack(sample, time, level, getBolPlaybackRate(name, instance.targetHz));
       return;
     }
     // If this specific bol has no sample, fall through to synthesis

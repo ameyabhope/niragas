@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { TAAL_LIST, getTaal } from '@/data/taals';
-import { getBolSamplerNote } from '@/audio/sample-loader';
+import { expandTablaBols } from '@/audio/tabla';
+import { getBolSample } from '@/audio/sample-loader';
 import {
   resolveTanpuraSample,
   TANPURA_SAMPLE_GAIN_DB,
@@ -27,8 +28,13 @@ describe('audio data coverage', () => {
     for (const taal of TAAL_LIST) {
       for (const style of taal.styles) {
         for (const theka of Object.values(style.thekas)) {
-          for (const bol of theka ?? []) {
-            expect(getBolSamplerNote(bol.name), `${taal.id}: ${bol.name}`).not.toBeNull();
+          for (const bol of expandTablaBols(theka ?? [])) {
+            const composites: Record<string, string[]> = {
+              Dha: ['Ge', 'Na'], Dhin: ['Ge', 'Tin'], Dhi: ['Ge', 'Tin'], Di: ['Ge', 'Tin'],
+            };
+            for (const stroke of composites[bol.name] ?? [bol.name]) {
+              expect(getBolSample(stroke), `${taal.id}: ${bol.name}`).not.toBeNull();
+            }
           }
         }
       }

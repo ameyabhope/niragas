@@ -53,7 +53,7 @@ vi.mock('tone', () => {
 vi.mock('@/audio/mixer', () => ({ getChannelInput: vi.fn(() => ({})) }));
 
 import { createTabla, disposeTabla, expandTablaBols, loadTaal, setTablaBeatCallback, setTablaPitch, setTablaTempo, startTabla, stopTabla } from '@/audio/tabla';
-import { getBolPlaybackRate, getBolSamplerNote, loadTablaSampler, TABLA_SAMPLE_ROOT_HZ } from '@/audio/sample-loader';
+import { getBolPlaybackRate, getBolSample, loadTablaSampler, TABLA_SAMPLE_ROOT_HZ } from '@/audio/sample-loader';
 import { noteToFreq, setA4Freq } from '@/lib/notes';
 import { ektaal } from '@/data/taals/ektaal';
 
@@ -108,7 +108,7 @@ describe('tabla sample tuning and lifetime', () => {
 
   it('stops and disconnects native sources even when their start is in the future', async () => {
     const player = await loadTablaSampler({} as Parameters<typeof loadTablaSampler>[0]);
-    player!.triggerAttack(getBolSamplerNote('Tin')!, 50, .7, 0.5);
+    player!.triggerAttack('Tin', 50, .7, 0.5);
     const source = audio.sources.at(-1)!;
     expect(source.start).toHaveBeenCalledWith(50);
     player!.stopAll();
@@ -132,7 +132,7 @@ describe('tabla transport', () => {
       ['Ti', 4], ['Re', 4.25], ['Ka', 4.5], ['Ta', 4.75],
     ]);
     expect(expandTablaBols([{ name: 'Trkt', position: 2.5 }]).map(bol => bol.position)).toEqual([2.5, 2.625, 2.75, 2.875]);
-    expect(getBolSamplerNote('Re')).toBe(getBolSamplerNote('Te'));
+    expect(getBolSample('Re')).toBe(getBolSample('Te'));
   });
 
   it('retains subdivisions in ticks through tempo changes, using callback audio times', () => {

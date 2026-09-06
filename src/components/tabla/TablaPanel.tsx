@@ -2,7 +2,7 @@
  * Tabla control panel: taal selector, style, tempo controls, beat display, play/stop.
  */
 
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useTablaStore } from '@/store/tabla-store';
 import { TAAL_LIST, getTaal } from '@/data/taals';
 import { BeatDisplay } from './BeatDisplay';
@@ -36,14 +36,7 @@ export function TablaPanel() {
   const [tempoDraft, setTempoDraft] = useState<string | null>(null);
   const { initialize } = useAudioEngine();
 
-  // Tap tempo — just updates the store, subscription propagates to audio
-  const handleTapTempo = useCallback(
-    (bpm: number) => {
-      setTempo(bpm);
-    },
-    [setTempo]
-  );
-  const { tap } = useTapTempo(handleTapTempo);
+  const { tap } = useTapTempo(setTempo);
 
   return (
     <div className="flex flex-col gap-4">

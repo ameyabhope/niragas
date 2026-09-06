@@ -81,8 +81,6 @@ const defaultMixer = () => ({
   tabla: { enabled: false, volume: 0.75, pan: 0, muted: false },
   surpeti: { enabled: false, volume: 0.75, pan: 0, muted: false },
   swarmandal: { enabled: false, volume: 0.6, pan: 0, muted: false },
-  manjira: { enabled: false, volume: 0.5, pan: 0, muted: false },
-  metronome: { enabled: false, volume: 0.5, pan: 0, muted: false },
 });
 
 const defaultEQ = () => ({
@@ -152,7 +150,6 @@ function makePreset(
     tabla: { taalId, styleId: 'theka', tempo, enabled: false },
     surPeti: { enabled: false, volume: 0.75 },
     swarMandal: { ...defaultSwarMandal(), strings },
-    manjira: { enabled: false, volume: 0.5 },
     mixer: defaultMixer(),
     master: { volume: 0.8, muted: false },
     eq: defaultEQ(),

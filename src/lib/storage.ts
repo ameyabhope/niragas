@@ -1,6 +1,6 @@
 /**
  * IndexedDB storage layer using idb.
- * Stores presets only. Recordings are kept in-memory (not persisted).
+ * Stores presets. Recordings use a separate IndexedDB database in recording-storage.ts.
  */
 
 import { openDB, type IDBPDatabase } from 'idb';

@@ -13,7 +13,6 @@ export const keherva: TaalDefinition = {
     { matra: 1, type: 'sam', label: 'X' },
     { matra: 5, type: 'khaali', label: '0' },
   ],
-  manjiraSupported: true,
   tempoRange: { min: 40, max: 500 },
   speedBreakpoints: {
     vilambit: 80,

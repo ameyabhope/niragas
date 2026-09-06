@@ -13,19 +13,8 @@
 import * as Tone from 'tone';
 import { log } from './log';
 
-// ── State ───────────────────────────────────────────────────────────────────
-
-/** Tracks whether tabla samples have been loaded */
-// ── Expected sample files ───────────────────────────────────────────────────
-
-/**
- * Tabla bol sample paths.
- * Keys are bol names, values are file paths relative to /samples/tabla/
- */
+/** Composite bols and rolls are assembled by the sequencer, not recordings. */
 const TABLA_SAMPLE_MAP: Record<string, string> = {
-  'Dha':  '/samples/tabla/Dha.wav',
-  'Dhin': '/samples/tabla/Dhin.wav',
-  'Dhi':  '/samples/tabla/Dhi.wav',
   'Na':   '/samples/tabla/Na.wav',
   'Ta':   '/samples/tabla/Ta.wav',
   'Tin':  '/samples/tabla/Tin.wav',
@@ -37,18 +26,7 @@ const TABLA_SAMPLE_MAP: Record<string, string> = {
   'Ti':   '/samples/tabla/Ti.wav',
   'Tu':   '/samples/tabla/Tu.wav',
   'Te':   '/samples/tabla/Te.wav',
-  'Trkt': '/samples/tabla/Trkt.wav',
   'Kat':  '/samples/tabla/Kat.wav',
-};
-
-// ── Loading ─────────────────────────────────────────────────────────────────
-
-const BOL_TO_NOTE: Record<string, string> = {
-  'Dha': 'C1', 'Dhin': 'C#1', 'Dhi': 'D1',
-  'Na': 'D#1', 'Ta': 'E1', 'Tin': 'F1', 'Tun': 'F#1',
-  'Ge': 'G1', 'Ghe': 'G#1', 'Ke': 'A1', 'Ka': 'A#1',
-  'Ti': 'B1', 'Tu': 'C2', 'Te': 'C#2',
-  'Trkt': 'D2', 'Kat': 'D#2',
 };
 
 /** Conventional spelling variants mapped to the closest recorded stroke. */
@@ -89,11 +67,11 @@ export function getBolPlaybackRate(bolName: string, targetHz: number): number {
   return root ? targetHz / root : 1;
 }
 
-/** Arbitrary note keys are retained, but each attack owns a native source.
+/** Each attack owns a native source.
  * Sampler.releaseAll does not cancel attacks already handed to Web Audio.
  */
 export interface TablaSamplePlayer {
-  triggerAttack(note: string, time: number, velocity: number, playbackRate?: number): void;
+  triggerAttack(bol: string, time: number, velocity: number, playbackRate?: number): void;
   stopAll(): void;
   dispose(): void;
 }
@@ -112,12 +90,10 @@ export async function loadTablaSampler(
     }
     voices.clear();
   };
-  const loads = Object.entries(BOL_TO_NOTE).map(async ([bol, note]) => {
-    // Composite bols and rolls are assembled by the sequencer, not recordings.
-    if (['Dha', 'Dhin', 'Dhi', 'Trkt'].includes(bol)) return;
+  const loads = Object.entries(TABLA_SAMPLE_MAP).map(async ([bol, url]) => {
     const buffer = new Tone.ToneAudioBuffer();
-    buffers.set(note, buffer);
-    await buffer.load(TABLA_SAMPLE_MAP[bol]);
+    buffers.set(bol, buffer);
+    await buffer.load(url);
   });
   const results = await Promise.allSettled(loads);
   if (results.some((result) => result.status === 'rejected')) {
@@ -127,8 +103,8 @@ export async function loadTablaSampler(
   }
   log('[SampleLoader] Tabla samples loaded');
   return {
-    triggerAttack(note, time, velocity, playbackRate = 1) {
-      const buffer = buffers.get(note)?.get();
+    triggerAttack(bol, time, velocity, playbackRate = 1) {
+      const buffer = buffers.get(BOL_SAMPLE_ALIASES[bol] ?? bol)?.get();
       if (!buffer) return;
       const context = Tone.getContext();
       const source = context.createBufferSource();
@@ -155,12 +131,9 @@ export async function loadTablaSampler(
   };
 }
 
-/**
- * Get the MIDI note key for a tabla bol name (used with the sampler).
- */
-export function getBolSamplerNote(bolName: string): string | null {
+export function getBolSample(bolName: string): string | null {
   const canonicalBol = BOL_SAMPLE_ALIASES[bolName] ?? bolName;
-  return BOL_TO_NOTE[canonicalBol] ?? null;
+  return Object.hasOwn(TABLA_SAMPLE_MAP, canonicalBol) ? canonicalBol : null;
 }
 
 export function getBolGain(bolName: string): number {

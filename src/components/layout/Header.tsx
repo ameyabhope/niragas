@@ -16,7 +16,6 @@ import { stopTanpura } from '@/audio/tanpura';
 import { stopTabla } from '@/audio/tabla';
 import { stopSurPeti } from '@/audio/surpeti';
 import { stopSwarMandalLoop } from '@/audio/swarmandal';
-import { stopManjira } from '@/audio/manjira';
 
 /** Snapshot of which instruments were active before global stop */
 interface ActiveSnapshot {
@@ -73,7 +72,6 @@ export function Header() {
       stopTabla();
       stopSurPeti();
       stopSwarMandalLoop();
-      stopManjira();
 
       // Sync store state
       const tanpura = useTanpuraStore.getState();

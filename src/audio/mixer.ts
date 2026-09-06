@@ -47,7 +47,7 @@ export function createMixer(): void {
 
   const instrumentIds: InstrumentId[] = [
     'tanpura1', 'tanpura2', 'tabla', 'surpeti',
-    'swarmandal', 'manjira', 'metronome',
+    'swarmandal',
   ];
 
   for (const id of instrumentIds) {
@@ -161,7 +161,7 @@ export function setChannelMute(id: InstrumentId, muted: boolean): void {
 }
 
 /**
- * Get the master volume node (for recording tap).
+ * Post-limiter recording tap, matching the signal sent to the speakers.
  */
 export function getMasterNode(): Tone.Limiter | null {
   return masterLimiter;

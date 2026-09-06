@@ -15,7 +15,6 @@ export const teentaal: TaalDefinition = {
     { matra: 9, type: 'khaali', label: '0' },
     { matra: 13, type: 'taali', label: '3' },
   ],
-  manjiraSupported: false,
   tempoRange: { min: 10, max: 700 },
   speedBreakpoints: {
     atiVilambit: 30,

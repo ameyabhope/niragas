@@ -20,7 +20,7 @@ const MAX_PRESETS_PER_IMPORT = 500;
 export const MAX_PRESET_IMPORT_BYTES = 2 * 1024 * 1024;
 
 const INSTRUMENT_IDS: InstrumentId[] = [
-  'tanpura1', 'tanpura2', 'tabla', 'surpeti', 'swarmandal', 'manjira', 'metronome',
+  'tanpura1', 'tanpura2', 'tabla', 'surpeti', 'swarmandal',
 ];
 const TANPURA_TUNINGS: TanpuraTuning[] = ['Pa', 'Ma', 'Ni'];
 const TANPURA_EQS: TanpuraEQ[] = ['neutral', 'bass', 'treble'];
@@ -146,7 +146,6 @@ export function parsePreset(value: unknown, path = 'preset'): Preset {
   if (!Array.isArray(swarMandal.strings) || swarMandal.strings.length > 64) {
     throw new Error(`${path}.swarMandal.strings must contain at most 64 strings`);
   }
-  const manjira = record(input.manjira, `${path}.manjira`);
   const mixer = record(input.mixer, `${path}.mixer`);
   const channels = {} as Record<InstrumentId, ChannelState>;
   for (const id of INSTRUMENT_IDS) {
@@ -196,10 +195,6 @@ export function parsePreset(value: unknown, path = 'preset'): Preset {
       autoLoop: boolean(swarMandal.autoLoop, `${path}.swarMandal.autoLoop`),
       loopDuration: number(swarMandal.loopDuration, `${path}.swarMandal.loopDuration`, 2, 30),
       volume: number(swarMandal.volume, `${path}.swarMandal.volume`, 0, 1),
-    },
-    manjira: {
-      enabled: boolean(manjira.enabled, `${path}.manjira.enabled`),
-      volume: number(manjira.volume, `${path}.manjira.volume`, 0, 1),
     },
     mixer: channels,
     master: {

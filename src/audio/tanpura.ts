@@ -236,16 +236,6 @@ export async function updateTanpura(
   if (changed || (instance.error && !instance.loading)) await loadSampleForInstance(id);
 }
 
-export async function updateTanpuraPitch(id: string, saNote: NoteName, saOctave: number, saCents = 0): Promise<void> {
-  const instance = instances.get(id);
-  if (!instance) return;
-  instance.saNote = saNote;
-  instance.saOctave = saOctave;
-  instance.saCents = saCents;
-  // Always recalculate: the shared A4 reference may have changed.
-  await loadSampleForInstance(id);
-}
-export function isTanpuraPlaying(id: string): boolean { return instances.get(id)?.playing ?? false; }
 export function disposeTanpura(id: string): void {
   const instance = instances.get(id);
   if (!instance) return;

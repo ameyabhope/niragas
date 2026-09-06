@@ -18,7 +18,6 @@ export const ektaal: TaalDefinition = {
     { matra: 9, type: 'taali', label: '3' },
     { matra: 11, type: 'taali', label: '4' },
   ],
-  manjiraSupported: false,
   tempoRange: { min: 10, max: 500 },
   speedBreakpoints: {
     atiVilambit: 30,

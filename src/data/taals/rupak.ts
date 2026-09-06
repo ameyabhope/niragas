@@ -14,7 +14,6 @@ export const rupak: TaalDefinition = {
     { matra: 4, type: 'taali', label: '2' },
     { matra: 6, type: 'taali', label: '3' },
   ],
-  manjiraSupported: true,
   tempoRange: { min: 20, max: 400 },
   speedBreakpoints: {
     vilambit: 60,

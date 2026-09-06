@@ -32,7 +32,6 @@ function createMetronomeTaal(beats: number): TaalDefinition {
     name: `Metronome (${beats})`,
     matras: beats,
     divisions: [{ matra: 1, type: 'sam', label: 'X' }],
-    manjiraSupported: false,
     tempoRange: COMMON_TEMPO,
     speedBreakpoints: COMMON_BREAKPOINTS,
     styles: [

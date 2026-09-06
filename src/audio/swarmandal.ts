@@ -144,8 +144,8 @@ export function stopSwarMandalLoop(): void {
 }
 
 /**
- * Update the Swar Mandal configuration (config only, does NOT start/stop loop).
- * Callers should manage start/stop explicitly.
+ * Update configuration, stop on disable, and reschedule an active loop when its
+ * duration changes. Enabling and manual strums remain caller-controlled.
  */
 export function updateSwarMandal(config: Partial<SwarMandalConfig>): void {
   if (!instance) return;

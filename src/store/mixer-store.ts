@@ -21,19 +21,12 @@ interface MixerState {
    *  UI toggles must act on the instrument stores, never here, so there is
    *  a single source of truth for on/off. */
   setEnabled: (id: InstrumentId, enabled: boolean) => void;
-  /** Set volume for an instrument (0-1) */
   setVolume: (id: InstrumentId, volume: number) => void;
-  /** Set pan for an instrument (-1 to 1) */
   setPan: (id: InstrumentId, pan: number) => void;
-  /** Toggle mute for an instrument */
   toggleMute: (id: InstrumentId) => void;
-  /** Set mute for an instrument */
   setMuted: (id: InstrumentId, muted: boolean) => void;
-  /** Set master volume */
   setMasterVolume: (volume: number) => void;
-  /** Toggle master mute */
   toggleMasterMute: () => void;
-  /** Set master mute */
   setMasterMuted: (muted: boolean) => void;
 }
 
@@ -44,8 +37,6 @@ export const useMixerStore = create<MixerState>((set) => ({
     tabla: defaultChannel(false),
     surpeti: defaultChannel(false),
     swarmandal: defaultChannel(false),
-    manjira: defaultChannel(false),
-    metronome: defaultChannel(false),
   },
   masterVolume: 0.8,
   masterMuted: false,

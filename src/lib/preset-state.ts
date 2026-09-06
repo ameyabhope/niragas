@@ -75,10 +75,6 @@ export function capturePreset(name: string): Preset {
       loopDuration: swarMandal.loopDuration,
       volume: mixer.channels.swarmandal.volume,
     },
-    manjira: {
-      enabled: mixer.channels.manjira.enabled,
-      volume: mixer.channels.manjira.volume,
-    },
     mixer: channels,
     master: {
       volume: mixer.masterVolume,

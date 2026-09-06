@@ -20,8 +20,6 @@ const INSTRUMENT_ORDER: InstrumentId[] = [
   'tabla',
   'surpeti',
   'swarmandal',
-  'manjira',
-  'metronome',
 ];
 
 export function MixerPanel() {
@@ -38,9 +36,6 @@ export function MixerPanel() {
   } = useMixerStore();
   const { initialize } = useAudioEngine();
 
-  // Mixer dots delegate to the instrument stores — the single source of
-  // truth for on/off. Manjira/metronome have no start path yet, so their
-  // dots stay disabled instead of lying about engine state.
   const handleToggleEnabled = (id: InstrumentId) => {
     switch (id) {
       case 'tanpura1':
@@ -64,9 +59,6 @@ export function MixerPanel() {
           if (ready) useSwarMandalStore.getState().toggle();
         });
         break;
-      case 'manjira':
-      case 'metronome':
-        break;
     }
   };
 
@@ -80,7 +72,6 @@ export function MixerPanel() {
           <InfoTooltip label="About the mixer" text="Control volume and stereo pan for each instrument independently. Toggle between Volume and Pan modes. Use the master fader to control overall output level." align="left" />
         </div>
 
-        {/* Volume / Pan mode toggle */}
         <div className="flex bg-surface-lighter rounded-lg overflow-hidden" role="group" aria-label="Mixer adjustment">
           <button
             type="button"
@@ -109,7 +100,6 @@ export function MixerPanel() {
         </div>
       </div>
 
-      {/* Channel strips */}
       <div className="bg-surface-card rounded-xl border border-white/5 px-3 py-1">
         {INSTRUMENT_ORDER.map((id) => (
           <ChannelStrip
@@ -118,22 +108,14 @@ export function MixerPanel() {
             channel={channels[id]}
             mode={mode}
             onToggleEnabled={() => handleToggleEnabled(id)}
-            toggleDisabled={id === 'manjira' || id === 'metronome'}
-            toggleTitle={
-              id === 'manjira' || id === 'metronome'
-                ? 'Not yet playable — engine has no start path'
-                : undefined
-            }
             onSetVolume={(v) => setVolume(id, v)}
             onSetPan={(v) => setPan(id, v)}
             onToggleMute={() => toggleMute(id)}
           />
         ))}
 
-        {/* Separator */}
         <div className="border-t border-white/5 my-1" />
 
-        {/* Master */}
         <div className="flex items-center gap-2 py-1.5">
           <button
             type="button"

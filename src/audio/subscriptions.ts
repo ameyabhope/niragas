@@ -72,7 +72,7 @@ const tanpuraOperations = new Map<TanpuraId, Promise<void>>();
 
 const INSTRUMENT_IDS: InstrumentId[] = [
   'tanpura1', 'tanpura2', 'tabla', 'surpeti',
-  'swarmandal', 'manjira', 'metronome',
+  'swarmandal',
 ];
 
 async function ensureTabla(): Promise<void> {

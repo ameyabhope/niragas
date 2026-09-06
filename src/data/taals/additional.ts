@@ -16,7 +16,6 @@ export const deepchandi: TaalDefinition = {
     { matra: 8, type: 'khaali', label: '0' },
     { matra: 11, type: 'taali', label: '3' },
   ],
-  manjiraSupported: true,
   tempoRange: { min: 20, max: 400 },
   speedBreakpoints: {
     vilambit: 50,
@@ -65,7 +64,6 @@ export const dhamar: TaalDefinition = {
     { matra: 8, type: 'khaali', label: '0' },
     { matra: 11, type: 'taali', label: '3' },
   ],
-  manjiraSupported: false,
   tempoRange: { min: 10, max: 300 },
   speedBreakpoints: {
     vilambit: 40,
@@ -118,7 +116,6 @@ export const chautaal: TaalDefinition = {
     { matra: 9, type: 'taali', label: '3' },
     { matra: 11, type: 'taali', label: '4' },
   ],
-  manjiraSupported: false,
   tempoRange: { min: 10, max: 400 },
   speedBreakpoints: {
     vilambit: 40,
@@ -165,7 +162,6 @@ export const jhoomra: TaalDefinition = {
     { matra: 8, type: 'khaali', label: '0' },
     { matra: 11, type: 'taali', label: '3' },
   ],
-  manjiraSupported: false,
   tempoRange: { min: 10, max: 300 },
   speedBreakpoints: {
     atiVilambit: 20,
@@ -258,7 +254,6 @@ export const tilwada: TaalDefinition = {
     { matra: 9, type: 'khaali', label: '0' },
     { matra: 13, type: 'taali', label: '3' },
   ],
-  manjiraSupported: false,
   tempoRange: { min: 10, max: 400 },
   speedBreakpoints: {
     atiVilambit: 20,
@@ -356,7 +351,6 @@ export const adaChautaal: TaalDefinition = {
     { matra: 11, type: 'khaali', label: '0' },
     { matra: 13, type: 'taali', label: '5' },
   ],
-  manjiraSupported: false,
   tempoRange: { min: 10, max: 300 },
   speedBreakpoints: {
     vilambit: 40,
@@ -405,7 +399,6 @@ export const sooltaal: TaalDefinition = {
     { matra: 7, type: 'khaali', label: '0' },
     { matra: 9, type: 'taali', label: '3' },
   ],
-  manjiraSupported: false,
   tempoRange: { min: 10, max: 400 },
   speedBreakpoints: {
     vilambit: 40,
@@ -451,7 +444,6 @@ export const panchamSawari: TaalDefinition = {
     { matra: 10, type: 'taali', label: '3' },
     { matra: 13, type: 'taali', label: '4' },
   ],
-  manjiraSupported: false,
   tempoRange: { min: 10, max: 300 },
   speedBreakpoints: {
     vilambit: 40,
@@ -501,7 +493,6 @@ export const mattaTaal: TaalDefinition = {
     { matra: 5, type: 'khaali', label: '0' },
     { matra: 7, type: 'taali', label: '3' },
   ],
-  manjiraSupported: false,
   tempoRange: { min: 20, max: 400 },
   speedBreakpoints: {
     vilambit: 50,
@@ -542,7 +533,6 @@ export const bhajani: TaalDefinition = {
     { matra: 1, type: 'sam', label: 'X' },
     { matra: 5, type: 'khaali', label: '0' },
   ],
-  manjiraSupported: true,
   tempoRange: { min: 40, max: 500 },
   speedBreakpoints: {
     vilambit: 80,
@@ -582,7 +572,6 @@ export const addha: TaalDefinition = {
     { matra: 1, type: 'sam', label: 'X' },
     { matra: 5, type: 'khaali', label: '0' },
   ],
-  manjiraSupported: true,
   tempoRange: { min: 40, max: 500 },
   speedBreakpoints: {
     vilambit: 80,
@@ -622,7 +611,6 @@ export const punjabi: TaalDefinition = {
     { matra: 1, type: 'sam', label: 'X' },
     { matra: 5, type: 'khaali', label: '0' },
   ],
-  manjiraSupported: true,
   tempoRange: { min: 40, max: 500 },
   speedBreakpoints: {
     vilambit: 80,
@@ -665,7 +653,6 @@ export const chartalKiSawari: TaalDefinition = {
     { matra: 6, type: 'taali', label: '2' },
     { matra: 9, type: 'taali', label: '3' },
   ],
-  manjiraSupported: false,
   tempoRange: { min: 10, max: 400 },
   speedBreakpoints: {
     vilambit: 40,

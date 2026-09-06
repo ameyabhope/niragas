@@ -2,7 +2,6 @@
  * A single mixer channel strip: label, on/off toggle, volume slider, pan slider.
  */
 
-import { useCallback } from 'react';
 import type { InstrumentId, ChannelState } from '@/audio/types';
 
 const INSTRUMENT_LABELS: Record<InstrumentId, string> = {
@@ -11,8 +10,6 @@ const INSTRUMENT_LABELS: Record<InstrumentId, string> = {
   tabla: 'Tabla',
   surpeti: 'SrPti',
   swarmandal: 'SwMdl',
-  manjira: 'Mnjra',
-  metronome: 'Metro',
 };
 
 const INSTRUMENT_FULL_NAMES: Record<InstrumentId, string> = {
@@ -21,8 +18,6 @@ const INSTRUMENT_FULL_NAMES: Record<InstrumentId, string> = {
   tabla: 'Tabla',
   surpeti: 'Sur-Peti',
   swarmandal: 'Swar Mandal',
-  manjira: 'Manjira',
-  metronome: 'Metronome',
 };
 
 interface ChannelStripProps {
@@ -30,9 +25,6 @@ interface ChannelStripProps {
   channel: ChannelState;
   mode: 'volume' | 'pan';
   onToggleEnabled: () => void;
-  /** Disable the enable-dot (engine can't start this instrument yet) */
-  toggleDisabled?: boolean;
-  toggleTitle?: string;
   onSetVolume: (v: number) => void;
   onSetPan: (v: number) => void;
   onToggleMute: () => void;
@@ -43,38 +35,17 @@ export function ChannelStrip({
   channel,
   mode,
   onToggleEnabled,
-  toggleDisabled = false,
-  toggleTitle,
   onSetVolume,
   onSetPan,
   onToggleMute,
 }: ChannelStripProps) {
-  const handleVolumeChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      onSetVolume(parseFloat(e.target.value));
-    },
-    [onSetVolume]
-  );
-
-  const handlePanChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      onSetPan(parseFloat(e.target.value));
-    },
-    [onSetPan]
-  );
-
   return (
     <div className="flex min-w-0 items-center gap-1 py-1.5">
-      {/* Enable/disable toggle */}
       <button
         type="button"
         onClick={onToggleEnabled}
-        disabled={toggleDisabled}
-        title={toggleTitle}
-        className="w-10 h-10 flex items-center justify-center rounded-lg flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
-        aria-label={toggleDisabled && toggleTitle
-          ? `${INSTRUMENT_FULL_NAMES[id]} unavailable: ${toggleTitle}`
-          : `${channel.enabled ? 'Disable' : 'Enable'} ${INSTRUMENT_FULL_NAMES[id]}`}
+        className="w-10 h-10 flex items-center justify-center rounded-lg flex-shrink-0"
+        aria-label={`${channel.enabled ? 'Disable' : 'Enable'} ${INSTRUMENT_FULL_NAMES[id]}`}
         aria-pressed={channel.enabled}
       >
         <span className={`w-2.5 h-2.5 rounded-full border-2 transition-colors ${
@@ -85,7 +56,6 @@ export function ChannelStrip({
         />
       </button>
 
-      {/* Label */}
       <span
         className={`text-[10px] font-medium w-9 flex-shrink-0 ${
           channel.enabled ? 'text-text-primary' : 'text-text-muted'
@@ -95,11 +65,9 @@ export function ChannelStrip({
         {INSTRUMENT_LABELS[id]}
       </span>
 
-      {/* Mute button */}
       <button
         type="button"
         onClick={onToggleMute}
-        disabled={toggleDisabled}
         className={`text-[10px] w-10 h-10 flex items-center justify-center rounded-lg font-mono flex-shrink-0 ${
           channel.muted
             ? 'bg-accent-control text-white'
@@ -111,7 +79,6 @@ export function ChannelStrip({
         M
       </button>
 
-      {/* Slider (volume or pan) */}
       {mode === 'volume' ? (
         <input
           type="range"
@@ -119,10 +86,9 @@ export function ChannelStrip({
           max={1}
           step={0.01}
           value={channel.volume}
-          onChange={handleVolumeChange}
-          disabled={toggleDisabled}
+          onChange={(e) => onSetVolume(parseFloat(e.target.value))}
           className="min-w-0 w-0 flex-1 h-1.5 bg-surface-lighter rounded-lg appearance-none cursor-pointer
-                     accent-saffron-500 disabled:opacity-30"
+                     accent-saffron-500"
           aria-label={`${INSTRUMENT_FULL_NAMES[id]} volume`}
         />
       ) : (
@@ -132,15 +98,13 @@ export function ChannelStrip({
           max={1}
           step={0.01}
           value={channel.pan}
-          onChange={handlePanChange}
-          disabled={toggleDisabled}
+          onChange={(e) => onSetPan(parseFloat(e.target.value))}
           className="min-w-0 w-0 flex-1 h-1.5 bg-surface-lighter rounded-lg appearance-none cursor-pointer
-                     accent-saffron-500 disabled:opacity-30"
+                     accent-saffron-500"
           aria-label={`${INSTRUMENT_FULL_NAMES[id]} pan`}
         />
       )}
 
-      {/* Value display */}
       <span className="text-[10px] font-mono text-text-muted w-8 text-right flex-shrink-0">
         {mode === 'volume'
           ? `${Math.round(channel.volume * 100)}%`

@@ -20,9 +20,7 @@ export type InstrumentId =
   | 'tanpura2'
   | 'tabla'
   | 'surpeti'
-  | 'swarmandal'
-  | 'manjira'
-  | 'metronome';
+  | 'swarmandal';
 
 /** Tanpura tuning type (first string) */
 export type TanpuraTuning = 'Pa' | 'Ma' | 'Ni';
@@ -81,7 +79,6 @@ export interface TaalDefinition {
   matras: number;
   divisions: Division[];
   styles: TaalStyle[];
-  manjiraSupported: boolean;
   tempoRange: { min: number; max: number };
   speedBreakpoints: {
     atiVilambit?: number;
@@ -154,7 +151,6 @@ export interface Preset {
   };
   surPeti: { enabled: boolean; volume: number };
   swarMandal: SwarMandalConfig;
-  manjira: { enabled: boolean; volume: number };
   mixer: Record<InstrumentId, ChannelState>;
   master: { volume: number; muted: boolean };
   eq: EQState;

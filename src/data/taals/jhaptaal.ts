@@ -15,7 +15,6 @@ export const jhaptaal: TaalDefinition = {
     { matra: 6, type: 'khaali', label: '0' },
     { matra: 8, type: 'taali', label: '3' },
   ],
-  manjiraSupported: true,
   tempoRange: { min: 20, max: 500 },
   speedBreakpoints: {
     vilambit: 60,

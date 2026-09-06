@@ -168,13 +168,6 @@ export function stopTuner(): void {
 }
 
 /**
- * Check if the tuner is running.
- */
-export function isTunerRunning(): boolean {
-  return instance?.running ?? false;
-}
-
-/**
  * Dispose the tuner: stop detection, close mic, release resources.
  */
 export function disposeTuner(): void {

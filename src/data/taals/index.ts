@@ -56,58 +56,6 @@ import {
   basant,
 } from './additional2';
 
-/** All available taals, keyed by ID */
-export const TAAL_MAP: Record<string, TaalDefinition> = {
-  ...Object.fromEntries(METRONOME_TAALS.map((t) => [t.id, t])),
-  teentaal,
-  jhaptaal,
-  ektaal,
-  rupak,
-  dadra,
-  keherva,
-  [deepchandi.id]: deepchandi,
-  [dhamar.id]: dhamar,
-  [chautaal.id]: chautaal,
-  [jhoomra.id]: jhoomra,
-  [tilwada.id]: tilwada,
-  [adaChautaal.id]: adaChautaal,
-  [sooltaal.id]: sooltaal,
-  [panchamSawari.id]: panchamSawari,
-  [mattaTaal.id]: mattaTaal,
-  [bhajani.id]: bhajani,
-  [addha.id]: addha,
-  [punjabi.id]: punjabi,
-  [chartalKiSawari.id]: chartalKiSawari,
-  [farodast.id]: farodast,
-  [jat.id]: jat,
-  [pashto.id]: pashto,
-  [chanchar.id]: chanchar,
-  [tivra.id]: tivra,
-  [dhumali.id]: dhumali,
-  [sitarkhani.id]: sitarkhani,
-  [sawari.id]: sawari,
-  [gajJhampa.id]: gajJhampa,
-  [rudra.id]: rudra,
-  [lakshmi.id]: lakshmi,
-  [brahma.id]: brahma,
-  [vishnu.id]: vishnu,
-  [ashtamangal.id]: ashtamangal,
-  [tevra.id]: tevra,
-  [khemta.id]: khemta,
-  [kahervaBhajan.id]: kahervaBhajan,
-  [roopakSawari.id]: roopakSawari,
-  [yashwant.id]: yashwant,
-  [indra.id]: indra,
-  [surphankhta.id]: surphankhta,
-  [dipak.id]: dipak,
-  [mani.id]: mani,
-  [ganesh.id]: ganesh,
-  [narayana.id]: narayana,
-  [chandrashekhar.id]: chandrashekhar,
-  [shikar.id]: shikar,
-  [basant.id]: basant,
-};
-
 /** Ordered list for display in taal selector */
 export const TAAL_LIST: TaalDefinition[] = [
   ...METRONOME_TAALS,
@@ -159,6 +107,10 @@ export const TAAL_LIST: TaalDefinition[] = [
   shikar,
   basant,
 ];
+
+export const TAAL_MAP: Record<string, TaalDefinition> = Object.fromEntries(
+  TAAL_LIST.map((taal) => [taal.id, taal]),
+);
 
 /** Get a taal by ID, with fallback to Teentaal */
 export function getTaal(id: string): TaalDefinition {

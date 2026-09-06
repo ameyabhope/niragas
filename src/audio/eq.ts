@@ -22,7 +22,6 @@ interface EQInstance {
   bands: Tone.BiquadFilter[];
   inputGain: Tone.Gain;
   outputGain: Tone.Gain;
-  enabled: boolean;
 }
 
 let instance: EQInstance | null = null;
@@ -277,7 +276,6 @@ export function createEQ(): { input: Tone.Gain; output: Tone.Gain } {
     });
   });
 
-  // Chain them together
   inputGain.connect(bands[0]);
   for (let i = 0; i < bands.length - 1; i++) {
     bands[i].connect(bands[i + 1]);
@@ -288,21 +286,10 @@ export function createEQ(): { input: Tone.Gain; output: Tone.Gain } {
     bands,
     inputGain,
     outputGain,
-    enabled: true,
   };
 
   log('[EQ] Created 7-band parametric EQ');
   return { input: inputGain, output: outputGain };
-}
-
-/**
- * Set the gain for a specific EQ band.
- * @param bandIndex 0-6
- * @param gain -12 to +12 dB
- */
-export function setEQBandGain(bandIndex: number, gain: number): void {
-  if (!instance || bandIndex < 0 || bandIndex >= instance.bands.length) return;
-  instance.bands[bandIndex].gain.value = Math.max(-12, Math.min(12, gain));
 }
 
 /** Apply the complete configuration for one EQ band. */
@@ -313,24 +300,6 @@ export function setEQBand(bandIndex: number, config: EQBand): void {
   band.frequency.value = config.frequency;
   band.gain.value = Math.max(-12, Math.min(12, config.gain));
   band.Q.value = config.Q;
-}
-
-/**
- * Apply an EQ preset by name.
- */
-export function applyEQPreset(presetName: string): void {
-  const preset = EQ_PRESETS[presetName];
-  if (!preset || !instance) return;
-
-  preset.forEach((bandConfig, i) => {
-    if (i < instance!.bands.length) {
-      instance!.bands[i].gain.value = bandConfig.gain;
-      instance!.bands[i].frequency.value = bandConfig.frequency;
-      instance!.bands[i].Q.value = bandConfig.Q;
-    }
-  });
-
-  log(`[EQ] Applied preset: ${presetName}`);
 }
 
 /**
