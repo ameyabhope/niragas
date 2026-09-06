@@ -1,15 +1,14 @@
 /**
  * Sur-Peti (Shruti Box) on/off control.
- * A simple toggle with a playing indicator.
+ * A simple selection toggle with a playback indicator.
  */
 
 import { useSurPetiStore } from '@/store/surpeti-store';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
-import { useAudioEngine } from '@/hooks/useAudioEngine';
+import { practiceSession } from '@/lib/practice-session';
 
 export function SurPetiControl() {
-  const { enabled, toggle } = useSurPetiStore();
-  const { initialize } = useAudioEngine();
+  const { enabled } = useSurPetiStore();
 
   return (
     <div
@@ -25,20 +24,12 @@ export function SurPetiControl() {
             <h3 className="text-sm font-semibold text-text-primary">Sur-Peti</h3>
             <p className="text-xs text-text-muted">Shruti Box Drone</p>
           </div>
-          <InfoTooltip label="About Sur-Peti" text="A shruti box (sur-peti) drone that plays a continuous pitch matching the current Sa. Useful as a simpler alternative to the tanpura for vocal practice. Toggle on/off to start/stop." align="left" />
+          <InfoTooltip label="About Sur-Peti" text="A shruti box (sur-peti) drone that plays a continuous pitch matching the current Sa. Useful as a simpler alternative to the tanpura for vocal practice. Select it, then press Start to begin playback." align="left" />
         </div>
 
         <button
           type="button"
-          onClick={() => {
-            if (enabled) {
-              toggle();
-              return;
-            }
-            void initialize().then((ready) => {
-              if (ready) toggle();
-            });
-          }}
+          onClick={() => practiceSession.toggleInstrument('surpeti')}
           aria-label={`${enabled ? 'Turn off' : 'Turn on'} Sur-Peti`}
           aria-pressed={enabled}
           className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${

@@ -49,7 +49,7 @@ function getSnapshot(): AudioStatus {
   return status;
 }
 
-async function initialize(): Promise<boolean> {
+export async function initialize(): Promise<boolean> {
   if (isAudioEngineReady()) {
     if (!status.ready || status.error) {
       emit({ ready: true, loading: false, error: null });

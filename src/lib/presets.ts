@@ -15,7 +15,7 @@ import { NOTE_NAMES } from '@/lib/notes';
 import { TAAL_MAP } from '@/data/taals';
 import { EQ_PRESET_NAMES } from '@/audio/eq';
 
-export const PRESET_SCHEMA_VERSION = 2;
+export const PRESET_SCHEMA_VERSION = 3;
 const MAX_PRESETS_PER_IMPORT = 500;
 export const MAX_PRESET_IMPORT_BYTES = 2 * 1024 * 1024;
 
@@ -80,15 +80,12 @@ function parseTanpura(value: unknown, path: string): TanpuraConfig {
     eq: oneOf(input.eq, TANPURA_EQS, `${path}.eq`),
     finePitchCents: number(input.finePitchCents, `${path}.finePitchCents`, -50, 50),
     speed: number(input.speed, `${path}.speed`, 0.7, 1.4),
-    volume: number(input.volume, `${path}.volume`, 0, 1),
-    pan: number(input.pan, `${path}.pan`, -1, 1),
   };
 }
 
 function parseChannel(value: unknown, path: string): ChannelState {
   const input = record(value, path);
   return {
-    enabled: boolean(input.enabled, `${path}.enabled`),
     volume: number(input.volume, `${path}.volume`, 0, 1),
     pan: number(input.pan, `${path}.pan`, -1, 1),
     muted: boolean(input.muted, `${path}.muted`),
@@ -117,8 +114,8 @@ function parseEQBand(value: unknown, path: string): EQBand {
 
 export function parsePreset(value: unknown, path = 'preset'): Preset {
   const input = record(value, path);
-  const schemaVersion = input.schemaVersion ?? 1;
-  if (schemaVersion !== 1 && schemaVersion !== PRESET_SCHEMA_VERSION) {
+  const schemaVersion = input.schemaVersion;
+  if (schemaVersion !== PRESET_SCHEMA_VERSION) {
     throw new Error(`${path}.schemaVersion is not supported`);
   }
 
@@ -152,9 +149,7 @@ export function parsePreset(value: unknown, path = 'preset'): Preset {
     channels[id] = parseChannel(mixer[id], `${path}.mixer.${id}`);
   }
 
-  const masterInput = schemaVersion === 1
-    ? { volume: 0.8, muted: false }
-    : record(input.master, `${path}.master`);
+  const masterInput = record(input.master, `${path}.master`);
   const eq = record(input.eq, `${path}.eq`);
   if (!Array.isArray(eq.bands) || eq.bands.length !== 7) {
     throw new Error(`${path}.eq.bands must contain exactly 7 bands`);
@@ -187,14 +182,12 @@ export function parsePreset(value: unknown, path = 'preset'): Preset {
     },
     surPeti: {
       enabled: boolean(surPeti.enabled, `${path}.surPeti.enabled`),
-      volume: number(surPeti.volume, `${path}.surPeti.volume`, 0, 1),
     },
     swarMandal: {
       enabled: boolean(swarMandal.enabled, `${path}.swarMandal.enabled`),
       strings: swarMandal.strings.map((item, index) => parseString(item, `${path}.swarMandal.strings[${index}]`)),
       autoLoop: boolean(swarMandal.autoLoop, `${path}.swarMandal.autoLoop`),
       loopDuration: number(swarMandal.loopDuration, `${path}.swarMandal.loopDuration`, 2, 30),
-      volume: number(swarMandal.volume, `${path}.swarMandal.volume`, 0, 1),
     },
     mixer: channels,
     master: {

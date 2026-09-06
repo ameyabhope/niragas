@@ -2,12 +2,10 @@
  * Swar Mandal control panel: string grid, play once, auto-loop toggle.
  */
 
-import { useCallback } from 'react';
 import { useSwarMandalStore } from '@/store/swarmandal-store';
 import type { SwarName, SwarVariant } from '@/audio/types';
-import { strumSwarMandal } from '@/audio/swarmandal';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
-import { useAudioEngine } from '@/hooks/useAudioEngine';
+import { practiceSession } from '@/lib/practice-session';
 
 const SWARA_OPTIONS: { note: SwarName; label: string; variant: SwarVariant }[] = [
   { note: 'Sa', label: 'Sa', variant: 'shuddha' },
@@ -30,7 +28,6 @@ export function SwarMandalPanel() {
     strings,
     autoLoop,
     loopDuration,
-    toggle,
     toggleString,
     setStringNote,
     setStringOctave,
@@ -39,18 +36,6 @@ export function SwarMandalPanel() {
     setAutoLoop,
     setLoopDuration,
   } = useSwarMandalStore();
-
-  const { initialize } = useAudioEngine();
-
-  const handleStrum = useCallback(() => {
-    void initialize().then((ready) => {
-      if (!ready) return;
-      const state = useSwarMandalStore.getState();
-      state.setEnabled(true);
-      // Enabling auto-loop already schedules its first strum.
-      if (state.enabled || !state.autoLoop) strumSwarMandal();
-    });
-  }, [initialize]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -63,19 +48,7 @@ export function SwarMandalPanel() {
         </div>
         <button
           type="button"
-          onClick={() => {
-            if (enabled) {
-              toggle();
-              return;
-            }
-            void initialize().then((ready) => {
-              if (ready) {
-                const state = useSwarMandalStore.getState();
-                state.setEnabled(true);
-                if (!state.autoLoop) strumSwarMandal();
-              }
-            });
-          }}
+          onClick={() => practiceSession.toggleInstrument('swarmandal')}
           aria-label={`${enabled ? 'Turn off' : 'Turn on'} Swar Mandal`}
           aria-pressed={enabled}
           className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
@@ -152,7 +125,7 @@ export function SwarMandalPanel() {
         {/* Play once button */}
         <button
           type="button"
-          onClick={handleStrum}
+          onClick={() => { void practiceSession.strum(); }}
           className="w-full py-3 bg-surface-lighter text-text-primary text-sm font-semibold
                      rounded-xl hover:bg-saffron-700 transition-colors"
         >

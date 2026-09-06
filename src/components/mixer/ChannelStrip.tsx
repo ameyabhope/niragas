@@ -23,6 +23,7 @@ const INSTRUMENT_FULL_NAMES: Record<InstrumentId, string> = {
 interface ChannelStripProps {
   id: InstrumentId;
   channel: ChannelState;
+  enabled: boolean;
   mode: 'volume' | 'pan';
   onToggleEnabled: () => void;
   onSetVolume: (v: number) => void;
@@ -33,6 +34,7 @@ interface ChannelStripProps {
 export function ChannelStrip({
   id,
   channel,
+  enabled,
   mode,
   onToggleEnabled,
   onSetVolume,
@@ -45,11 +47,11 @@ export function ChannelStrip({
         type="button"
         onClick={onToggleEnabled}
         className="w-10 h-10 flex items-center justify-center rounded-lg flex-shrink-0"
-        aria-label={`${channel.enabled ? 'Disable' : 'Enable'} ${INSTRUMENT_FULL_NAMES[id]}`}
-        aria-pressed={channel.enabled}
+        aria-label={`${enabled ? 'Disable' : 'Enable'} ${INSTRUMENT_FULL_NAMES[id]}`}
+        aria-pressed={enabled}
       >
         <span className={`w-2.5 h-2.5 rounded-full border-2 transition-colors ${
-            channel.enabled
+            enabled
               ? 'bg-active border-active'
               : 'bg-transparent border-text-muted'
           }`}
@@ -58,7 +60,7 @@ export function ChannelStrip({
 
       <span
         className={`text-[10px] font-medium w-9 flex-shrink-0 ${
-          channel.enabled ? 'text-text-primary' : 'text-text-muted'
+          enabled ? 'text-text-primary' : 'text-text-muted'
         }`}
         title={INSTRUMENT_FULL_NAMES[id]}
       >

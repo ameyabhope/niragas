@@ -57,7 +57,6 @@ export function createSwarMandal(): void {
       strings: [],
       autoLoop: false,
       loopDuration: 8,
-      volume: 0.7,
     },
     saNote: 'C#',
     saOctave: 3,

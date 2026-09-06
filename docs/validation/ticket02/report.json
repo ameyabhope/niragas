@@ -1,0 +1,517 @@
+{
+  "status": "passed",
+  "output": "/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-bUaa73",
+  "checks": [
+    {
+      "name": "Browser PCM capture is available",
+      "value": {
+        "sampleRate": 48000
+      },
+      "passed": true
+    },
+    {
+      "name": "Representative playback controls are present",
+      "value": {
+        "start": true,
+        "stop": true,
+        "tabla": true
+      },
+      "passed": true
+    },
+    {
+      "name": "Tabla capture contains the requested audio interval",
+      "value": {
+        "frames": 201728,
+        "seconds": 4.2026666666666666
+      },
+      "passed": true
+    },
+    {
+      "name": "Tabla produces audible PCM",
+      "value": {
+        "peak": 0.8194587230682373,
+        "rms": 0.10920174731599477
+      },
+      "passed": true
+    },
+    {
+      "name": "Tabla has no duplicate attacks",
+      "value": [],
+      "passed": true
+    },
+    {
+      "name": "Tabla has at least one attack",
+      "value": 12,
+      "passed": true
+    },
+    {
+      "name": "Metronome-1 attacks follow the 120 BPM beat",
+      "value": {
+        "attackCount": 12,
+        "cadence": [
+          0.32000000000000006,
+          0.49999999999999994,
+          0.5000000000000001,
+          0.5,
+          0.4999999999999998,
+          0.5,
+          0.31999999999999984,
+          0.31999999999999984
+        ],
+        "medianSeconds": 0.49999999999999994
+      },
+      "passed": true
+    },
+    {
+      "name": "Stop reaches silence after intentional decay",
+      "value": {
+        "peak": 0,
+        "tailPeak": 0,
+        "limit": 0.008194587230682374,
+        "rms": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "Tanpura playback control is present",
+      "value": true,
+      "passed": true
+    },
+    {
+      "name": "Tanpura capture contains the requested audio interval",
+      "value": {
+        "frames": 470016,
+        "seconds": 9.792
+      },
+      "passed": true
+    },
+    {
+      "name": "Tanpura produces audible PCM",
+      "value": {
+        "peak": 0.08848439157009125,
+        "rms": 0.022187542712061276
+      },
+      "passed": true
+    },
+    {
+      "name": "Mixed capture contains the requested audio interval",
+      "value": {
+        "frames": 153856,
+        "seconds": 3.2053333333333334
+      },
+      "passed": true
+    },
+    {
+      "name": "Mixed run has both selected instruments",
+      "value": {
+        "tanpura": true,
+        "tabla": true
+      },
+      "passed": true
+    },
+    {
+      "name": "Mixed output is audible and below full scale",
+      "value": {
+        "peak": 0.8277686834335327,
+        "rms": 0.11070283623006796
+      },
+      "passed": true
+    },
+    {
+      "name": "Mixed output stops without a later attack",
+      "value": {
+        "peak": 0.04080189764499664,
+        "tailPeak": 0,
+        "limit": 0.008277686834335328,
+        "attacks": 1
+      },
+      "passed": true
+    },
+    {
+      "name": "No unexpected browser exceptions",
+      "value": [],
+      "passed": true,
+      "detail": "Chrome reported known audio NotSupportedError events; these remain in the report for investigation."
+    },
+    {
+      "name": "Stop retains selected instruments",
+      "value": {
+        "tanpura": true,
+        "tabla": true
+      },
+      "passed": true
+    },
+    {
+      "name": "Stopped edits are retained for the next Start",
+      "value": {
+        "before": "120",
+        "after": "121"
+      },
+      "passed": true
+    },
+    {
+      "name": "Start resumes the retained setup",
+      "value": {
+        "peak": 0.8092660903930664,
+        "rms": 0.10574599205414777
+      },
+      "passed": true
+    },
+    {
+      "name": "Fresh load has no playback intent when PCM is unavailable",
+      "value": {
+        "tablaPlaying": false,
+        "tanpuraPlaying": false
+      },
+      "passed": true
+    },
+    {
+      "name": "Fresh load restores selected defaults without autoplay",
+      "value": {
+        "tanpura": true,
+        "tabla": false
+      },
+      "passed": true
+    }
+  ],
+  "errors": [
+    {
+      "exceptionId": 1,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "6888084467198991988.2.1",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 2,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "6888084467198991988.2.2",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 3,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "6888084467198991988.2.3",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 4,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "6888084467198991988.2.4",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 5,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "6888084467198991988.2.5",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 6,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "6888084467198991988.2.6",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 7,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "6888084467198991988.2.7",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 8,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "6888084467198991988.2.8",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    }
+  ],
+  "artifacts": [
+    "tabla-playing.wav",
+    "tabla-after-stop.wav",
+    "tanpura-playing.wav",
+    "mixed-playing.wav",
+    "mixed-after-stop.wav",
+    "restart-playing.wav",
+    "fresh-load.wav"
+  ],
+  "prerequisites": {
+    "chrome": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "vite": true
+  },
+  "url": "http://127.0.0.1:5174/",
+  "chromeLog": "tory (2)\n[94754:3394216:0906/151949.149592:VERBOSE1:chrome/updater/updater.cc:105] Crash reporting initialized.\n[94754:3394229:0906/151949.149954:VERBOSE1:chrome/updater/app/app_wakeall.cc:58] Launching `/Users/ameyab/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake`\n[94757:3394233:0906/151949.160602:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/ameyab/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[94757:3394233:0906/151949.162002:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.6.2, arch: arm64, System uptime (seconds): 227803, parent pid: 94754\n[94757:3394233:0906/151949.164364:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/ameyab/Library/Application Support/Google/GoogleUpdater): 162975309824B (151.783GiB) / 494384795648B (460.432GiB)\n[94757:3394233:0906/151949.164383:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/): 162975309824B (151.783GiB) / 494384795648B (460.432GiB)\n[94757:3394233:0906/151949.164460:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[94759:3394237:0906/151949.178935:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/ameyab/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/ameyab/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=152.0.7933.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[94759:3394237:0906/151949.179663:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.6.2, arch: arm64, System uptime (seconds): 227803, parent pid: 1\n[94759:3394237:0906/151949.182266:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/ameyab/Library/Application Support/Google/GoogleUpdater): 162975309824B (151.783GiB) / 494384795648B (460.432GiB)\n[94759:3394237:0906/151949.182291:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/): 162975309824B (151.783GiB) / 494384795648B (460.432GiB)\n[94759:3394237:0906/151949.182473:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[94757:3394233:0906/151949.183479:VERBOSE1:chrome/updater/crash_reporter.cc:124] Crash handler launched and ready.\n[94757:3394233:0906/151949.184467:VERBOSE1:chrome/updater/crash_client.cc:108] Found 0 completed crash reports\n[94757:3394233:0906/151949.184561:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports\n[94757:3394233:0906/151949.184640:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/ameyab/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)\n[94757:3394233:0906/151949.184859:VERBOSE1:chrome/updater/updater.cc:105] Crash reporting initialized.\n[94757:3394233:0906/151949.185050:VERBOSE1:chrome/updater/ipc/update_service_internal_proxy_mojo.cc:61] Run\n[94425:3392933:0906/151956.244705:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[94425:3392946:0906/152002.089195:ERROR:base/process/process_mac.cc:53] task_policy_set TASK_CATEGORY_POLICY: (os/kern) invalid argument (4)\n[94425:3392946:0906/152002.089213:ERROR:base/process/process_mac.cc:98] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)\n",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.77",
+    "revision": "@529d9a34b491745086b59458f58a5aae8292adaa",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.19"
+  },
+  "capture": {
+    "sampleRate": 48000
+  },
+  "freshLoadCapture": "state-only: no active source produced worklet frames after reload"
+}

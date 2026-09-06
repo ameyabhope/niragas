@@ -7,6 +7,7 @@
  * had to call both store.setX() and audioEngine.setX() separately.
  */
 
+import { useSessionStore } from '@/store/session-store';
 import { useTablaStore } from '@/store/tabla-store';
 import { useMixerStore } from '@/store/mixer-store';
 import { useEQStore } from '@/store/eq-store';
@@ -67,8 +68,6 @@ let tablaOperation = Promise.resolve();
 
 type TanpuraId = 'tanpura1' | 'tanpura2';
 const readyTanpuras = new Set<TanpuraId>();
-const tanpuraInitializations = new Map<TanpuraId, Promise<void>>();
-const tanpuraOperations = new Map<TanpuraId, Promise<void>>();
 
 const INSTRUMENT_IDS: InstrumentId[] = [
   'tanpura1', 'tanpura2', 'tabla', 'surpeti',
@@ -113,48 +112,29 @@ function queueTablaSync(reloadTaal: boolean): void {
     .catch((err) => console.error('[Subscriptions] Tabla sync failed:', err));
 }
 
-async function ensureTanpura(id: TanpuraId): Promise<void> {
-  if (readyTanpuras.has(id)) return;
-  let initialization = tanpuraInitializations.get(id);
-  if (!initialization) {
-    const config = useTanpuraStore.getState()[id];
-    const pitch = usePitchStore.getState();
-    initialization = createTanpura(id, config, pitch.note, pitch.octave, pitch.cents)
-      .then(() => {
-        readyTanpuras.add(id);
-      })
-      .finally(() => {
-        tanpuraInitializations.delete(id);
-      });
-    tanpuraInitializations.set(id, initialization);
-  }
-  await initialization;
-}
+function syncTanpura(id: TanpuraId): void {
+  const config = useTanpuraStore.getState()[id];
+  const enabled = useSessionStore.getState().running && config.enabled;
+  if (!enabled) stopTanpura(id);
+  if (!enabled && !readyTanpuras.has(id)) return;
+  const pitch = usePitchStore.getState();
+  const effectiveConfig = { ...config, enabled };
 
-function queueTanpuraSync(id: TanpuraId): void {
-  const previous = tanpuraOperations.get(id) ?? Promise.resolve();
-  const operation = previous
-    .then(async () => {
-      const initialConfig = useTanpuraStore.getState()[id];
-      if (!initialConfig.enabled && !readyTanpuras.has(id)) return;
-
-      await ensureTanpura(id);
-      const config = useTanpuraStore.getState()[id];
-      const pitch = usePitchStore.getState();
-      await updateTanpura(id, config, pitch.note, pitch.octave, pitch.cents);
-
-      if (config.enabled) startTanpura(id);
-      else stopTanpura(id);
-    })
-    .catch((err) => console.error(`[Subscriptions] ${id} sync failed:`, err));
-  tanpuraOperations.set(id, operation);
+  // createTanpura installs its instance synchronously. Later requests can update
+  // it immediately, allowing the engine to abort preparation already in flight.
+  const operation = readyTanpuras.has(id)
+    ? updateTanpura(id, effectiveConfig, pitch.note, pitch.octave, pitch.cents)
+    : createTanpura(id, effectiveConfig, pitch.note, pitch.octave, pitch.cents);
+  readyTanpuras.add(id);
+  if (enabled) startTanpura(id);
+  void operation.catch((error) => console.error(`[Subscriptions] ${id} sync failed:`, error));
 }
 
 function syncSurPeti(): void {
   const pitch = usePitchStore.getState();
   const { enabled } = useSurPetiStore.getState();
   setSurPetiPitch(pitch.note, pitch.octave, pitch.cents);
-  if (enabled) startSurPeti(pitch.note, pitch.octave, pitch.cents);
+  if (enabled && useSessionStore.getState().running) startSurPeti(pitch.note, pitch.octave, pitch.cents);
   else stopSurPeti();
 }
 
@@ -162,13 +142,13 @@ function syncSwarMandal(): void {
   const state = useSwarMandalStore.getState();
   const pitch = usePitchStore.getState();
   updateSwarMandal({
-    enabled: state.enabled,
+    enabled: state.enabled && (useSessionStore.getState().running || !state.autoLoop),
     strings: state.strings,
     autoLoop: state.autoLoop,
     loopDuration: state.loopDuration,
   });
   updateSwarMandalPitch(pitch.note, pitch.octave, pitch.cents);
-  if (state.enabled && state.autoLoop) {
+  if (state.enabled && state.autoLoop && useSessionStore.getState().running) {
     if (!isSwarMandalPlaying()) startSwarMandalLoop();
   } else if (isSwarMandalPlaying()) {
     stopSwarMandalLoop();
@@ -214,9 +194,25 @@ export function initAudioSubscriptions(): void {
 
   // ── Instrument stores and shared pitch ──
 
-  useTanpuraStore.subscribe(() => {
-    queueTanpuraSync('tanpura1');
-    queueTanpuraSync('tanpura2');
+  const syncTanpuras = () => {
+    for (const id of ['tanpura1', 'tanpura2'] as const) {
+      syncTanpura(id);
+    }
+  };
+  useTanpuraStore.subscribe(syncTanpuras);
+  const syncPlayback = () => {
+    useTablaStore.getState().setPlaying(useSessionStore.getState().running && useTablaStore.getState().enabled);
+    syncTanpuras();
+    syncSurPeti();
+    syncSwarMandal();
+  };
+  useSessionStore.subscribe((state, previous) => {
+    if (state.running !== previous.running) syncPlayback();
+  });
+  useTablaStore.subscribe((state, previous) => {
+    if (state.enabled !== previous.enabled) {
+      state.setPlaying(useSessionStore.getState().running && state.enabled);
+    }
   });
 
   useSurPetiStore.subscribe(syncSurPeti);
@@ -230,8 +226,8 @@ export function initAudioSubscriptions(): void {
       state.cents !== prevPitch.cents ||
       state.a4Freq !== prevPitch.a4Freq
     ) {
-      queueTanpuraSync('tanpura1');
-      queueTanpuraSync('tanpura2');
+      syncTanpura('tanpura1');
+      syncTanpura('tanpura2');
       syncSurPeti();
       syncSwarMandal();
       if (tablaReady) setTablaPitch(state.note, state.octave, state.cents);
@@ -305,32 +301,6 @@ export function initAudioSubscriptions(): void {
     prevEQ = state;
   });
 
-  // ── Mixer enabled mirror ──
-  // Mixer dots are display-only: instrument stores own on/off.
-  // Mirror them here so dots/sliders always reflect engine truth.
-  const syncMixerEnabled = (id: InstrumentId, enabled: boolean) => {
-    if (useMixerStore.getState().channels[id].enabled !== enabled) {
-      useMixerStore.getState().setEnabled(id, enabled);
-    }
-  };
-
-  useTanpuraStore.subscribe((state) => {
-    syncMixerEnabled('tanpura1', state.tanpura1.enabled);
-    syncMixerEnabled('tanpura2', state.tanpura2.enabled);
-  });
-
-  useTablaStore.subscribe((state) => {
-    syncMixerEnabled('tabla', state.playing);
-  });
-
-  useSurPetiStore.subscribe((state) => {
-    syncMixerEnabled('surpeti', state.enabled);
-  });
-
-  useSwarMandalStore.subscribe((state) => {
-    syncMixerEnabled('swarmandal', state.enabled);
-  });
-
   // ── Initial mixer state ──
   // Subscriptions only fire on state *changes*, so push the initial
   // volumes/pans/mutes now — otherwise the 75%/80% sliders are fiction
@@ -343,14 +313,6 @@ export function initAudioSubscriptions(): void {
   }
   setMasterVolume(initialMixer.masterVolume);
   setMasterMute(initialMixer.masterMuted);
-
-  // Mirror current engine truth into mixer dots at boot
-  const tanpuraInit = useTanpuraStore.getState();
-  syncMixerEnabled('tanpura1', tanpuraInit.tanpura1.enabled);
-  syncMixerEnabled('tanpura2', tanpuraInit.tanpura2.enabled);
-  syncMixerEnabled('tabla', useTablaStore.getState().playing);
-  syncMixerEnabled('surpeti', useSurPetiStore.getState().enabled);
-  syncMixerEnabled('swarmandal', useSwarMandalStore.getState().enabled);
 
   syncSurPeti();
   syncSwarMandal();

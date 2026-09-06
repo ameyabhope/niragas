@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FACTORY_PRESETS, hasRaagSwarMandal, migrateFactoryRaagPreset } from '@/data/raag-presets';
-import type { SwarName } from '@/audio/types';
+import { FACTORY_PRESETS, hasRaagSwarMandal } from '@/data/raag-presets';
 import { applyPresetState, capturePreset, type PresetLoadOptions } from '@/lib/preset-state';
 import { parsePreset, parsePresetExport, serializePresetExport } from '@/lib/presets';
 import { useEQStore } from '@/store/eq-store';
@@ -46,41 +45,16 @@ describe('preset validation', () => {
     }
   });
 
-  it('migrates shipped factory strings and unsupported drones without losing user metadata', () => {
-    const old = structuredClone(FACTORY_PRESETS.find((p) => p.id === 'factory-malkauns')!);
-    old.swarMandal.strings = (['Sa', 'Re', 'Ga', 'Ma', 'Pa', 'Dha', 'Ni', 'Sa'] as SwarName[]).map((note, i) => ({
-      note, variant: 'shuddha', octaveOffset: i === 7 ? 1 : 0, enabled: true,
-    }));
-    old.tanpura2.tuning = 'Ni';
-    old.favorite = true;
-    old.pitch.cents = 12;
-    const migrated = migrateFactoryRaagPreset(old);
-    expect(migrated.tanpura2.tuning).toBe('Ma');
-    expect(migrated).toMatchObject({ favorite: true, pitch: old.pitch, createdAt: old.createdAt, updatedAt: old.updatedAt });
-    expect(migrateFactoryRaagPreset(migrated)).toBe(migrated);
-    expect(parsePreset(migrated)).toEqual(migrated);
-    const custom = { ...old, id: 'custom-saved-malkauns' };
-    expect(migrateFactoryRaagPreset(custom)).toBe(custom);
-    old.swarMandal.strings[0].enabled = false;
-    expect(migrateFactoryRaagPreset(old)).toBe(old);
-  });
-
   it('validates every factory preset', () => {
     for (const preset of FACTORY_PRESETS) {
       expect(parsePreset(preset)).toEqual(preset);
     }
   });
 
-  it('migrates legacy presets with safe defaults', () => {
+  it('rejects legacy preset schemas', () => {
     const legacy = structuredClone(FACTORY_PRESETS[0]) as unknown as Record<string, unknown>;
-    delete legacy.schemaVersion;
-    delete legacy.master;
-    delete (legacy.pitch as Record<string, unknown>).a4Freq;
-
-    const migrated = parsePreset(legacy);
-    expect(migrated.schemaVersion).toBe(2);
-    expect(migrated.pitch.a4Freq).toBe(440);
-    expect(migrated.master).toEqual({ volume: 0.8, muted: false });
+    legacy.schemaVersion = 2;
+    expect(() => parsePreset(legacy)).toThrow('schemaVersion is not supported');
   });
 
   it('rejects the whole file when any preset is invalid', () => {
@@ -140,8 +114,6 @@ describe('preset state round-tripping', () => {
       eq: 'bass',
       finePitchCents: 7,
       speed: 0.9,
-      volume: 0.4,
-      pan: -0.7,
     };
     preset.tanpura2.enabled = false;
     preset.tabla = { taalId: 'keherva', styleId: 'theka', tempo: 128, enabled: true };
@@ -154,9 +126,8 @@ describe('preset state round-tripping', () => {
       ],
       autoLoop: true,
       loopDuration: 11,
-      volume: 0.45,
     };
-    preset.mixer.tabla = { enabled: true, volume: 0.42, pan: -0.25, muted: true };
+    preset.mixer.tabla = { volume: 0.42, pan: -0.25, muted: true };
     preset.mixer.surpeti.volume = 0.33;
     preset.mixer.swarmandal.volume = 0.45;
     preset.master = { volume: 0.61, muted: true };
@@ -173,7 +144,8 @@ describe('preset state round-tripping', () => {
       taalId: 'keherva',
       styleId: 'theka',
       tempo: 128,
-      playing: true,
+      enabled: true,
+      playing: false,
     });
     expect(useSurPetiStore.getState().enabled).toBe(true);
     expect(useSwarMandalStore.getState()).toMatchObject({
@@ -199,11 +171,11 @@ describe('preset state round-tripping', () => {
 
     const captured = capturePreset('Full session');
     expect(captured).toMatchObject({
-      schemaVersion: 2,
+      schemaVersion: 3,
       name: 'Full session',
       pitch: preset.pitch,
       tabla: preset.tabla,
-      surPeti: { enabled: true, volume: 0.33 },
+      surPeti: { enabled: true },
       swarMandal: preset.swarMandal,
       master: preset.master,
       eq: preset.eq,

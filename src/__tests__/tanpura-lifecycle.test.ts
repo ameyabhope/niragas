@@ -40,6 +40,7 @@ vi.mock('tone', () => {
 });
 import { createTanpura, DEFAULT_TANPURA_CONFIG, disposeTanpura, getTanpuraStatus, startTanpura, stopTanpura, updateTanpura } from '@/audio/tanpura';
 import { setA4Freq } from '@/lib/notes';
+import { createSessionControls } from '@/lib/session-controls';
 const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
 async function ready() {
   vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(0) })));
@@ -169,6 +170,17 @@ describe('tanpura source ownership', () => {
     mock.players[0].state = 'stopped';
     stopTanpura('tanpura1');
     expect(mock.players[0].stop).toHaveBeenCalledOnce();
+  });
+
+  it('honors shared Stop while a replacement is still preparing', async () => {
+    await ready();
+    const pending = updateTanpura('tanpura1', { speed: 0.8 });
+    const controls = createSessionControls(async () => true);
+    controls.stop();
+    mock.renders.shift()!.resolve([new Float32Array(10)]);
+    await pending;
+    expect(mock.players.every(player => player.state === 'stopped')).toBe(true);
+    expect(getTanpuraStatus('tanpura1').playing).toBe(false);
   });
   it('ignores a late fetch from a superseded request without decoding or rendering it', async () => {
     await ready();

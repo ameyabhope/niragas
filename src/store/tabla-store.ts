@@ -22,6 +22,8 @@ interface TablaState {
   tempo: number;
   /** Whether tabla is playing */
   playing: boolean;
+  enabled: boolean;
+  setEnabled: (enabled: boolean) => void;
   /** Current matra being played (1-indexed) */
   currentMatra: number;
   /** Current division label (Sam, Taali, Khaali marker) */
@@ -45,6 +47,8 @@ export const useTablaStore = create<TablaState>((set, get) => ({
   activeStyleId: null,
   tempo: 120,
   playing: false,
+  enabled: false,
+  setEnabled: (enabled) => set({ enabled }),
   currentMatra: 1,
   currentDivisionLabel: null,
 

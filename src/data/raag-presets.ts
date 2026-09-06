@@ -48,8 +48,6 @@ function raagStrings(id: string): SwarMandalStringConfig[] {
   }));
 }
 
-const legacyTunings = new Map<string, [TanpuraTuning, TanpuraTuning]>();
-
 // Narrow corrections for clearly absent drone pitches, without claiming a
 // complete string inventory for these raags or a preferred performance tuning.
 const DRONE_CORRECTIONS: Record<string, TanpuraTuning> = {
@@ -61,7 +59,6 @@ const DRONE_CORRECTIONS: Record<string, TanpuraTuning> = {
 
 function makeTanpura(
   firstString: TanpuraTuning,
-  pan: number,
   enabled = true
 ): TanpuraConfig {
   return {
@@ -70,17 +67,15 @@ function makeTanpura(
     eq: 'neutral',
     finePitchCents: 0,
     speed: 1.0,
-    volume: 0.75,
-    pan,
   };
 }
 
 const defaultMixer = () => ({
-  tanpura1: { enabled: true, volume: 0.75, pan: -0.3, muted: false },
-  tanpura2: { enabled: true, volume: 0.75, pan: 0.3, muted: false },
-  tabla: { enabled: false, volume: 0.75, pan: 0, muted: false },
-  surpeti: { enabled: false, volume: 0.75, pan: 0, muted: false },
-  swarmandal: { enabled: false, volume: 0.6, pan: 0, muted: false },
+  tanpura1: { volume: 0.75, pan: -0.3, muted: false },
+  tanpura2: { volume: 0.75, pan: 0.3, muted: false },
+  tabla: { volume: 0.75, pan: 0, muted: false },
+  surpeti: { volume: 0.75, pan: 0, muted: false },
+  swarmandal: { volume: 0.6, pan: 0, muted: false },
 });
 
 const defaultEQ = () => ({
@@ -112,7 +107,6 @@ const defaultSwarMandal = () => ({
   ],
   autoLoop: false,
   loopDuration: 8,
-  volume: 0.6,
 });
 
 function makePreset(
@@ -127,7 +121,6 @@ function makePreset(
 ): Preset {
   const now = Date.now();
   const strings = raagStrings(id);
-  legacyTunings.set(`factory-${id}`, [firstString1, firstString2]);
   const correctedDrone = DRONE_CORRECTIONS[raagKey(id)];
   if (correctedDrone) firstString1 = firstString2 = correctedDrone;
   if (hasRaagSwarMandal(id)) {
@@ -138,17 +131,17 @@ function makePreset(
     if (!supports(firstString2)) firstString2 = supported;
   }
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     id: `factory-${id}`,
     name,
     favorite: false,
     createdAt: now,
     updatedAt: now,
     pitch: { note: note as Preset['pitch']['note'], octave, cents: 0, a4Freq: 440 },
-    tanpura1: makeTanpura(firstString1, -0.3, true),
-    tanpura2: makeTanpura(firstString2, 0.3, true),
+    tanpura1: makeTanpura(firstString1, true),
+    tanpura2: makeTanpura(firstString2, true),
     tabla: { taalId, styleId: 'theka', tempo, enabled: false },
-    surPeti: { enabled: false, volume: 0.75 },
+    surPeti: { enabled: false },
     swarMandal: { ...defaultSwarMandal(), strings },
     mixer: defaultMixer(),
     master: { volume: 0.8, muted: false },
@@ -299,23 +292,3 @@ export const FACTORY_PRESETS: Preset[] = [
   makePreset('todi-carnatic', 'Todi (Carnatic)', 'D', 3, 'Pa', 'Ni', 'teentaal', 70),
   makePreset('bhairavi-carnatic', 'Bhairavi (Carnatic)', 'D', 3, 'Pa', 'Ni', 'teentaal', 80),
 ];
-
-/** Upgrade only recognizable shipped defaults, never custom IDs or edited strings. */
-export function migrateFactoryRaagPreset(preset: Preset): Preset {
-  const factory = FACTORY_PRESETS.find((item) => item.id === preset.id);
-  if (!factory) return preset;
-  const legacy = defaultSwarMandal().strings;
-  const matchesLegacy = preset.swarMandal.strings.length === legacy.length &&
-    preset.swarMandal.strings.every((s, i) =>
-      s.note === legacy[i].note && s.variant === legacy[i].variant &&
-      s.octaveOffset === legacy[i].octaveOffset && s.enabled === legacy[i].enabled);
-  if (!matchesLegacy) return preset;
-  const tuning = legacyTunings.get(preset.id)!;
-  const migrated: Preset = {
-    ...preset,
-    swarMandal: { ...preset.swarMandal, strings: factory.swarMandal.strings.map((s) => ({ ...s })) },
-    tanpura1: { ...preset.tanpura1, tuning: preset.tanpura1.tuning === tuning[0] ? factory.tanpura1.tuning : preset.tanpura1.tuning },
-    tanpura2: { ...preset.tanpura2, tuning: preset.tanpura2.tuning === tuning[1] ? factory.tanpura2.tuning : preset.tanpura2.tuning },
-  };
-  return JSON.stringify(migrated) === JSON.stringify(preset) ? preset : migrated;
-}

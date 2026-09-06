@@ -1,0 +1,129 @@
+{
+  "output": "/tmp/niragas-ticket01-X8hS0j",
+  "checks": [
+    {
+      "name": "Only the five playable mixer channels",
+      "value": [
+        "Disable Tanpura 1",
+        "Enable Tanpura 2",
+        "Enable Tabla",
+        "Enable Sur-Peti",
+        "Enable Swar Mandal"
+      ],
+      "passed": true
+    },
+    {
+      "name": "Tabla through Play control",
+      "value": {
+        "peak": 0.7379894256591797,
+        "rms": 0.08440994220211212
+      },
+      "passed": true
+    },
+    {
+      "name": "Tabla Stop",
+      "value": {
+        "peak": 0,
+        "rms": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "Tanpura through mixer control",
+      "value": {
+        "peak": 0.1056198999285698,
+        "rms": 0.027983203260819184
+      },
+      "passed": true
+    },
+    {
+      "name": "Tanpura Stop",
+      "value": {
+        "peak": 1.8666190371163793e-08,
+        "rms": 1.4628138662084976e-09
+      },
+      "passed": true
+    },
+    {
+      "name": "Manual Swar Mandal",
+      "value": {
+        "peak": 0.06366051733493805,
+        "rms": 0.004450283968736469
+      },
+      "passed": true
+    },
+    {
+      "name": "Manual Swar Mandal Stop",
+      "value": {
+        "peak": 1.7349411837730422e-11,
+        "rms": 1.288077659250027e-12
+      },
+      "passed": true
+    },
+    {
+      "name": "Looping Swar Mandal first sweep",
+      "value": {
+        "peak": 0.12075287103652954,
+        "rms": 0.0038929588325931318
+      },
+      "passed": true
+    },
+    {
+      "name": "Looping Swar Mandal later sweep",
+      "value": {
+        "peak": 0.07068270444869995,
+        "rms": 0.004645293302359316
+      },
+      "passed": true
+    },
+    {
+      "name": "Looping Swar Mandal Stop",
+      "value": {
+        "peak": 2.7450168804676878e-09,
+        "rms": 2.4231637732257724e-10
+      },
+      "passed": true
+    },
+    {
+      "name": "Two taps 500 ms apart set 120 BPM",
+      "value": "120",
+      "passed": true
+    },
+    {
+      "name": "Tap after inactivity starts a new 80 BPM sequence",
+      "value": "80",
+      "passed": true
+    },
+    {
+      "name": "No uncaught browser errors",
+      "value": [],
+      "passed": true
+    },
+    {
+      "name": "Hard reload returns to silent default intent and setup",
+      "value": {
+        "requested": false,
+        "running": false,
+        "tempo": 120,
+        "tanpura1Selected": true
+      },
+      "passed": true
+    },
+    {
+      "name": "Rapid Start/Stop during cold tanpura preparation",
+      "value": {
+        "peak": 6.403606978011567e-09,
+        "rms": 4.0862615278394333e-10
+      },
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.77",
+    "revision": "@529d9a34b491745086b59458f58a5aae8292adaa",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.19"
+  }
+}

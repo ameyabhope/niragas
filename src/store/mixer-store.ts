@@ -5,8 +5,7 @@
 import { create } from 'zustand';
 import type { InstrumentId, ChannelState } from '@/audio/types';
 
-const defaultChannel = (enabled = false): ChannelState => ({
-  enabled,
+const defaultChannel = (): ChannelState => ({
   volume: 0.75,
   pan: 0,
   muted: false,
@@ -17,10 +16,6 @@ interface MixerState {
   masterVolume: number;
   masterMuted: boolean;
 
-  /** Mirror an instrument's engine state (called by audio subscriptions only).
-   *  UI toggles must act on the instrument stores, never here, so there is
-   *  a single source of truth for on/off. */
-  setEnabled: (id: InstrumentId, enabled: boolean) => void;
   setVolume: (id: InstrumentId, volume: number) => void;
   setPan: (id: InstrumentId, pan: number) => void;
   toggleMute: (id: InstrumentId) => void;
@@ -32,26 +27,14 @@ interface MixerState {
 
 export const useMixerStore = create<MixerState>((set) => ({
   channels: {
-    tanpura1: { ...defaultChannel(false), pan: -0.3 },
-    tanpura2: { ...defaultChannel(false), pan: 0.3 },
-    tabla: defaultChannel(false),
-    surpeti: defaultChannel(false),
-    swarmandal: defaultChannel(false),
+    tanpura1: { ...defaultChannel(), pan: -0.3 },
+    tanpura2: { ...defaultChannel(), pan: 0.3 },
+    tabla: defaultChannel(),
+    surpeti: defaultChannel(),
+    swarmandal: defaultChannel(),
   },
   masterVolume: 0.8,
   masterMuted: false,
-
-  setEnabled: (id, enabled) =>
-    set((state) =>
-      state.channels[id].enabled === enabled
-        ? state
-        : {
-            channels: {
-              ...state.channels,
-              [id]: { ...state.channels[id], enabled },
-            },
-          }
-    ),
 
   setVolume: (id, volume) =>
     set((state) => ({

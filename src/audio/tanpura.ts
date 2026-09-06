@@ -45,7 +45,7 @@ export function resolveTanpuraSample(tuning: TanpuraTuning, eq: TanpuraEQ, targe
 }
 
 export const DEFAULT_TANPURA_CONFIG: TanpuraConfig = {
-  enabled: true, tuning: 'Pa', eq: 'neutral', finePitchCents: 0, speed: 1, volume: 0.75, pan: 0,
+  enabled: true, tuning: 'Pa', eq: 'neutral', finePitchCents: 0, speed: 1,
 };
 
 interface TanpuraInstance {

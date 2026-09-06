@@ -8,7 +8,7 @@ import { TAAL_LIST, getTaal } from '@/data/taals';
 import { BeatDisplay } from './BeatDisplay';
 import { useTapTempo } from '@/hooks/useTapTempo';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
-import { useAudioEngine } from '@/hooks/useAudioEngine';
+import { practiceSession } from '@/lib/practice-session';
 import { getSpeedLabel } from '@/lib/taal';
 
 export function TablaPanel() {
@@ -26,7 +26,6 @@ export function TablaPanel() {
     adjustTempo,
     halfTempo,
     doubleTempo,
-    setPlaying,
   } = useTablaStore();
 
   const taal = getTaal(taalId);
@@ -34,8 +33,6 @@ export function TablaPanel() {
   const pending = activeTaal && (activeTaalId !== taalId || activeStyleId !== styleId);
   const selectedStyle = taal.styles.find((style) => style.id === styleId);
   const [tempoDraft, setTempoDraft] = useState<string | null>(null);
-  const { initialize } = useAudioEngine();
-
   const { tap } = useTapTempo(setTempo);
 
   return (
@@ -185,15 +182,7 @@ export function TablaPanel() {
         <div className="flex gap-3">
           <button
             type="button"
-            onClick={() => {
-              if (playing) {
-                setPlaying(false);
-                return;
-              }
-              void initialize().then((ready) => {
-                if (ready) setPlaying(true);
-              });
-            }}
+            onClick={() => { void practiceSession.toggleTabla(); }}
             aria-pressed={playing}
             aria-keyshortcuts="Space"
             className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors ${

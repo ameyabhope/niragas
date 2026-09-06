@@ -5,31 +5,19 @@
 import { useTanpuraStore } from '@/store/tanpura-store';
 import { TanpuraControl } from './TanpuraControl';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
-import { useAudioEngine } from '@/hooks/useAudioEngine';
+import { practiceSession } from '@/lib/practice-session';
 
 export function TanpuraPanel() {
   const {
     tanpura1,
     tanpura2,
-    toggleTanpura,
     setTuning,
     setEQ,
     setFinePitch,
     setSpeed,
   } = useTanpuraStore();
-  const { initialize } = useAudioEngine();
-
-  // Resume the AudioContext first so the start that follows the store
-  // flip is never attempted while suspended (same user gesture).
   const handleToggle = (id: 'tanpura1' | 'tanpura2') => {
-    const enabled = useTanpuraStore.getState()[id].enabled;
-    if (enabled) {
-      toggleTanpura(id);
-      return;
-    }
-    void initialize().then((ready) => {
-      if (ready) toggleTanpura(id);
-    });
+    practiceSession.toggleInstrument(id);
   };
 
   return (
@@ -38,7 +26,7 @@ export function TanpuraPanel() {
         <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
           Tanpura
         </h2>
-        <InfoTooltip label="About Tanpura" text="An electronic tanpura providing a continuous drone. Two independent tanpuras with Pa/Ma/Ni tuning, EQ variants, fine pitch, and speed control. Toggle each on/off independently." />
+          <InfoTooltip label="About Tanpura" text="An electronic tanpura providing a continuous drone. Two independent tanpuras with Pa/Ma/Ni tuning, EQ variants, fine pitch, and speed control. Select each independently, then press Start to begin playback." />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

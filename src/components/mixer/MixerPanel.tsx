@@ -10,7 +10,7 @@ import { useTanpuraStore } from '@/store/tanpura-store';
 import { useTablaStore } from '@/store/tabla-store';
 import { useSurPetiStore } from '@/store/surpeti-store';
 import { useSwarMandalStore } from '@/store/swarmandal-store';
-import { useAudioEngine } from '@/hooks/useAudioEngine';
+import { practiceSession } from '@/lib/practice-session';
 import { ChannelStrip } from './ChannelStrip';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
@@ -34,32 +34,12 @@ export function MixerPanel() {
     setMasterVolume,
     toggleMasterMute,
   } = useMixerStore();
-  const { initialize } = useAudioEngine();
-
-  const handleToggleEnabled = (id: InstrumentId) => {
-    switch (id) {
-      case 'tanpura1':
-      case 'tanpura2':
-        void initialize().then((ready) => {
-          if (ready) useTanpuraStore.getState().toggleTanpura(id);
-        });
-        break;
-      case 'tabla':
-        void initialize().then((ready) => {
-          if (ready) useTablaStore.getState().togglePlaying();
-        });
-        break;
-      case 'surpeti':
-        void initialize().then((ready) => {
-          if (ready) useSurPetiStore.getState().toggle();
-        });
-        break;
-      case 'swarmandal':
-        void initialize().then((ready) => {
-          if (ready) useSwarMandalStore.getState().toggle();
-        });
-        break;
-    }
+  const enabled: Record<InstrumentId, boolean> = {
+    tanpura1: useTanpuraStore((state) => state.tanpura1.enabled),
+    tanpura2: useTanpuraStore((state) => state.tanpura2.enabled),
+    tabla: useTablaStore((state) => state.enabled),
+    surpeti: useSurPetiStore((state) => state.enabled),
+    swarmandal: useSwarMandalStore((state) => state.enabled),
   };
 
   return (
@@ -106,8 +86,9 @@ export function MixerPanel() {
             key={id}
             id={id}
             channel={channels[id]}
+            enabled={enabled[id]}
             mode={mode}
-            onToggleEnabled={() => handleToggleEnabled(id)}
+            onToggleEnabled={() => practiceSession.toggleInstrument(id)}
             onSetVolume={(v) => setVolume(id, v)}
             onSetPan={(v) => setPan(id, v)}
             onToggleMute={() => toggleMute(id)}

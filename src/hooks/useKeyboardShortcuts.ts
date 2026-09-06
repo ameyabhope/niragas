@@ -3,11 +3,11 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useTablaStore } from '@/store/tabla-store';
-import { useTanpuraStore } from '@/store/tanpura-store';
 import { usePitchStore } from '@/store/pitch-store';
 import { useMixerStore } from '@/store/mixer-store';
-import { useAudioEngine } from '@/hooks/useAudioEngine';
+import { useTablaStore } from '@/store/tabla-store';
+import { useTanpuraStore } from '@/store/tanpura-store';
+import { practiceSession } from '@/lib/practice-session';
 import {
   getKeyboardShortcutAction,
   isEditableShortcutTarget,
@@ -15,7 +15,6 @@ import {
 } from '@/lib/keyboard-shortcuts';
 
 export function useKeyboardShortcuts() {
-  const { initialize } = useAudioEngine();
   const [announcement, setAnnouncement] = useState('');
 
   useEffect(() => {
@@ -40,19 +39,14 @@ export function useKeyboardShortcuts() {
 
       switch (action.type) {
         case 'toggle-tabla': {
-          const tabla = useTablaStore.getState();
-          if (!tabla.playing && !(await initialize())) return;
-          const nextPlaying = !useTablaStore.getState().playing;
-          useTablaStore.getState().setPlaying(nextPlaying);
-          announce(`Tabla ${nextPlaying ? 'started' : 'stopped'}.`);
+          await practiceSession.toggleTabla();
+          announce(`Tabla ${useTablaStore.getState().enabled ? 'enabled' : 'disabled'}.`);
           break;
         }
         case 'toggle-tanpura': {
-          const tanpura = useTanpuraStore.getState();
-          if (!tanpura[action.id].enabled && !(await initialize())) return;
-          useTanpuraStore.getState().toggleTanpura(action.id);
+          practiceSession.toggleInstrument(action.id);
           const enabled = useTanpuraStore.getState()[action.id].enabled;
-          announce(`Tanpura ${action.id === 'tanpura1' ? '1' : '2'} ${enabled ? 'started' : 'stopped'}.`);
+          announce(`Tanpura ${action.id === 'tanpura1' ? '1' : '2'} ${enabled ? 'enabled' : 'disabled'}.`);
           break;
         }
         case 'adjust-tempo': {
@@ -86,7 +80,7 @@ export function useKeyboardShortcuts() {
       active = false;
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [initialize]);
+  }, []);
 
   return announcement;
 }

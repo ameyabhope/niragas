@@ -33,18 +33,13 @@ export function capturePreset(name: string): Preset {
   for (const [id, channel] of Object.entries(mixer.channels)) {
     channels[id as InstrumentId] = { ...channel };
   }
-  channels.tanpura1.enabled = tanpura.tanpura1.enabled;
-  channels.tanpura2.enabled = tanpura.tanpura2.enabled;
-  channels.tabla.enabled = tabla.playing;
-  channels.surpeti.enabled = surPeti.enabled;
-  channels.swarmandal.enabled = swarMandal.enabled;
 
   const uniqueId = typeof globalThis.crypto?.randomUUID === 'function'
     ? globalThis.crypto.randomUUID()
     : Math.random().toString(36).slice(2);
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     id: `custom-${now}-${uniqueId}`,
     name: name.trim(),
     favorite: false,
@@ -62,18 +57,16 @@ export function capturePreset(name: string): Preset {
       taalId: tabla.taalId,
       styleId: tabla.styleId,
       tempo: tabla.tempo,
-      enabled: tabla.playing,
+      enabled: tabla.enabled,
     },
     surPeti: {
       enabled: surPeti.enabled,
-      volume: mixer.channels.surpeti.volume,
     },
     swarMandal: {
       enabled: swarMandal.enabled,
       strings: swarMandal.strings.map((string) => ({ ...string })),
       autoLoop: swarMandal.autoLoop,
       loopDuration: swarMandal.loopDuration,
-      volume: mixer.channels.swarmandal.volume,
     },
     mixer: channels,
     master: {
@@ -107,7 +100,9 @@ export function applyPresetState(preset: Preset, options: PresetLoadOptions): vo
     tabla.setTaalId(preset.tabla.taalId);
     tabla.setStyleId(preset.tabla.styleId);
     tabla.setTempo(tempo);
-    tabla.setPlaying(preset.tabla.enabled);
+    tabla.setEnabled(preset.tabla.enabled);
+    // Loading never starts sound; disabling clears stale sounding state.
+    if (!preset.tabla.enabled) tabla.setPlaying(false);
   }
 
   if (options.surPeti) {

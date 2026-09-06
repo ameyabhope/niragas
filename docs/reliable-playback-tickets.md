@@ -33,15 +33,17 @@ The current spec takes precedence over the older broad implementation plan and i
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Document prerequisites and provide a repeatable way to start an isolated app server/browser and run a representative playback scenario.
-- [ ] Inspect existing temporary audio-render scenarios before reusing their assumptions or code.
-- [ ] Operate real UI controls and capture PCM plus timing results sufficient to detect duplicate attacks, timing errors, and silence after Stop and its intentional decay.
-- [ ] Record a baseline for representative tabla and tanpura playback, restart, and mixed-output peaks.
-- [ ] Retain representative audio excerpts and numerical reports in a documented location for before/after comparisons.
-- [ ] Clean up browser/server resources on success and failure without interfering with unrelated running processes.
-- [ ] Make unavailable prerequisites and failed assertions explicit; a skipped capture must not count as passing audio validation.
+- [x] Document prerequisites and provide a repeatable way to start an isolated app server/browser and run a representative playback scenario.
+- [x] Inspect existing temporary audio-render scenarios before reusing their assumptions or code.
+- [x] Operate real UI controls and capture PCM plus timing results sufficient to detect duplicate attacks, timing errors, and silence after Stop and its intentional decay.
+- [x] Record a baseline for representative tabla and tanpura playback, restart, and mixed-output peaks.
+- [x] Retain representative audio excerpts and numerical reports in a documented location for before/after comparisons.
+- [x] Clean up browser/server resources on success and failure without interfering with unrelated running processes.
+- [x] Make unavailable prerequisites and failed assertions explicit; a skipped capture must not count as passing audio validation.
+
+**Validation (2026-09-06):** `npm run check:browser` passes 21/21 checks on headless Chrome/152.0.7977.77 at 48 kHz browser PCM: capture availability, control presence, tabla audibility with 12 attacks and no duplicates at 120 BPM, Stop/mixed Stop silence, tanpura audibility, mixed peaks below full scale, retained setup across Stop/restart, and silent fresh-load defaults. Missing Chrome yields `status: skipped` with a non-zero exit; the silent fresh-load fallback is state-verified and recorded explicitly. Baseline report plus WAV excerpts retained at `docs/validation/ticket02/`; workflow documented in [browser playback checks](browser-playback-checks.md).
 
 ## 03: Retain the practice session through shared Start/Stop controls
 
@@ -49,17 +51,19 @@ The current spec takes precedence over the older broad implementation plan and i
 
 **Blocked by:** 01 — Remove unfinished percussion and simplify existing playback code.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Route header, mixer, instrument-panel, and keyboard playback actions through a narrow shared command boundary. Consolidate the duplicate header and unfinished session implementations.
-- [ ] Separate selected/enabled instruments from playback intent. Derive mixer enable indicators instead of maintaining mirrored copies.
-- [ ] Global Stop retains all musical settings and auto-loop configuration while cancelling pending starts, loops, and manual strums. Recording and microphone capture remain separately controlled and visibly indicated.
-- [ ] Global Start uses the retained setup, including edits made while stopped; an older snapshot cannot overwrite those edits. Tabla restarts at sam rather than restoring a mid-cycle cursor.
-- [ ] A fresh page load, including hard refresh, resets current practice configuration to defaults and stays silent. Default Start uses Tanpura 1; refresh does not erase saved setups or recordings.
-- [ ] Stop does not wait for successful audio initialization. Repeated Start cannot duplicate playback, and repeated Stop cannot erase configuration or allow stale initialization to start sound.
-- [ ] Manual Swar Mandal enable consistently arms the instrument without an implicit strum. Strum Once produces one sweep; auto-loop starts without a duplicate initial sweep. Idle manual selection alone is not reported as playing accompaniment.
-- [ ] Preserve existing keyboard targets and interactive-control protections, including Space controlling tabla.
-- [ ] Exercise shared commands with real stores and controlled asynchronous boundaries. Verify cross-control consistency, rapid commands, retained settings, silent refresh, and recorder/microphone independence in the browser.
+- [x] Route header, mixer, instrument-panel, and keyboard playback actions through a narrow shared command boundary. Consolidate the duplicate header and unfinished session implementations.
+- [x] Separate selected/enabled instruments from playback intent. Derive mixer enable indicators instead of maintaining mirrored copies.
+- [x] Global Stop retains all musical settings and auto-loop configuration while cancelling pending starts, loops, and manual strums. Recording and microphone capture remain separately controlled and visibly indicated.
+- [x] Global Start uses the retained setup, including edits made while stopped; an older snapshot cannot overwrite those edits. Tabla restarts at sam rather than restoring a mid-cycle cursor.
+- [x] A fresh page load, including hard refresh, resets current practice configuration to defaults and stays silent. Default Start uses Tanpura 1; refresh does not erase saved setups or recordings.
+- [x] Stop does not wait for successful audio initialization. Repeated Start cannot duplicate playback, and repeated Stop cannot erase configuration or allow stale initialization to start sound.
+- [x] Manual Swar Mandal enable consistently arms the instrument without an implicit strum. Strum Once produces one sweep; auto-loop starts without a duplicate initial sweep. Idle manual selection alone is not reported as playing accompaniment.
+- [x] Preserve existing keyboard targets and interactive-control protections, including Space controlling tabla.
+- [x] Exercise shared commands with real stores and controlled asynchronous boundaries. Verify cross-control consistency, rapid commands, retained settings, silent refresh, and recorder/microphone independence in the browser.
+
+**Validation (2026-09-06):** Seven shared-command tests pass, covering retained settings, edited stopped setup, cancelled initialization, failure/retry, repeated Start/Stop, idle manual selection, and recorder/microphone independence. Preset and keyboard regression tests pass; typechecking and lint pass. Browser waveform smoke passed tabla, tanpura, manual/looping Swar Mandal, all Stop-silence checks, hard-reload default state, and rapid Start/Stop during cold preparation. See [ticket 03 evidence](validation/ticket03.json). Instrument enable controls select/arm while stopped; Start plays the selection. Tabla Play and Space share the same command; global Stop remains available for manual-strum cancellation. Physical-phone and combined PCM acceptance remain in ticket 10. Repair pass (2026-09-06): the working-tree implementation had broken `tsc -b` (stale preset-migration import, removed schema fields referenced in tests) and two failing preset tests; fixed by removing the obsolete migration, completing the single-owner mixer change (volume/pan/mute only in mixer, selection only in instrument stores), keeping preset loading silent (disabling clears stale sounding state), and removing unwired wake-lock/media-session code that belongs to tickets 08/09. Re-verified: production build, lint, `tsc -b`, and 111 tests in 15 files pass.
 
 ## 04: Make tanpura changes seamless and cancellation reliable
 

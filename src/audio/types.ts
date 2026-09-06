@@ -35,8 +35,6 @@ export interface TanpuraConfig {
   eq: TanpuraEQ;             // EQ variant (only affects Pa+C samples)
   finePitchCents: number;    // -50 to +50 cents
   speed: number;             // 0.7 to 1.4 (1.0 = normal)
-  volume: number;            // 0 to 1
-  pan: number;               // -1 (left) to 1 (right)
 }
 
 /** Speed range labels for tabla */
@@ -91,7 +89,6 @@ export interface TaalDefinition {
 
 /** Mixer channel state */
 export interface ChannelState {
-  enabled: boolean;
   volume: number;   // 0 to 1
   pan: number;      // -1 to 1
   muted: boolean;
@@ -124,12 +121,11 @@ export interface SwarMandalConfig {
   strings: SwarMandalStringConfig[];
   autoLoop: boolean;
   loopDuration: number; // seconds
-  volume: number;
 }
 
 /** Preset data */
 export interface Preset {
-  schemaVersion: 2;
+  schemaVersion: 3;
   id: string;
   name: string;
   favorite: boolean;
@@ -149,7 +145,7 @@ export interface Preset {
     tempo: number;
     enabled: boolean;
   };
-  surPeti: { enabled: boolean; volume: number };
+  surPeti: { enabled: boolean };
   swarMandal: SwarMandalConfig;
   mixer: Record<InstrumentId, ChannelState>;
   master: { volume: number; muted: boolean };
