@@ -42,24 +42,27 @@ export function AppShell() {
           aria-label="Mixer"
           className={`${activeTab === 'mixer' ? 'flex flex-1' : 'hidden'} md:flex md:flex-none md:w-80 border-r border-white/5 overflow-y-auto p-4 flex-col gap-6`}
         >
-          <PitchControl />
           <MixerPanel />
           <EQPanel />
         </aside>
 
-        <main className={`${activeTab === 'mixer' ? 'hidden' : 'block'} md:block flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6`}>
+        <main className={`${activeTab === 'mixer' ? 'hidden' : 'block'} md:block min-w-0 flex-1 overflow-y-auto p-4 md:p-6 pb-6`}>
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
             <section
               id="panel-controls"
-              aria-label="Instrument controls"
+              aria-label="Practice controls"
               className={`${activeTab === 'controls' ? 'contents' : 'hidden'} md:contents`}
             >
-              <div className="flex flex-col gap-6">
-                <TanpuraPanel />
-                <SurPetiControl />
-              </div>
-              <div className="flex flex-col gap-6">
+              <div className="min-w-0 flex flex-col gap-4 xl:col-span-2">
+                <PitchControl />
                 <TablaPanel />
+                <details className="rounded-xl border border-white/5 bg-surface-card p-4">
+                  <summary className="cursor-pointer text-sm font-semibold text-text-secondary">Tanpura &amp; Sur-Peti settings</summary>
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pt-4">
+                    <TanpuraPanel />
+                    <SurPetiControl />
+                  </div>
+                </details>
               </div>
             </section>
             <section id="panel-presets" aria-label="Presets" className={`${activeTab === 'presets' ? 'block' : 'hidden'} md:block`}>
@@ -93,7 +96,7 @@ export function AppShell() {
           {(
             [
               { id: 'mixer', label: 'Mixer' },
-              { id: 'controls', label: 'Controls' },
+              { id: 'controls', label: 'Practice' },
               { id: 'presets', label: 'Presets' },
               { id: 'swarmandal', label: 'Swar Mandal', shortLabel: 'Swar Mdl' },
               { id: 'more', label: 'More' },

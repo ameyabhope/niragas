@@ -9,6 +9,7 @@ import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { applyPresetState, capturePreset } from '@/lib/preset-state';
 import { MAX_PRESET_IMPORT_BYTES } from '@/lib/presets';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
+import { hasRaagSwarMandal } from '@/data/raag-presets';
 
 export function PresetPanel() {
   const {
@@ -35,6 +36,7 @@ export function PresetPanel() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [announcement, setAnnouncement] = useState('');
+  const [search, setSearch] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const saveButtonRef = useRef<HTMLButtonElement>(null);
   const applyRequestRef = useRef(0);
@@ -46,9 +48,9 @@ export function PresetPanel() {
   }, [loadPresets]);
 
   // Filtered presets
-  const filteredPresets = showFavoritesOnly
-    ? presets.filter((p) => p.favorite)
-    : presets;
+  const filteredPresets = presets.filter((p) =>
+    (!showFavoritesOnly || p.favorite) &&
+    `${p.name} ${p.tabla.taalId}`.toLowerCase().includes(search.trim().toLowerCase()));
 
   // ── Apply preset to app state ──
 
@@ -244,7 +246,7 @@ export function PresetPanel() {
                 closeSaveDialog();
               }
             }}
-            className="flex gap-2 items-center bg-surface-lighter rounded-lg p-2"
+            className="flex flex-wrap gap-2 items-center bg-surface-lighter rounded-lg p-2"
           >
             <span id="save-preset-title" className="sr-only">Save current settings as a preset</span>
             <label htmlFor="preset-name" className="sr-only">Preset name</label>
@@ -254,7 +256,7 @@ export function PresetPanel() {
               value={newPresetName}
               onChange={(e) => setNewPresetName(e.target.value)}
               placeholder="Preset name..."
-              className="flex-1 bg-surface text-text-primary text-sm rounded px-2 py-1
+              className="min-w-0 basis-full sm:basis-auto flex-1 bg-surface text-text-primary text-sm rounded px-2 py-1
                          border border-white/10 focus:outline-none focus:ring-2 focus:ring-saffron-400"
               autoFocus
             />
@@ -277,13 +279,30 @@ export function PresetPanel() {
         )}
 
         {/* Load options */}
+        <input
+          type="search"
+          aria-label="Search presets by name or taal"
+          placeholder="Search raag, preset, or taal..."
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="w-full bg-surface-lighter text-text-primary text-sm rounded-lg px-3 py-2"
+        />
+        <div className="flex flex-wrap gap-3">
+          {(['preserveSa', 'preserveTempo'] as const).map((key) => (
+            <label key={key} className="flex items-center gap-2 text-xs text-text-secondary">
+              <input type="checkbox" checked={loadOptions[key] ?? false} onChange={(event) => setLoadOption(key, event.target.checked)} />
+              {key === 'preserveSa' ? 'Preserve my Sa' : 'Preserve my tempo'}
+            </label>
+          ))}
+        </div>
+        {loadOptions.preserveTempo && <p className="text-xs text-text-muted">Tempo is kept within the selected taal's supported range.</p>}
         {showLoadOptions && (
           <div id="preset-load-options" className="flex flex-wrap gap-3 bg-surface-lighter rounded-lg p-2">
-            {(Object.keys(loadOptions) as (keyof LoadOptions)[]).map((key) => (
+            {(Object.keys(loadOptions) as (keyof LoadOptions)[]).filter((key) => key !== 'preserveSa' && key !== 'preserveTempo').map((key) => (
               <label key={key} className="flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={loadOptions[key]}
+                   checked={loadOptions[key] ?? false}
                   onChange={(e) => setLoadOption(key, e.target.checked)}
                   className="w-3 h-3 accent-saffron-500"
                 />
@@ -301,15 +320,15 @@ export function PresetPanel() {
         ) : filteredPresets.length === 0 ? (
           <div className="text-center py-4">
             <p className="text-xs text-text-muted">
-              {showFavoritesOnly ? 'No favorite presets.' : 'No presets found.'}
+              {search.trim() ? 'No matching presets.' : showFavoritesOnly ? 'No favorite presets.' : 'No presets found.'}
             </p>
-            <button
+            {presets.length === 0 && <button
               type="button"
               onClick={loadFactoryPresets}
               className="mt-2 text-xs text-saffron-400 hover:text-saffron-300 transition-colors"
             >
               Load factory presets
-            </button>
+            </button>}
           </div>
         ) : (
           <div className="max-h-80 overflow-y-auto flex flex-col gap-1">
@@ -349,6 +368,11 @@ export function PresetPanel() {
                     {' '}T2:{preset.tanpura2.tuning}
                     {' | '}{preset.tabla.taalId} @ {preset.tabla.tempo}bpm
                   </p>
+                  {preset.id.startsWith('factory-') && (
+                    <p className="text-[10px] text-text-muted">
+                      {hasRaagSwarMandal(preset.id) ? 'Swar Mandal: starter note set' : 'Swar Mandal: Sa-only factory fallback (unreviewed raag)'}
+                    </p>
+                  )}
                 </button>
 
                 {/* Delete (only custom presets) */}

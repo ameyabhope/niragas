@@ -22,12 +22,13 @@ import { log } from './log';
 interface SwarMandalInstance {
   synths: Tone.PluckSynth[];
   reverb: Tone.Reverb;
-  loop: Tone.Loop | null;
+  loop: Tone.Clock | null;
   playing: boolean;
   config: SwarMandalConfig;
   saNote: NoteName;
   saOctave: number;
   saCents: number;
+  lastAttackTimes: number[];
 }
 
 let instance: SwarMandalInstance | null = null;
@@ -46,19 +47,8 @@ export function createSwarMandal(): void {
     preDelay: 0.01,
   }).connect(channelInput);
 
-  const synths = Array.from({ length: 20 }, () => {
-    const synth = new Tone.PluckSynth({
-      attackNoise: 1.2,
-      dampening: 4200,
-      resonance: 0.92,
-      release: 1.8,
-    });
-    synth.connect(reverb);
-    return synth;
-  });
-
   instance = {
-    synths,
+    synths: [],
     reverb,
     loop: null,
     playing: false,
@@ -72,6 +62,7 @@ export function createSwarMandal(): void {
     saNote: 'C#',
     saOctave: 3,
     saCents: 0,
+    lastAttackTimes: [],
   };
 
   log('[SwarMandal] Created');
@@ -80,7 +71,7 @@ export function createSwarMandal(): void {
 /**
  * Strum all enabled strings in rapid succession.
  */
-export function strumSwarMandal(): void {
+export function strumSwarMandal(scheduledTime = Tone.now()): void {
   if (!instance) return;
 
   const enabledStrings = instance.config.strings
@@ -88,7 +79,6 @@ export function strumSwarMandal(): void {
     .filter(({ config }) => config.enabled);
   if (enabledStrings.length === 0) return;
 
-  const now = Tone.now();
   const staggerMs = 0.035; // 35ms between each string
 
   enabledStrings.forEach(({ config: stringConfig, index }, i) => {
@@ -101,8 +91,15 @@ export function strumSwarMandal(): void {
       stringConfig.octaveOffset
     );
 
-    const time = now + i * staggerMs;
-    const synth = instance!.synths[index % instance!.synths.length];
+    // Rapid strums or changing enabled strings can overlap queued attacks.
+    const time = Math.max(scheduledTime + i * staggerMs, (instance!.lastAttackTimes[index] ?? -Infinity) + 0.01);
+    instance!.lastAttackTimes[index] = time;
+    const synth = instance!.synths[index] ??= new Tone.PluckSynth({
+      attackNoise: 1.2,
+      dampening: 4200,
+      resonance: 0.92,
+      release: 1.8,
+    }).connect(instance!.reverb);
     synth.volume.value = -8 + Math.random() * 2;
     synth.triggerAttack(frequency, time);
   });
@@ -114,19 +111,16 @@ export function strumSwarMandal(): void {
 export function startSwarMandalLoop(): void {
   if (!instance || instance.playing) return;
 
-  // Strum immediately
-  strumSwarMandal();
-
-  instance.loop = new Tone.Loop(() => {
-    strumSwarMandal();
-  }, instance.config.loopDuration);
-
-  instance.loop.start(Tone.getTransport().seconds + instance.config.loopDuration);
+  // Clock frequency is in Hz, unlike transport loops whose ticks follow BPM.
+  let lastTick = -1;
+  instance.loop = new Tone.Clock((time, tick) => {
+    // Tone can report a boundary tick twice due to floating-point rounding.
+    if (tick === undefined || tick <= lastTick) return;
+    lastTick = tick;
+    strumSwarMandal(time);
+  }, 1 / instance.config.loopDuration);
+  instance.loop.start(Tone.now());
   instance.playing = true;
-
-  if (Tone.getTransport().state !== 'started') {
-    Tone.getTransport().start();
-  }
 
   log(`[SwarMandal] Auto-loop started: ${instance.config.loopDuration}s interval`);
 }
@@ -141,7 +135,10 @@ export function stopSwarMandalLoop(): void {
   instance.loop?.dispose();
   instance.loop = null;
   instance.playing = false;
-  for (const synth of instance.synths) synth.triggerRelease();
+  // Release only changes resonance; disposal also cancels future noise bursts.
+  for (const synth of instance.synths) synth?.dispose();
+  instance.synths = [];
+  instance.lastAttackTimes = [];
 
   log('[SwarMandal] Auto-loop stopped');
 }
@@ -158,8 +155,14 @@ export function updateSwarMandal(config: Partial<SwarMandalConfig>): void {
     config.loopDuration !== undefined &&
     config.loopDuration !== instance.config.loopDuration;
   const wasLooping = instance.playing;
+  const disabled = instance.config.enabled && config.enabled === false;
 
   instance.config = { ...instance.config, ...config };
+
+  if (disabled) {
+    stopSwarMandalLoop();
+    return;
+  }
 
   if (wasLooping && durationChanged) {
     stopSwarMandalLoop();
@@ -193,7 +196,6 @@ export function disposeSwarMandal(): void {
   if (!instance) return;
 
   stopSwarMandalLoop();
-  for (const synth of instance.synths) synth.dispose();
   instance.reverb.dispose();
   instance = null;
 

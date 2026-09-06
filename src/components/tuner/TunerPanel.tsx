@@ -5,13 +5,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { usePitchStore } from '@/store/pitch-store';
-import type { NoteName } from '@/audio/types';
+import { getFreshTunerPitch, useTunerStore } from '@/store/tuner-store';
 import { noteToFreq, noteToSwar } from '@/lib/notes';
 import {
   initTuner,
   startTuner,
   stopTuner,
-  setTunerCallback,
 } from '@/audio/tuner';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
@@ -21,12 +20,12 @@ export function TunerPanel() {
   // (noteToFreq reads the updated module-level a4Freq internally)
   void _a4Freq;
 
-  const [tunerActive, setTunerActive] = useState(false);
-  const [micNote, setMicNote] = useState<NoteName | null>(null);
-  const [micOctave, setMicOctave] = useState(0);
-  const [micCents, setMicCents] = useState(0);
-  const [micFreq, setMicFreq] = useState(0);
-  const [clarity, setClarity] = useState(0);
+  const { micActive: tunerActive, pitch } = useTunerStore();
+  const micNote = pitch?.note ?? null;
+  const micOctave = pitch?.octave ?? 0;
+  const micCents = pitch?.cents ?? 0;
+  const micFreq = pitch?.freq ?? 0;
+  const clarity = pitch?.clarity ?? 0;
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -46,26 +45,13 @@ export function TunerPanel() {
   const handleToggle = useCallback(async () => {
     if (tunerActive) {
       stopTuner();
-      setTunerActive(false);
-      setMicNote(null);
       return;
     }
 
     try {
       setError(null);
       setLoading(true);
-      await initTuner();
-
-      setTunerCallback((freq, note, octave, cents, clar) => {
-        setMicFreq(freq);
-        setMicNote(note);
-        setMicOctave(octave);
-        setMicCents(cents);
-        setClarity(clar);
-      });
-
-      startTuner();
-      setTunerActive(true);
+      if (await initTuner()) startTuner();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Microphone access denied';
       setError(msg);
@@ -76,17 +62,17 @@ export function TunerPanel() {
 
   // Capture: set app pitch to detected mic pitch
   const handleCapture = useCallback(() => {
-    if (!micNote) return;
-    setPitch(micNote, micOctave, micCents);
-  }, [micNote, micOctave, micCents, setPitch]);
+    const fresh = getFreshTunerPitch();
+    if (fresh) setPitch(fresh.note, fresh.octave, fresh.cents);
+  }, [setPitch]);
 
   // Octave shift the captured pitch
   const handleOctaveShift = useCallback(
     (delta: number) => {
-      if (!micNote) return;
-      setPitch(micNote, Math.max(2, Math.min(4, micOctave + delta)), micCents);
+      const fresh = getFreshTunerPitch();
+      if (fresh) setPitch(fresh.note, Math.max(2, Math.min(4, fresh.octave + delta)), fresh.cents);
     },
-    [micNote, micOctave, micCents, setPitch]
+    [setPitch]
   );
 
   // Cleanup on unmount

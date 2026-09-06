@@ -2,7 +2,7 @@
  * Tabla control panel: taal selector, style, tempo controls, beat display, play/stop.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useTablaStore } from '@/store/tabla-store';
 import { TAAL_LIST, getTaal } from '@/data/taals';
 import { BeatDisplay } from './BeatDisplay';
@@ -15,6 +15,8 @@ export function TablaPanel() {
   const {
     taalId,
     styleId,
+    activeTaalId,
+    activeStyleId,
     tempo,
     playing,
     currentMatra,
@@ -28,6 +30,10 @@ export function TablaPanel() {
   } = useTablaStore();
 
   const taal = getTaal(taalId);
+  const activeTaal = playing && activeTaalId ? getTaal(activeTaalId) : null;
+  const pending = activeTaal && (activeTaalId !== taalId || activeStyleId !== styleId);
+  const selectedStyle = taal.styles.find((style) => style.id === styleId);
+  const [tempoDraft, setTempoDraft] = useState<string | null>(null);
   const { initialize } = useAudioEngine();
 
   // Tap tempo — just updates the store, subscription propagates to audio
@@ -52,16 +58,13 @@ export function TablaPanel() {
         {/* Taal + Style selectors */}
         <div className="flex flex-wrap gap-3">
           {/* Taal selector */}
-          <div className="flex-1 min-w-[140px]">
+          <div className="flex-1 min-w-[120px]">
             <label htmlFor="tabla-taal" className="text-xs text-text-muted mb-1 block">Taal</label>
             <select
               id="tabla-taal"
               value={taalId}
               onChange={(e) => {
                 setTaalId(e.target.value);
-                if (playing) {
-                  setPlaying(false);
-                }
               }}
               className="w-full bg-surface-lighter text-text-primary text-sm rounded-lg px-3 py-2
                          border border-white/10 focus:outline-none focus:ring-2 focus:ring-saffron-400"
@@ -76,7 +79,7 @@ export function TablaPanel() {
 
           {/* Style selector — only shown when taal has multiple styles */}
           {taal.styles.length > 1 && (
-            <div className="flex-1 min-w-[120px]">
+            <div className="flex-1 min-w-[100px]">
               <label htmlFor="tabla-style" className="text-xs text-text-muted mb-1 block">Style</label>
               <select
                 id="tabla-style"
@@ -95,21 +98,30 @@ export function TablaPanel() {
           )}
         </div>
 
-        {/* Beat display */}
-        <BeatDisplay
-          taal={taal}
-          currentMatra={currentMatra}
-          playing={playing}
-        />
-
         {/* Tempo controls */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="text-xs text-text-muted">Tempo</span>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-text-primary font-mono">
-                {tempo}
-              </span>
+              <input
+                type="number"
+                inputMode="numeric"
+                aria-label="Tempo in BPM"
+                min={taal.tempoRange.min}
+                max={taal.tempoRange.max}
+                step={1}
+                value={tempoDraft ?? tempo}
+                onChange={(event) => setTempoDraft(event.target.value)}
+                onBlur={() => {
+                  if (tempoDraft?.trim() && Number.isFinite(Number(tempoDraft))) setTempo(Number(tempoDraft));
+                  setTempoDraft(null);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') event.currentTarget.blur();
+                  if (event.key === 'Escape') setTempoDraft(null);
+                }}
+                className="w-20 min-h-11 rounded-lg bg-surface-lighter px-2 text-lg font-bold text-text-primary font-mono"
+              />
               <span className="text-xs text-text-muted">BPM</span>
               <span className="text-xs text-saffron-400 ml-1">
                 {getSpeedLabel(taal, tempo)}
@@ -200,6 +212,19 @@ export function TablaPanel() {
             {playing ? 'Stop' : 'Play'}
           </button>
         </div>
+        <div role="status" className="text-xs text-text-muted">
+          {activeTaal
+            ? `Playing ${activeTaal.name} / ${activeTaal.styles.find((style) => style.id === activeStyleId)?.name ?? ''}.`
+            : playing ? 'Starting tabla...' : `${taal.name} / ${selectedStyle?.name ?? ''}`}
+          {pending && ` Selected ${taal.name} / ${selectedStyle?.name ?? ''}: starts ${activeTaalId !== taalId ? 'at next sam' : 'on next beat'}.`}
+        </div>
+        <BeatDisplay
+          taal={activeTaal ?? taal}
+          currentMatra={currentMatra}
+          playing={playing && activeTaal !== null}
+          styleId={activeTaal ? activeStyleId! : styleId}
+          tempo={tempo}
+        />
       </div>
     </div>
   );

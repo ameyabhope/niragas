@@ -9,6 +9,8 @@ import { useTanpuraStore } from '@/store/tanpura-store';
 import { useTablaStore } from '@/store/tabla-store';
 import { useSurPetiStore } from '@/store/surpeti-store';
 import { useSwarMandalStore } from '@/store/swarmandal-store';
+import { useRecorderStore } from '@/store/recorder-store';
+import { useTunerStore } from '@/store/tuner-store';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { stopTanpura } from '@/audio/tanpura';
 import { stopTabla } from '@/audio/tabla';
@@ -23,6 +25,7 @@ interface ActiveSnapshot {
   tabla: boolean;
   surpeti: boolean;
   swarmandal: boolean;
+  swarmandalAutoLoop: boolean;
 }
 
 const DEFAULT_SNAPSHOT: ActiveSnapshot = {
@@ -31,6 +34,7 @@ const DEFAULT_SNAPSHOT: ActiveSnapshot = {
   tabla: false,
   surpeti: false,
   swarmandal: false,
+  swarmandalAutoLoop: false,
 };
 
 export function Header() {
@@ -44,13 +48,13 @@ export function Header() {
   const tablaPlaying = useTablaStore((s) => s.playing);
   const surpetiPlaying = useSurPetiStore((s) => s.enabled);
   const swarmandalPlaying = useSwarMandalStore((s) => s.enabled);
+  const recordingState = useRecorderStore((s) => s.state);
+  const includeMic = useRecorderStore((s) => s.includeMic);
+  const tunerMicActive = useTunerStore((s) => s.micActive);
 
   const anyPlaying = tanpura1Playing || tanpura2Playing || tablaPlaying || surpetiPlaying || swarmandalPlaying;
 
   const handleGlobalToggle = useCallback(async () => {
-    // Ensure audio engine is started (user gesture)
-    if (!(await initialize())) return;
-
     if (anyPlaying) {
       // ── STOP ALL ──
       // Snapshot current state before stopping
@@ -60,6 +64,7 @@ export function Header() {
         tabla: tablaPlaying,
         surpeti: surpetiPlaying,
         swarmandal: swarmandalPlaying,
+        swarmandalAutoLoop: useSwarMandalStore.getState().autoLoop,
       };
 
       // Stop audio immediately
@@ -82,6 +87,7 @@ export function Header() {
       if (surpeti.enabled) surpeti.setEnabled(false);
       if (swarmandal.enabled) swarmandal.setEnabled(false);
     } else {
+      if (!(await initialize())) return;
       // ── START ──
       const snapshot = snapshotRef.current ?? DEFAULT_SNAPSHOT;
 
@@ -96,14 +102,14 @@ export function Header() {
       if (snapshot.tabla && !tabla.playing) tabla.setPlaying(true);
       if (snapshot.surpeti && !surpeti.enabled) surpeti.setEnabled(true);
       if (snapshot.swarmandal && !swarmandal.enabled) {
+        swarmandal.setAutoLoop(snapshot.swarmandalAutoLoop);
         swarmandal.setEnabled(true);
-        if (!swarmandal.autoLoop) swarmandal.setAutoLoop(true);
       }
     }
   }, [anyPlaying, tanpura1Playing, tanpura2Playing, tablaPlaying, surpetiPlaying, swarmandalPlaying, initialize]);
 
   return (
-    <header className="flex items-center justify-between gap-2 px-2 sm:px-4 py-3 bg-surface-light border-b border-white/5">
+    <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-2 sm:px-4 py-3 bg-surface-light border-b border-white/5">
       <div className="flex items-center gap-3 shrink-0">
         <h1 className="text-lg sm:text-xl font-bold text-saffron-400 tracking-tight">
           Niragas
@@ -120,7 +126,7 @@ export function Header() {
           onClick={handleGlobalToggle}
           aria-label={anyPlaying ? 'Stop all instruments' : 'Start instruments'}
           aria-pressed={anyPlaying}
-          className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-colors ${
+          className={`min-h-11 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-colors ${
             anyPlaying
               ? 'bg-accent-control text-white hover:bg-accent-muted'
               : 'bg-action text-white hover:bg-saffron-800'
@@ -144,6 +150,14 @@ export function Header() {
         </button>
         <PitchDisplay />
       </div>
+      {(recordingState !== 'idle' || tunerMicActive) && (
+        <p role="status" className="w-full text-xs font-semibold text-accent">
+          {recordingState !== 'idle' && (recordingState === 'paused' ? 'Recording paused' : 'Recording active')}
+          {recordingState !== 'idle' && includeMic ? ' | Recording mic active' : ''}
+          {tunerMicActive ? `${recordingState !== 'idle' ? ' | ' : ''}Tuner mic active` : ''}
+          <span className="font-normal text-text-muted"> | Manage in More. STOP affects instruments only.</span>
+        </p>
+      )}
     </header>
   );
 }

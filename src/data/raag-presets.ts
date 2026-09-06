@@ -1,19 +1,63 @@
 /**
  * Factory raag presets.
  *
- * Each preset contains pitch, tanpura tuning, taal, and tempo settings
- * optimized for the raag. The tanpura first-string is tuned based on
- * which notes are present in the raag:
- *   - Pa present → first string = Pa
- *   - No Pa, Shuddha Ma present → first string = Ma
- *   - No Pa, No Shuddha Ma → first string = Ni
- *
- * Common conventions:
- *   - Men: Sa = C# (Kali Ek)
- *   - Women: Sa = G# (Kali Char)
+ * Practice starting points, not authoritative performance prescriptions.
+ * Only the explicitly listed raags have starter Swar Mandal inventories;
+ * all others use Sa only until the player tunes them. Pitch labels are legacy.
  */
 
-import type { Preset, TanpuraConfig, TanpuraTuning, SwarName } from '@/audio/types';
+import type { Preset, TanpuraConfig, TanpuraTuning, SwarName, SwarMandalStringConfig } from '@/audio/types';
+
+// Lower-case initials denote komal; M denotes tivra Ma. These inventories
+// do not encode aroha/avaroha, ornamentation, or gharana-specific practice.
+const RAAG_NOTES: Record<string, string> = {
+  yaman: 'S R G M P D N',
+  bilawal: 'S R G m P D N',
+  bhairav: 'S r G m P d N',
+  'ahir-bhairav': 'S r G m P D n',
+  malkauns: 'S g m d n',
+  chandrakauns: 'S g m d N',
+  bhairavi: 'S r g m P d n',
+  bhimpalasi: 'S R g m P D n',
+  durga: 'S R m P D',
+  bhupali: 'S R G P D',
+  deshkar: 'S R G P D',
+  hamsadhwani: 'S R G P N',
+  marwa: 'S r G M D N',
+  puriya: 'S r G M D N',
+  hindol: 'S G M D N',
+  kalavati: 'S G P D n',
+};
+
+function raagKey(id: string): string {
+  return id.replace(/^factory-/, '').replace(/-(women|ektaal|jhaptaal|jhoomra|rupak|deepchandi)$/, '');
+}
+
+export function hasRaagSwarMandal(id: string): boolean {
+  return Object.hasOwn(RAAG_NOTES, raagKey(id));
+}
+
+function raagStrings(id: string): SwarMandalStringConfig[] {
+  const notes: Record<string, SwarName> = { S: 'Sa', R: 'Re', G: 'Ga', M: 'Ma', P: 'Pa', D: 'Dha', N: 'Ni' };
+  const tokens = (RAAG_NOTES[raagKey(id)] ?? 'S').split(' ');
+  return [...tokens, 'S'].map((token, index) => ({
+    note: notes[token.toUpperCase()],
+    variant: token === 'M' ? 'tivra' : token === token.toLowerCase() && token !== 'm' ? 'komal' : 'shuddha',
+    octaveOffset: index === tokens.length ? 1 : 0,
+    enabled: true,
+  }));
+}
+
+const legacyTunings = new Map<string, [TanpuraTuning, TanpuraTuning]>();
+
+// Narrow corrections for clearly absent drone pitches, without claiming a
+// complete string inventory for these raags or a preferred performance tuning.
+const DRONE_CORRECTIONS: Record<string, TanpuraTuning> = {
+  bageshri: 'Ma',
+  darbari: 'Pa',
+  rageshree: 'Ma',
+  'gujari-todi': 'Ni',
+};
 
 function makeTanpura(
   firstString: TanpuraTuning,
@@ -55,6 +99,7 @@ const defaultEQ = () => ({
   presetName: 'Flat',
 });
 
+// Retained solely as the signature of shipped factory data for migration.
 const defaultSwarMandal = () => ({
   enabled: false,
   strings: [
@@ -83,6 +128,17 @@ function makePreset(
   tempo: number
 ): Preset {
   const now = Date.now();
+  const strings = raagStrings(id);
+  legacyTunings.set(`factory-${id}`, [firstString1, firstString2]);
+  const correctedDrone = DRONE_CORRECTIONS[raagKey(id)];
+  if (correctedDrone) firstString1 = firstString2 = correctedDrone;
+  if (hasRaagSwarMandal(id)) {
+    const supports = (tuning: TanpuraTuning) => strings.some((s) => s.note === tuning && s.variant === 'shuddha');
+    const supported = (['Pa', 'Ma', 'Ni'] as const).find(supports)!;
+    // Avoid an absent shuddha drone note; this is not a tuning prescription.
+    if (!supports(firstString1)) firstString1 = supported;
+    if (!supports(firstString2)) firstString2 = supported;
+  }
   return {
     schemaVersion: 2,
     id: `factory-${id}`,
@@ -95,7 +151,7 @@ function makePreset(
     tanpura2: makeTanpura(firstString2, 0.3, true),
     tabla: { taalId, styleId: 'theka', tempo, enabled: false },
     surPeti: { enabled: false, volume: 0.75 },
-    swarMandal: defaultSwarMandal(),
+    swarMandal: { ...defaultSwarMandal(), strings },
     manjira: { enabled: false, volume: 0.5 },
     mixer: defaultMixer(),
     master: { volume: 0.8, muted: false },
@@ -104,7 +160,7 @@ function makePreset(
 }
 
 /**
- * Factory raag presets. Based on common performance conventions.
+ * Factory practice presets. Unreviewed inventories deliberately fall back to Sa.
  */
 export const FACTORY_PRESETS: Preset[] = [
   // ── Morning Raags ──
@@ -246,3 +302,23 @@ export const FACTORY_PRESETS: Preset[] = [
   makePreset('todi-carnatic', 'Todi (Carnatic)', 'D', 3, 'Pa', 'Ni', 'teentaal', 70),
   makePreset('bhairavi-carnatic', 'Bhairavi (Carnatic)', 'D', 3, 'Pa', 'Ni', 'teentaal', 80),
 ];
+
+/** Upgrade only recognizable shipped defaults, never custom IDs or edited strings. */
+export function migrateFactoryRaagPreset(preset: Preset): Preset {
+  const factory = FACTORY_PRESETS.find((item) => item.id === preset.id);
+  if (!factory) return preset;
+  const legacy = defaultSwarMandal().strings;
+  const matchesLegacy = preset.swarMandal.strings.length === legacy.length &&
+    preset.swarMandal.strings.every((s, i) =>
+      s.note === legacy[i].note && s.variant === legacy[i].variant &&
+      s.octaveOffset === legacy[i].octaveOffset && s.enabled === legacy[i].enabled);
+  if (!matchesLegacy) return preset;
+  const tuning = legacyTunings.get(preset.id)!;
+  const migrated: Preset = {
+    ...preset,
+    swarMandal: { ...preset.swarMandal, strings: factory.swarMandal.strings.map((s) => ({ ...s })) },
+    tanpura1: { ...preset.tanpura1, tuning: preset.tanpura1.tuning === tuning[0] ? factory.tanpura1.tuning : preset.tanpura1.tuning },
+    tanpura2: { ...preset.tanpura2, tuning: preset.tanpura2.tuning === tuning[1] ? factory.tanpura2.tuning : preset.tanpura2.tuning },
+  };
+  return JSON.stringify(migrated) === JSON.stringify(preset) ? preset : migrated;
+}

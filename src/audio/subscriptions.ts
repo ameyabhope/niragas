@@ -187,8 +187,8 @@ export function initAudioSubscriptions(): void {
 
   createSurPeti();
   createSwarMandal();
-  setTablaBeatCallback((matra, label) => {
-    useTablaStore.getState().setCurrentBeat(matra, label);
+  setTablaBeatCallback((matra, label, taalId, styleId) => {
+    useTablaStore.getState().setCurrentBeat(matra, label, taalId, styleId);
   });
 
   let prevTabla = useTablaStore.getState();
@@ -197,7 +197,13 @@ export function initAudioSubscriptions(): void {
     const styleChanged = state.styleId !== prevTabla.styleId;
     const started = state.playing && !prevTabla.playing;
 
+    // Stop synchronously, including Web Audio attacks inside the lookahead.
+    // A pending async load still checks the latest playing state before starting.
+    if (!state.playing && prevTabla.playing) stopTabla();
+
     if (state.playing !== prevTabla.playing || (state.playing && (taalChanged || styleChanged))) {
+      // loadTaal queues different taals at sam; the store's taalId is the
+      // requested selection, not necessarily the currently sounding cycle.
       queueTablaSync(started || taalChanged || styleChanged);
     } else if (state.tempo !== prevTabla.tempo && tablaReady) {
       setTablaTempo(state.tempo);

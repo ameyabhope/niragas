@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { FACTORY_PRESETS } from '@/data/raag-presets';
+import { FACTORY_PRESETS, hasRaagSwarMandal, migrateFactoryRaagPreset } from '@/data/raag-presets';
+import type { SwarName } from '@/audio/types';
 import { applyPresetState, capturePreset, type PresetLoadOptions } from '@/lib/preset-state';
 import { parsePreset, parsePresetExport, serializePresetExport } from '@/lib/presets';
 import { useEQStore } from '@/store/eq-store';
@@ -21,6 +22,49 @@ const LOAD_ALL: PresetLoadOptions = {
 };
 
 describe('preset validation', () => {
+  it('uses explicit raag variants and Sa-only fallbacks, including pitch/taal aliases', () => {
+    const inventory = (id: string) => FACTORY_PRESETS.find((p) => p.id === `factory-${id}`)!.swarMandal.strings;
+    expect(inventory('yaman')).toContainEqual({ note: 'Ma', variant: 'tivra', octaveOffset: 0, enabled: true });
+    expect(inventory('yaman').some((s) => s.note === 'Ma' && s.variant === 'shuddha')).toBe(false);
+    expect(inventory('malkauns').map((s) => `${s.note}:${s.variant}`)).toEqual([
+      'Sa:shuddha', 'Ga:komal', 'Ma:shuddha', 'Dha:komal', 'Ni:komal', 'Sa:shuddha',
+    ]);
+    expect(inventory('bhairav').filter((s) => s.variant === 'komal').map((s) => s.note)).toEqual(['Re', 'Dha']);
+    expect(inventory('yaman-women')).toEqual(inventory('yaman'));
+    expect(inventory('malkauns-jhaptaal')).toEqual(inventory('malkauns'));
+    expect(FACTORY_PRESETS.find((p) => p.id === 'factory-bageshri')!.tanpura2.tuning).toBe('Ma');
+    expect(FACTORY_PRESETS.find((p) => p.id === 'factory-darbari-ektaal')!.tanpura2.tuning).toBe('Pa');
+    expect(FACTORY_PRESETS.find((p) => p.id === 'factory-gujari-todi')!.tanpura1.tuning).toBe('Ni');
+    for (const preset of FACTORY_PRESETS) {
+      if (!hasRaagSwarMandal(preset.id)) {
+        expect(preset.swarMandal.strings.every((s) => s.note === 'Sa' && s.variant === 'shuddha')).toBe(true);
+      } else {
+        for (const tanpura of [preset.tanpura1, preset.tanpura2]) {
+          expect(preset.swarMandal.strings.some((s) => s.note === tanpura.tuning && s.variant === 'shuddha')).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('migrates shipped factory strings and unsupported drones without losing user metadata', () => {
+    const old = structuredClone(FACTORY_PRESETS.find((p) => p.id === 'factory-malkauns')!);
+    old.swarMandal.strings = (['Sa', 'Re', 'Ga', 'Ma', 'Pa', 'Dha', 'Ni', 'Sa'] as SwarName[]).map((note, i) => ({
+      note, variant: 'shuddha', octaveOffset: i === 7 ? 1 : 0, enabled: true,
+    }));
+    old.tanpura2.tuning = 'Ni';
+    old.favorite = true;
+    old.pitch.cents = 12;
+    const migrated = migrateFactoryRaagPreset(old);
+    expect(migrated.tanpura2.tuning).toBe('Ma');
+    expect(migrated).toMatchObject({ favorite: true, pitch: old.pitch, createdAt: old.createdAt, updatedAt: old.updatedAt });
+    expect(migrateFactoryRaagPreset(migrated)).toBe(migrated);
+    expect(parsePreset(migrated)).toEqual(migrated);
+    const custom = { ...old, id: 'custom-saved-malkauns' };
+    expect(migrateFactoryRaagPreset(custom)).toBe(custom);
+    old.swarMandal.strings[0].enabled = false;
+    expect(migrateFactoryRaagPreset(old)).toBe(old);
+  });
+
   it('validates every factory preset', () => {
     for (const preset of FACTORY_PRESETS) {
       expect(parsePreset(preset)).toEqual(preset);
@@ -54,6 +98,39 @@ describe('preset validation', () => {
 });
 
 describe('preset state round-tripping', () => {
+  it('edits every string independently and round-trips variants and octave bounds', () => {
+    useSwarMandalStore.getState().setConfig(FACTORY_PRESETS[0].swarMandal);
+    const before = structuredClone(useSwarMandalStore.getState().strings);
+    const store = useSwarMandalStore.getState();
+    store.setStringNote(3, 'Ga', 'komal');
+    store.setStringOctave(3, -2);
+    store.setStringOctave(4, 3);
+    store.setStringOctave(4, 4);
+    expect(useSwarMandalStore.getState().strings[0]).toEqual(before[0]);
+    expect(useSwarMandalStore.getState().strings[3]).toMatchObject({ note: 'Ga', variant: 'komal', octaveOffset: -2 });
+    expect(useSwarMandalStore.getState().strings[4].octaveOffset).toBe(3);
+    store.addString();
+    store.removeString(1);
+    const saved = capturePreset('Edited strings');
+    expect(parsePresetExport(JSON.parse(serializePresetExport([saved])))[0].swarMandal).toEqual(saved.swarMandal);
+  });
+
+  it('preserves Sa and tempo independently while loading other preset sections', () => {
+    const preset = FACTORY_PRESETS[0];
+    usePitchStore.getState().setPitch('G#', 3, 11);
+    usePitchStore.getState().setA4Freq(432);
+    useTablaStore.getState().setTaalId('teentaal');
+    useTablaStore.getState().setTempo(120);
+    applyPresetState(preset, { ...LOAD_ALL, preserveSa: true });
+    expect(usePitchStore.getState()).toMatchObject({ note: 'G#', cents: 11, a4Freq: 432 });
+    expect(useTablaStore.getState().tempo).toBe(preset.tabla.tempo);
+    useTablaStore.getState().setTempo(120);
+    applyPresetState(preset, { ...LOAD_ALL, preserveTempo: true });
+    expect(usePitchStore.getState()).toMatchObject(preset.pitch);
+    expect(useTablaStore.getState().tempo).toBe(120);
+    expect(useSwarMandalStore.getState().strings).toEqual(preset.swarMandal.strings);
+  });
+
   it('restores all configurable state and captures it again', () => {
     const preset = structuredClone(FACTORY_PRESETS[0]);
     preset.pitch = { note: 'G#', octave: 3, cents: -13, a4Freq: 432 };

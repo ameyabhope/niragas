@@ -64,7 +64,7 @@ export function ChannelStrip({
   );
 
   return (
-    <div className="flex items-center gap-2 py-1.5">
+    <div className="flex min-w-0 items-center gap-1 py-1.5">
       {/* Enable/disable toggle */}
       <button
         type="button"
@@ -99,6 +99,7 @@ export function ChannelStrip({
       <button
         type="button"
         onClick={onToggleMute}
+        disabled={toggleDisabled}
         className={`text-[10px] w-10 h-10 flex items-center justify-center rounded-lg font-mono flex-shrink-0 ${
           channel.muted
             ? 'bg-accent-control text-white'
@@ -119,8 +120,8 @@ export function ChannelStrip({
           step={0.01}
           value={channel.volume}
           onChange={handleVolumeChange}
-          disabled={!channel.enabled}
-          className="flex-1 h-1.5 bg-surface-lighter rounded-lg appearance-none cursor-pointer
+          disabled={toggleDisabled}
+          className="min-w-0 w-0 flex-1 h-1.5 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                      accent-saffron-500 disabled:opacity-30"
           aria-label={`${INSTRUMENT_FULL_NAMES[id]} volume`}
         />
@@ -132,8 +133,8 @@ export function ChannelStrip({
           step={0.01}
           value={channel.pan}
           onChange={handlePanChange}
-          disabled={!channel.enabled}
-          className="flex-1 h-1.5 bg-surface-lighter rounded-lg appearance-none cursor-pointer
+          disabled={toggleDisabled}
+          className="min-w-0 w-0 flex-1 h-1.5 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                      accent-saffron-500 disabled:opacity-30"
           aria-label={`${INSTRUMENT_FULL_NAMES[id]} pan`}
         />

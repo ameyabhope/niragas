@@ -5,23 +5,11 @@
 import { create } from 'zustand';
 import type { SwarMandalConfig, SwarMandalStringConfig, SwarName, SwarVariant } from '@/audio/types';
 
-/** Default 15 strings: Sa-Ni (low octave), Sa'-Ni' (high octave), Sa'' (top) */
+/** Neutral starting point until a raag or custom tuning is selected. */
 function defaultStrings(): SwarMandalStringConfig[] {
   const swaras: { note: SwarName; variant: SwarVariant; octave: number }[] = [
     { note: 'Sa', variant: 'shuddha', octave: 0 },
-    { note: 'Re', variant: 'shuddha', octave: 0 },
-    { note: 'Ga', variant: 'shuddha', octave: 0 },
-    { note: 'Ma', variant: 'shuddha', octave: 0 },
-    { note: 'Pa', variant: 'shuddha', octave: 0 },
-    { note: 'Dha', variant: 'shuddha', octave: 0 },
-    { note: 'Ni', variant: 'shuddha', octave: 0 },
     { note: 'Sa', variant: 'shuddha', octave: 1 },
-    { note: 'Re', variant: 'shuddha', octave: 1 },
-    { note: 'Ga', variant: 'shuddha', octave: 1 },
-    { note: 'Ma', variant: 'shuddha', octave: 1 },
-    { note: 'Pa', variant: 'shuddha', octave: 1 },
-    { note: 'Dha', variant: 'shuddha', octave: 1 },
-    { note: 'Ni', variant: 'shuddha', octave: 1 },
     { note: 'Sa', variant: 'shuddha', octave: 2 },
   ];
 
@@ -43,6 +31,9 @@ interface SwarMandalState {
   setEnabled: (enabled: boolean) => void;
   toggleString: (index: number) => void;
   setStringNote: (index: number, note: SwarName, variant?: SwarVariant) => void;
+  setStringOctave: (index: number, octaveOffset: number) => void;
+  addString: () => void;
+  removeString: (index: number) => void;
   setAutoLoop: (autoLoop: boolean) => void;
   setLoopDuration: (duration: number) => void;
   setConfig: (config: SwarMandalConfig) => void;
@@ -72,6 +63,16 @@ export const useSwarMandalStore = create<SwarMandalState>((set) => ({
     })),
 
   setAutoLoop: (autoLoop) => set({ autoLoop }),
+  setStringOctave: (index, octaveOffset) => {
+    if (!Number.isInteger(octaveOffset) || octaveOffset < -2 || octaveOffset > 3) return;
+    set((state) => ({ strings: state.strings.map((s, i) => i === index ? { ...s, octaveOffset } : s) }));
+  },
+  addString: () => set((state) => ({
+    strings: state.strings.length >= 64 ? state.strings : [
+      ...state.strings, { note: 'Sa', variant: 'shuddha', octaveOffset: 0, enabled: true },
+    ],
+  })),
+  removeString: (index) => set((state) => ({ strings: state.strings.filter((_, i) => i !== index) })),
   setLoopDuration: (duration) => set({ loopDuration: Math.max(2, Math.min(30, duration)) }),
   setConfig: (config) =>
     set({

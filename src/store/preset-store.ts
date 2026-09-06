@@ -12,7 +12,7 @@ import {
   exportPresetsJSON,
   importPresetsJSON,
 } from '@/lib/storage';
-import { FACTORY_PRESETS } from '@/data/raag-presets';
+import { FACTORY_PRESETS, migrateFactoryRaagPreset } from '@/data/raag-presets';
 import type { PresetLoadOptions } from '@/lib/preset-state';
 
 /** Which parts of a preset to load */
@@ -67,7 +67,10 @@ export const usePresetStore = create<PresetState>((set, get) => ({
   loadPresets: async () => {
     set({ loading: true });
     try {
-      const presets = await getAllPresets();
+      const stored = await getAllPresets();
+      const presets = stored.map(migrateFactoryRaagPreset);
+      const migrated = presets.filter((preset, index) => preset !== stored[index]);
+      if (migrated.length) await savePresets(migrated);
       // If no presets at all, load factory ones
       if (presets.length === 0) {
         await savePresets(FACTORY_PRESETS);

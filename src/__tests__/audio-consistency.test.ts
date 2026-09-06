@@ -2,10 +2,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { TAAL_LIST, getTaal } from '@/data/taals';
 import { getBolSamplerNote } from '@/audio/sample-loader';
 import {
-  computePitchShiftSt,
   resolveTanpuraSample,
   TANPURA_SAMPLE_GAIN_DB,
 } from '@/audio/tanpura';
+import { tanpuraPitchRate } from '@/audio/tanpura-processing';
 import { getSpeedRange, getThekaForSpeed } from '@/lib/taal';
 import { noteToFreq, setA4Freq, swarToFreq } from '@/lib/notes';
 import { useTablaStore } from '@/store/tabla-store';
@@ -47,7 +47,7 @@ describe('audio data coverage', () => {
       expect(selection.url).toBe(`/samples/tanpura/${tuning}_Fs.m4a`);
       expect(selection.key).toBe(`${tuning}_Fs_neutral`);
       expect(TANPURA_SAMPLE_GAIN_DB[selection.key]).toBeTypeOf('number');
-      expect(computePitchShiftSt(selection.baseRate, 0, 1)).toBeCloseTo(1, 2);
+      expect(tanpuraPitchRate(selection.baseRate, 0)).toBeCloseTo(g3 / 185, 5);
     }
   });
 });
@@ -63,8 +63,7 @@ describe('shared tuning', () => {
   });
 
   it('does not clamp high tanpura corrections out of tune', () => {
-    const e4FromFs3AtSlowSpeed = computePitchShiftSt(329.6276 / 185, 0, 0.7);
-    expect(e4FromFs3AtSlowSpeed).toBeCloseTo(16.17, 1);
+    expect(tanpuraPitchRate(329.6276 / 185, 50)).toBeCloseTo(329.6276 / 185 * 2 ** (50 / 1200), 6);
   });
 });
 

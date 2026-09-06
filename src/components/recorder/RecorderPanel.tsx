@@ -1,8 +1,7 @@
 /**
  * Recording panel: record, pause, stop, playback, download.
  *
- * Recordings exist only in memory for the current session. Users must
- * download them before closing the page, or they will be lost.
+ * Completed recordings are saved locally in IndexedDB.
  */
 
 import { useEffect, useRef, useCallback } from 'react';
@@ -22,7 +21,12 @@ export function RecorderPanel() {
     state,
     includeMic,
     recordings,
-    downloadedIds,
+    saveStatus,
+    starting,
+    storageError,
+    loading,
+    load,
+    persist,
     playingId,
     elapsed,
     error,
@@ -35,8 +39,9 @@ export function RecorderPanel() {
     deleteRecording,
     downloadRecording,
     setPlayingId,
+    setError,
     updateElapsed,
-    hasUndownloadedRecordings,
+    hasUnsavedRecordings,
   } = useRecorderStore();
   const { initialize } = useAudioEngine();
 
@@ -44,19 +49,21 @@ export function RecorderPanel() {
     if (await initialize()) await start();
   }, [initialize, start]);
 
-  // Warn user before leaving if there are undownloaded recordings
+  useEffect(() => { void load(); }, [load]);
+
+  // Never depend on a download click as evidence that a recording is safe.
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUndownloadedRecordings()) {
+      if (hasUnsavedRecordings()) {
         e.preventDefault();
         // Modern browsers show a generic message; this string is ignored but required
-        e.returnValue = 'You have undownloaded recordings that will be lost.';
+        e.returnValue = 'Recording or saving is still in progress, or a recording could not be saved.';
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUndownloadedRecordings]);
+  }, [hasUnsavedRecordings]);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<number>(0);
@@ -79,6 +86,7 @@ export function RecorderPanel() {
         if (audioRef.current) {
           audioRef.current.pause();
           audioRef.current.currentTime = 0;
+          audioRef.current = null;
         }
         setPlayingId(null);
         return;
@@ -88,12 +96,23 @@ export function RecorderPanel() {
         audioRef.current.pause();
       }
       const audio = new Audio(rec.url);
-      audio.onended = () => setPlayingId(null);
-      audio.play();
+      audio.onended = () => {
+        if (audioRef.current === audio) setPlayingId(null);
+      };
       audioRef.current = audio;
       setPlayingId(rec.id);
+      setError(null);
+      const fail = () => {
+        if (audioRef.current !== audio) return;
+        audio.pause();
+        audioRef.current = null;
+        setPlayingId(null);
+        setError('Could not play this recording. Try downloading the original format.');
+      };
+      audio.onerror = fail;
+      void audio.play().catch(fail);
     },
-    [playingId, setPlayingId]
+    [playingId, setPlayingId, setError]
   );
 
   // Cleanup on unmount
@@ -103,8 +122,9 @@ export function RecorderPanel() {
         audioRef.current.pause();
         audioRef.current = null;
       }
+      setPlayingId(null);
     };
-  }, []);
+  }, [setPlayingId]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -112,7 +132,7 @@ export function RecorderPanel() {
         <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
           Recorder
         </h2>
-        <InfoTooltip label="About recording" text="Record up to 30 minutes of your practice session. Optionally include mic input. Recordings exist only in memory for this session; download the browser-native format or WAV before closing the page. Nothing is sent anywhere." />
+        <InfoTooltip label="About recording" text="Record up to 30 minutes, optionally with mic input. Completed recordings are saved in this browser, not uploaded. Browser storage can be cleared or evicted; download important recordings as a backup. Wait for Saved in browser before leaving." />
       </div>
 
       <div className="rounded-xl border border-white/5 bg-surface-card p-4 flex flex-col gap-4">
@@ -124,6 +144,7 @@ export function RecorderPanel() {
               <button
                 type="button"
                 onClick={() => void handleStart()}
+                disabled={starting}
                 aria-label="Start recording"
                 className="w-12 h-12 rounded-full bg-accent hover:bg-accent/80 
                            flex items-center justify-center transition-colors shadow-lg"
@@ -137,6 +158,7 @@ export function RecorderPanel() {
                 <input
                   type="checkbox"
                   checked={includeMic}
+                  disabled={starting}
                   onChange={toggleMic}
                   className="w-3.5 h-3.5 accent-saffron-500"
                 />
@@ -183,7 +205,9 @@ export function RecorderPanel() {
               {/* Cancel */}
               <button
                 type="button"
-                onClick={cancel}
+                onClick={() => {
+                  if (confirm('Discard the active recording? This cannot be undone.')) cancel();
+                }}
                 className="px-2 py-1.5 text-text-muted text-xs hover:text-accent transition-colors"
               >
                 Cancel
@@ -195,6 +219,13 @@ export function RecorderPanel() {
         {error && (
           <p className="text-xs text-accent" role="alert">{error}</p>
         )}
+        {starting && <p className="text-xs text-text-muted" role="status">Starting recording...</p>}
+        {loading && <p className="text-xs text-text-muted" role="status">Loading recordings...</p>}
+        {storageError && (
+          <div className="text-xs text-accent" role="alert">
+            {storageError} <button type="button" onClick={() => void load()} className="underline">Retry</button>
+          </div>
+        )}
 
         {/* Recordings list */}
         {recordings.length > 0 && (
@@ -203,21 +234,21 @@ export function RecorderPanel() {
               <p className="text-[10px] text-text-muted uppercase tracking-wider">
                 Recordings ({recordings.length})
               </p>
-              {hasUndownloadedRecordings() && (
+              {hasUnsavedRecordings() && (
                 <p className="text-[10px] text-warning">
-                  Not yet downloaded — will be lost on exit
+                  Unsaved audio: keep this page open
                 </p>
               )}
             </div>
             <div className="max-h-48 overflow-y-auto flex flex-col gap-1">
               {recordings.map((rec) => {
-                const isDownloaded = downloadedIds.has(rec.id);
+                const isSaved = saveStatus[rec.id] === 'saved';
                 const originalFormat = getRecordingExtension(rec).toUpperCase();
                 return (
                   <div
                     key={rec.id}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                      isDownloaded
+                    className={`grid grid-cols-[2.5rem_minmax(0,1fr)_auto_auto] items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                      isSaved
                         ? 'bg-surface-lighter/30 hover:bg-surface-lighter/50'
                         : 'bg-surface-lighter/50 hover:bg-surface-lighter'
                     }`}
@@ -228,7 +259,7 @@ export function RecorderPanel() {
                       onClick={() => handlePlay(rec)}
                       aria-label={`${playingId === rec.id ? 'Stop' : 'Play'} ${rec.name}`}
                       aria-pressed={playingId === rec.id}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-xs
+                      className={`row-span-2 w-10 h-10 rounded-full flex items-center justify-center text-xs
                                  transition-colors ${
                         playingId === rec.id
                           ? 'bg-action text-white'
@@ -240,25 +271,26 @@ export function RecorderPanel() {
                     </button>
 
                     {/* Info */}
-                    <div className="flex-1 min-w-0">
+                    <div className="col-span-3 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <p className="text-sm text-text-primary truncate">{rec.name}</p>
-                        {isDownloaded && (
-                          <span className="text-active text-[10px]" title="Downloaded">
-                            \u2713
-                          </span>
-                        )}
                       </div>
                       <p className="text-[10px] text-text-muted">
                         {formatTime(rec.duration)}
                       </p>
+                      <p className={`text-[10px] ${isSaved ? 'text-active' : 'text-warning'}`} role="status">
+                        {isSaved ? 'Saved in browser' : saveStatus[rec.id] === 'error' ? 'Save failed. Download a backup or retry.' : 'Saving...'}
+                      </p>
+                      {saveStatus[rec.id] === 'error' && (
+                        <button type="button" onClick={() => void persist(rec.id)} className="text-xs underline text-warning">Retry save</button>
+                      )}
                     </div>
 
                     {/* Download browser-native format */}
                     <button
                       type="button"
                       onClick={() => downloadRecording(rec.id, 'original')}
-                      className="px-2 py-1 text-[10px] text-text-muted hover:text-saffron-400 
+                      className="col-start-2 justify-self-end px-2 py-1 text-[10px] text-text-muted hover:text-saffron-400
                                  transition-colors"
                       title={`Download as ${originalFormat}`}
                       aria-label={`Download ${rec.name} as ${originalFormat}`}
@@ -281,10 +313,12 @@ export function RecorderPanel() {
                     {/* Delete */}
                     <button
                       type="button"
+                      disabled={saveStatus[rec.id] === 'saving' || loading}
                       onClick={() => {
                         if (confirm('Delete this recording?')) {
                           if (playingId === rec.id && audioRef.current) {
                             audioRef.current.pause();
+                            audioRef.current = null;
                             setPlayingId(null);
                           }
                           deleteRecording(rec.id);

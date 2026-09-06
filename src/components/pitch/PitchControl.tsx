@@ -5,11 +5,12 @@
 
 import { usePitchStore, type A4Reference } from '@/store/pitch-store';
 import { PitchDisplay } from './PitchDisplay';
+import { NOTE_NAMES } from '@/lib/notes';
 
 const A4_OPTIONS: A4Reference[] = [440, 432];
 
 export function PitchControl() {
-  const { noteDown, noteUp, cents, setCents, adjustCents, a4Freq, setA4Freq } = usePitchStore();
+  const { note, octave, setPitch, noteDown, noteUp, cents, setCents, adjustCents, a4Freq, setA4Freq } = usePitchStore();
 
   return (
     <div className="flex flex-col gap-3">
@@ -39,7 +40,7 @@ export function PitchControl() {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         {/* Note down button */}
         <button
           type="button"
@@ -52,8 +53,21 @@ export function PitchControl() {
           -
         </button>
 
-        {/* Note display */}
-        <PitchDisplay />
+        <select
+          aria-label="Sa note and octave"
+          value={`${note}:${octave}`}
+          onChange={(event) => {
+            const [selectedNote, selectedOctave] = event.target.value.split(':');
+            const validNote = NOTE_NAMES.find((name) => name === selectedNote);
+            if (validNote) setPitch(validNote, Number(selectedOctave), cents);
+          }}
+          className="min-h-11 rounded-lg bg-surface-lighter px-3 text-sm font-semibold text-text-primary"
+        >
+          {[2, 3, 4].flatMap((o) => NOTE_NAMES.map((n, index) => (
+            (o === 2 && index < 9) || (o === 4 && index > 4) ? null :
+              <option key={`${n}:${o}`} value={`${n}:${o}`}>{n}{o}</option>
+          )))}
+        </select>
 
         {/* Note up button */}
         <button
@@ -66,9 +80,12 @@ export function PitchControl() {
         >
           +
         </button>
+        <PitchDisplay />
       </div>
 
       {/* Fine-tune slider */}
+      <details>
+      <summary className="cursor-pointer text-xs text-text-muted">Fine tuning ({cents > 0 ? '+' : ''}{cents} cents)</summary>
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -85,7 +102,7 @@ export function PitchControl() {
           max={50}
           value={cents}
           onChange={(e) => setCents(parseInt(e.target.value, 10))}
-          className="flex-1 h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
+          className="min-w-0 flex-1 h-2 bg-surface-lighter rounded-lg appearance-none cursor-pointer
                      accent-saffron-500"
           aria-label="Fine-tune in cents"
         />
@@ -99,6 +116,7 @@ export function PitchControl() {
           &#9839;
         </button>
       </div>
+      </details>
     </div>
   );
 }

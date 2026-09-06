@@ -15,6 +15,9 @@ interface TablaState {
   taalId: string;
   /** Selected style ID */
   styleId: string;
+  /** Sounding selection, updated only by audio draws; never persisted. */
+  activeTaalId: string | null;
+  activeStyleId: string | null;
   /** Tempo in BPM */
   tempo: number;
   /** Whether tabla is playing */
@@ -32,12 +35,14 @@ interface TablaState {
   doubleTempo: () => void;
   setPlaying: (playing: boolean) => void;
   togglePlaying: () => void;
-  setCurrentBeat: (matra: number, divisionLabel: string | null) => void;
+  setCurrentBeat: (matra: number, divisionLabel: string | null, taalId: string, styleId: string) => void;
 }
 
-export const useTablaStore = create<TablaState>((set) => ({
+export const useTablaStore = create<TablaState>((set, get) => ({
   taalId: 'teentaal',
   styleId: 'theka',
+  activeTaalId: null,
+  activeStyleId: null,
   tempo: 120,
   playing: false,
   currentMatra: 1,
@@ -46,14 +51,20 @@ export const useTablaStore = create<TablaState>((set) => ({
   setTaalId: (id) =>
     set((state) => {
       const taal = getTaal(id);
+      if (taal.id === state.taalId) return state;
       return {
         taalId: taal.id,
-        styleId: taal.styles[0]?.id ?? '',
+        styleId: state.playing && taal.id === state.activeTaalId
+          ? state.activeStyleId ?? taal.styles[0]?.id ?? ''
+          : taal.styles[0]?.id ?? '',
         tempo: clampTempo(taal.id, state.tempo),
-        currentMatra: 1,
+        ...(!state.playing ? { currentMatra: 1, currentDivisionLabel: null } : {}),
       };
     }),
-  setStyleId: (id) => set({ styleId: id }),
+  setStyleId: (id) => set((state) => ({
+    styleId: getTaal(state.taalId).styles.find((style) => style.id === id)?.id
+      ?? getTaal(state.taalId).styles[0]?.id ?? '',
+  })),
 
   setTempo: (bpm) => set((state) => ({ tempo: clampTempo(state.taalId, bpm) })),
 
@@ -72,10 +83,19 @@ export const useTablaStore = create<TablaState>((set) => ({
       tempo: clampTempo(state.taalId, state.tempo * 2),
     })),
 
-  setPlaying: (playing) => set({ playing }),
+  setPlaying: (playing) => set((state) => state.playing === playing ? state : ({
+    playing,
+    activeTaalId: null,
+    activeStyleId: null,
+    currentMatra: 1,
+    currentDivisionLabel: null,
+  })),
 
-  togglePlaying: () => set((state) => ({ playing: !state.playing })),
+  togglePlaying: () => get().setPlaying(!get().playing),
 
-  setCurrentBeat: (matra, divisionLabel) =>
-    set({ currentMatra: matra, currentDivisionLabel: divisionLabel }),
+  setCurrentBeat: (matra, divisionLabel, taalId, styleId) =>
+    set((state) => state.playing ? {
+      currentMatra: matra, currentDivisionLabel: divisionLabel,
+      activeTaalId: taalId, activeStyleId: styleId,
+    } : state),
 }));

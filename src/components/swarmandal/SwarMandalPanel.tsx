@@ -33,6 +33,9 @@ export function SwarMandalPanel() {
     toggle,
     toggleString,
     setStringNote,
+    setStringOctave,
+    addString,
+    removeString,
     setAutoLoop,
     setLoopDuration,
   } = useSwarMandalStore();
@@ -41,7 +44,11 @@ export function SwarMandalPanel() {
 
   const handleStrum = useCallback(() => {
     void initialize().then((ready) => {
-      if (ready) strumSwarMandal();
+      if (!ready) return;
+      const state = useSwarMandalStore.getState();
+      state.setEnabled(true);
+      // Enabling auto-loop already schedules its first strum.
+      if (state.enabled || !state.autoLoop) strumSwarMandal();
     });
   }, [initialize]);
 
@@ -62,7 +69,11 @@ export function SwarMandalPanel() {
               return;
             }
             void initialize().then((ready) => {
-              if (ready) toggle();
+              if (ready) {
+                const state = useSwarMandalStore.getState();
+                state.setEnabled(true);
+                if (!state.autoLoop) strumSwarMandal();
+              }
             });
           }}
           aria-label={`${enabled ? 'Turn off' : 'Turn on'} Swar Mandal`}
@@ -83,53 +94,59 @@ export function SwarMandalPanel() {
           <legend className="text-xs text-text-muted mb-2">
             Strings ({strings.filter((s) => s.enabled).length} / {strings.length} enabled)
           </legend>
-          <div className="flex flex-wrap gap-1">
+          <p className="text-xs text-text-muted mb-2">Tune each string for your practice. Octaves are relative to your selected Sa; note sets are starting points, not raag rules.</p>
+          {strings.every((s) => s.note === 'Sa') && (
+            <p className="text-xs text-text-muted mb-2">Sa-only tuning: no raag inventory assumed. Add or tune strings as needed.</p>
+          )}
+          <div className="flex flex-col gap-2">
             {strings.map((s, i) => (
+              <div key={i} className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                key={i}
                 onClick={() => toggleString(i)}
-                aria-label={`String ${i + 1}: ${s.note}, ${s.variant}, ${s.octaveOffset === 0 ? 'mandra' : s.octaveOffset === 1 ? 'madhya' : 'taar'} octave`}
+                aria-label={`Enable string ${i + 1}`}
                 aria-pressed={s.enabled}
                 className={`px-2 py-1 rounded text-xs font-mono transition-colors ${
                   s.enabled
                     ? 'bg-action text-white'
                     : 'bg-surface-lighter text-text-muted'
                 }`}
-                title={`String ${i + 1}: ${s.note} (${s.variant}) octave ${s.octaveOffset === 0 ? 'mandra' : s.octaveOffset === 1 ? 'madhya' : 'taar'}`}
               >
-                {s.note}
-                {s.octaveOffset === 2 ? "''" : s.octaveOffset === 1 ? "'" : ''}
+                {i + 1}: {s.enabled ? 'On' : 'Off'}
               </button>
+              <select
+                aria-label={`String ${i + 1} note and variant`}
+                value={`${s.note}-${s.variant}`}
+                onChange={(event) => {
+                  const option = SWARA_OPTIONS.find((opt) => `${opt.note}-${opt.variant}` === event.target.value);
+                  if (option) setStringNote(i, option.note, option.variant);
+                }}
+                className="min-w-0 bg-surface-lighter rounded px-2 py-1 text-xs text-text-primary"
+              >
+                {!SWARA_OPTIONS.some((opt) => opt.note === s.note && opt.variant === s.variant) && (
+                  <option value={`${s.note}-${s.variant}`}>{s.note} ({s.variant}, imported)</option>
+                )}
+                {SWARA_OPTIONS.map((opt) => (
+                  <option key={`${opt.note}-${opt.variant}`} value={`${opt.note}-${opt.variant}`}>
+                    {opt.note} ({opt.variant})
+                  </option>
+                ))}
+              </select>
+              <select
+                aria-label={`String ${i + 1} octave relative to Sa`}
+                value={s.octaveOffset}
+                onChange={(event) => setStringOctave(i, Number(event.target.value))}
+                className="bg-surface-lighter rounded px-2 py-1 text-xs text-text-primary"
+              >
+                {[-2, -1, 0, 1, 2, 3].map((octave) => (
+                  <option key={octave} value={octave}>Sa {octave >= 0 ? '+' : ''}{octave} oct</option>
+                ))}
+              </select>
+              <button type="button" onClick={() => removeString(i)} aria-label={`Remove string ${i + 1}`} className="text-xs text-text-muted">Remove</button>
+              </div>
             ))}
           </div>
-        </fieldset>
-
-        {/* Note assignment for selected string (simplified: show first few for quick editing) */}
-        <fieldset>
-          <legend className="text-xs text-text-muted mb-1">Quick Tune (first string)</legend>
-          <div className="flex flex-wrap gap-1">
-            {SWARA_OPTIONS.map((opt) => {
-              const isActive =
-                strings[0]?.note === opt.note &&
-                strings[0]?.variant === opt.variant;
-              return (
-                <button
-                  type="button"
-                  key={`${opt.note}-${opt.variant}`}
-                  onClick={() => setStringNote(0, opt.note, opt.variant)}
-                  aria-pressed={isActive}
-                  className={`px-2 py-1 rounded text-xs transition-colors ${
-                    isActive
-                      ? 'bg-action text-white'
-                      : 'bg-surface-lighter text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
+          <button type="button" onClick={addString} disabled={strings.length >= 64} className="mt-2 text-xs text-text-secondary disabled:opacity-40">Add Sa string</button>
         </fieldset>
 
         {/* Play once button */}

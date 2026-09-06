@@ -15,6 +15,8 @@ export interface PresetLoadOptions {
   swarMandal: boolean;
   mixer: boolean;
   eq: boolean;
+  preserveSa?: boolean;
+  preserveTempo?: boolean;
 }
 
 export function capturePreset(name: string): Preset {
@@ -91,7 +93,7 @@ export function capturePreset(name: string): Preset {
 }
 
 export function applyPresetState(preset: Preset, options: PresetLoadOptions): void {
-  if (options.pitch) {
+  if (options.pitch && !options.preserveSa) {
     const pitch = usePitchStore.getState();
     pitch.setA4Freq(preset.pitch.a4Freq);
     pitch.setPitch(preset.pitch.note, preset.pitch.octave, preset.pitch.cents);
@@ -105,9 +107,10 @@ export function applyPresetState(preset: Preset, options: PresetLoadOptions): vo
 
   if (options.tabla) {
     const tabla = useTablaStore.getState();
+    const tempo = options.preserveTempo ? tabla.tempo : preset.tabla.tempo;
     tabla.setTaalId(preset.tabla.taalId);
     tabla.setStyleId(preset.tabla.styleId);
-    tabla.setTempo(preset.tabla.tempo);
+    tabla.setTempo(tempo);
     tabla.setPlaying(preset.tabla.enabled);
   }
 

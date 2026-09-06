@@ -13,6 +13,7 @@ import { PitchDetector } from 'pitchy';
 import { freqToNote } from '@/lib/notes';
 import type { NoteName } from './types';
 import { log } from './log';
+import { TUNER_SIGNAL_TTL_MS, useTunerStore } from '@/store/tuner-store';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyPitchDetector = PitchDetector<any>;
@@ -30,14 +31,17 @@ interface TunerInstance {
 }
 
 let instance: TunerInstance | null = null;
+let generation = 0;
+let expiryTimer: ReturnType<typeof setTimeout> | undefined;
 
 /**
  * Initialize the tuner: request microphone access and set up the analyser.
  */
-export async function initTuner(): Promise<void> {
-  if (instance?.running) return;
+export async function initTuner(): Promise<boolean> {
+  if (instance?.running) return true;
 
   stopTuner();
+  const request = generation;
 
   let stream: MediaStream | null = null;
   let audioContext: AudioContext | null = null;
@@ -50,8 +54,18 @@ export async function initTuner(): Promise<void> {
       },
     });
 
+    if (request !== generation) {
+      stream.getTracks().forEach((track) => track.stop());
+      return false;
+    }
+
     audioContext = new AudioContext();
     if (audioContext.state === 'suspended') await audioContext.resume();
+    if (request !== generation) {
+      stream.getTracks().forEach((track) => track.stop());
+      void audioContext.close();
+      return false;
+    }
     const analyserNode = audioContext.createAnalyser();
     analyserNode.fftSize = 4096;
 
@@ -73,6 +87,10 @@ export async function initTuner(): Promise<void> {
       animationFrameId: null,
       onPitchDetected: null,
     };
+    useTunerStore.setState({ micActive: true });
+    stream.getTracks().forEach((track) => track.addEventListener?.('ended', () => {
+      if (request === generation) stopTuner();
+    }));
   } catch (err) {
     stream?.getTracks().forEach((track) => track.stop());
     if (audioContext && audioContext.state !== 'closed') void audioContext.close();
@@ -80,6 +98,7 @@ export async function initTuner(): Promise<void> {
   }
 
   log('[Tuner] Initialized with mic access');
+  return true;
 }
 
 /**
@@ -111,6 +130,9 @@ export function startTuner(): void {
     // Only report if clarity is good enough (>0.9 is very clear)
     if (clarity > 0.85 && pitch > 50 && pitch < 2000) {
       const { note, octave, cents } = freqToNote(pitch);
+      useTunerStore.setState({ pitch: { freq: pitch, note, octave, cents, clarity, detectedAt: performance.now() } });
+      clearTimeout(expiryTimer);
+      expiryTimer = setTimeout(() => useTunerStore.setState({ pitch: null }), TUNER_SIGNAL_TTL_MS);
       instance.onPitchDetected?.(pitch, note, octave, cents, clarity);
     }
 
@@ -125,6 +147,9 @@ export function startTuner(): void {
  * Stop the pitch detection loop.
  */
 export function stopTuner(): void {
+  generation++;
+  clearTimeout(expiryTimer);
+  useTunerStore.setState({ micActive: false, pitch: null });
   if (!instance) return;
 
   const current = instance;
@@ -153,7 +178,6 @@ export function isTunerRunning(): boolean {
  * Dispose the tuner: stop detection, close mic, release resources.
  */
 export function disposeTuner(): void {
-  if (!instance) return;
   stopTuner();
   log('[Tuner] Disposed');
 }

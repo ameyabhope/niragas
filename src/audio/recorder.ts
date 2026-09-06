@@ -64,7 +64,7 @@ export function setRecorderCallbacks(callbacks: {
  * @param includeMic - Whether to also capture microphone input.
  */
 export async function startRecording(includeMic = false): Promise<void> {
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+  if (mediaRecorder) {
     console.warn('[Recorder] Already recording');
     return;
   }
@@ -108,6 +108,9 @@ export async function startRecording(includeMic = false): Promise<void> {
       const recorderError = (event as Event & { error?: DOMException }).error;
       const message = recorderError?.message ?? 'Recording failed unexpectedly.';
       recorder.onstop = null;
+      recorder.ondataavailable = null;
+      recorder.onerror = null;
+      if (recorder.state !== 'inactive') recorder.stop();
       cleanupConnections();
       recordedChunks = [];
       onError?.(message);
@@ -121,7 +124,7 @@ export async function startRecording(includeMic = false): Promise<void> {
       const url = URL.createObjectURL(blob);
 
       const recording: Recording = {
-        id: `rec-${Date.now()}`,
+        id: `rec-${crypto.randomUUID()}`,
         name: `Recording ${new Date().toLocaleTimeString()}`,
         blob,
         url,
@@ -131,6 +134,7 @@ export async function startRecording(includeMic = false): Promise<void> {
       };
 
       cleanupConnections();
+      recordedChunks = [];
       onRecordingComplete?.(recording);
       onStateChange?.('idle');
     };
@@ -188,6 +192,11 @@ export function stopRecording(): void {
  * Cancel recording without saving.
  */
 export function cancelRecording(): void {
+  if (mediaRecorder) {
+    mediaRecorder.onstop = null;
+    mediaRecorder.ondataavailable = null;
+    mediaRecorder.onerror = null;
+  }
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     // Remove the onstop handler to prevent saving
     mediaRecorder.onstop = null;
