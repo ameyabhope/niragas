@@ -1,4 +1,4 @@
-export type BrowserAudioContextState = AudioContextState | 'interrupted';
+export type BrowserAudioContextState = AudioContextState;
 
 interface AudioContextBoundary {
   getState(): BrowserAudioContextState;

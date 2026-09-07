@@ -65,6 +65,9 @@ export function createMixer(): void {
  */
 export function insertEQ(input: Tone.Gain, output: Tone.Gain): void {
   if (!preMasterGain || !masterVolume) return;
+  if (eqInput === input && eqOutput === output) return;
+  // Never stack chains: retire a stale insertion before connecting the new one.
+  if (eqInput || eqOutput) bypassEQ();
 
   // Disconnect the direct path
   preMasterGain.disconnect(masterVolume);

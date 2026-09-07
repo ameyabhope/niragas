@@ -128,3 +128,35 @@ export function applyPresetState(preset: Preset, options: PresetLoadOptions): vo
     eq.setEnabled(preset.eq.enabled);
   }
 }
+
+export interface PresetLoadOutcome {
+  applied: boolean;
+  audioReady: boolean;
+}
+
+/**
+ * Load a setup with audio initialization as a best effort, never a gate.
+ * Configuration always applies (unless superseded by a newer request);
+ * audio readiness only decides whether the new setup can sound yet.
+ */
+export async function applyPresetWithAudio(
+  preset: Preset,
+  options: PresetLoadOptions,
+  dependencies: {
+    sessionActive: boolean;
+    initialize: () => Promise<boolean>;
+    isStale: () => boolean;
+  },
+): Promise<PresetLoadOutcome> {
+  if (dependencies.isStale()) return { applied: false, audioReady: false };
+  const startsPlayback =
+    (options.tanpura && (preset.tanpura1.enabled || preset.tanpura2.enabled)) ||
+    (options.tabla && preset.tabla.enabled) ||
+    (options.surPeti && preset.surPeti.enabled) ||
+    (options.swarMandal && preset.swarMandal.enabled);
+  const needsAudio = startsPlayback && dependencies.sessionActive;
+  const audioReady = !needsAudio || (await dependencies.initialize());
+  if (dependencies.isStale()) return { applied: false, audioReady };
+  applyPresetState(preset, options);
+  return { applied: true, audioReady };
+}

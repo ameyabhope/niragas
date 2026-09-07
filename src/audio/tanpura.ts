@@ -236,6 +236,17 @@ export async function updateTanpura(
   if (changed || (instance.error && !instance.loading)) await loadSampleForInstance(id);
 }
 
+/**
+ * Re-run preparation for the currently selected configuration after a
+ * failure, without changing the selection. No-op unless a failed load is
+ * waiting for retry.
+ */
+export function retryTanpura(id: string): void {
+  const instance = instances.get(id);
+  if (!instance || !instance.error || instance.loading) return;
+  void loadSampleForInstance(id);
+}
+
 export function disposeTanpura(id: string): void {
   const instance = instances.get(id);
   if (!instance) return;

@@ -38,7 +38,7 @@ vi.mock('tone', () => {
     getContext: () => ({ decodeAudioData: async () => ({ numberOfChannels: 1, sampleRate: 48000, getChannelData: () => new Float32Array(10) }),
       createBuffer: () => ({ duration: 20, getChannelData: () => new Float32Array(10) }) }) };
 });
-import { createTanpura, DEFAULT_TANPURA_CONFIG, disposeTanpura, getTanpuraStatus, startTanpura, stopTanpura, updateTanpura } from '@/audio/tanpura';
+import { createTanpura, DEFAULT_TANPURA_CONFIG, disposeTanpura, getTanpuraStatus, retryTanpura, startTanpura, stopTanpura, updateTanpura } from '@/audio/tanpura';
 import { setA4Freq } from '@/lib/notes';
 import { createSessionControls } from '@/lib/session-controls';
 const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
@@ -124,6 +124,25 @@ describe('tanpura source ownership', () => {
     mock.renders.shift()!.resolve([new Float32Array(10)]);
     await retry;
     expect(getTanpuraStatus('tanpura1')).toEqual({ playing: true, loading: false, error: null });
+  });
+  it('retries a failed load explicitly without changing the selection', async () => {
+    await ready();
+    const pending = updateTanpura('tanpura1', { speed: 0.7 });
+    mock.renders.shift()!.reject(new Error('temporary failure'));
+    await pending;
+    expect(getTanpuraStatus('tanpura1').error).toMatch(/temporary failure/);
+    retryTanpura('tanpura1');
+    expect(mock.renders).toHaveLength(1);
+    mock.renders.shift()!.resolve([new Float32Array(10)]);
+    await flush();
+    expect(getTanpuraStatus('tanpura1')).toEqual({ playing: true, loading: false, error: null });
+  });
+  it('ignores an explicit retry when nothing failed', async () => {
+    await ready();
+    retryTanpura('tanpura1');
+    await flush();
+    expect(mock.renders).toHaveLength(0);
+    expect(getTanpuraStatus('tanpura1').error).toBeNull();
   });
   it('keeps a recreated instance independent of a stale rejection', async () => {
     await ready();

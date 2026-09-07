@@ -3,8 +3,7 @@ import { useTablaStore } from '@/store/tabla-store';
 import { useSurPetiStore } from '@/store/surpeti-store';
 import { useSwarMandalStore } from '@/store/swarmandal-store';
 import { usePitchStore } from '@/store/pitch-store';
-import { stopTanpura } from '@/audio/tanpura';
-import { getTanpuraStatus, subscribeTanpuraStatus } from '@/audio/tanpura';
+import { getTanpuraStatus, retryTanpura, stopTanpura, subscribeTanpuraStatus } from '@/audio/tanpura';
 import { isTablaPlaying, stopTabla } from '@/audio/tabla';
 import { isSurPetiPlaying, stopSurPeti } from '@/audio/surpeti';
 import { isSwarMandalPlaying, stopSwarMandalLoop, strumSwarMandal } from '@/audio/swarmandal';
@@ -109,6 +108,7 @@ export function createSessionControls(initialize: () => Promise<boolean>) {
     },
     setEnabled,
     toggleInstrument(id: InstrumentId) { setEnabled(id, !selectedInstruments()[id]); },
+    retryTanpura(id: 'tanpura1' | 'tanpura2') { retryTanpura(id); },
     async toggleTabla() {
       if (useTablaStore.getState().playing) setEnabled('tabla', false);
       else { setEnabled('tabla', true); await controls.play(); }

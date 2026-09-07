@@ -5,12 +5,12 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import type { Preset } from '@/audio/types';
 import { usePresetStore, type LoadOptions } from '@/store/preset-store';
+import { useSessionStore } from '@/store/session-store';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
-import { applyPresetState, capturePreset } from '@/lib/preset-state';
+import { applyPresetWithAudio, capturePreset } from '@/lib/preset-state';
 import { filterPresets, MAX_PRESET_IMPORT_BYTES } from '@/lib/presets';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { hasRaagSwarMandal } from '@/data/raag-presets';
-import { isSessionActive } from '@/lib/session-controls';
 
 export function PresetPanel() {
   const {
@@ -65,19 +65,24 @@ export function PresetPanel() {
   const applyPreset = useCallback(
     async (preset: Preset) => {
       const requestId = ++applyRequestRef.current;
-      const startsPlayback =
-        (loadOptions.tanpura && (preset.tanpura1.enabled || preset.tanpura2.enabled)) ||
-        (loadOptions.tabla && preset.tabla.enabled) ||
-        (loadOptions.surPeti && preset.surPeti.enabled) ||
-        (loadOptions.swarMandal && preset.swarMandal.enabled);
       // Loading applies the requested setup through the shared command
       // boundary: silent while stopped, live replacement while running.
-      if (startsPlayback && isSessionActive() && !(await initialize())) return;
-      if (requestId !== applyRequestRef.current) return;
+      // Audio initialization is best effort; a failure still applies the
+      // configuration and says so instead of dropping the load silently.
+      const result = await applyPresetWithAudio(preset, loadOptions, {
+        sessionActive: useSessionStore.getState().running,
+        initialize,
+        isStale: () => requestId !== applyRequestRef.current,
+      });
+      if (!result.applied) return;
 
       setActivePresetId(preset.id);
-      applyPresetState(preset, loadOptions);
-      setAnnouncement(`Loaded preset ${preset.name}.`);
+      if (result.audioReady) {
+        setAnnouncement(`Loaded preset ${preset.name}.`);
+      } else {
+        setError(`Loaded ${preset.name}, but audio could not start. Resume audio to hear it.`);
+        setAnnouncement(`Loaded preset ${preset.name} without sound.`);
+      }
     },
     [initialize, loadOptions, setActivePresetId]
   );

@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FACTORY_PRESETS } from '@/data/raag-presets';
-import { applyPresetState, capturePreset, type PresetLoadOptions } from '@/lib/preset-state';
+import { applyPresetState, applyPresetWithAudio, capturePreset, type PresetLoadOptions } from '@/lib/preset-state';
 import { createSessionControls } from '@/lib/session-controls';
 import { useSessionStore } from '@/store/session-store';
 import { useSurPetiStore } from '@/store/surpeti-store';
@@ -107,5 +107,47 @@ describe('live setup loading', () => {
     expect(useTablaStore.getState()).toMatchObject({ taalId: 'keherva', tempo: 95 });
     expect(useTanpuraStore.getState().tanpura1.tuning).toBe(useTanpuraStore.getInitialState().tanpura1.tuning);
     expect(capturePreset('x').tabla.tempo).toBe(95);
+  });
+});
+
+describe('setup loading with audio as best effort', () => {
+  const keherva = () => ({ ...structuredClone(FACTORY_PRESETS[0]), tabla: { taalId: 'keherva', styleId: 'theka', tempo: 100, enabled: true } });
+
+  it('applies configuration while active even when audio cannot start', async () => {
+    runningSession();
+    const initialize = vi.fn(async () => false);
+    const result = await applyPresetWithAudio(keherva(), LOAD_ALL, {
+      sessionActive: true, initialize, isStale: () => false,
+    });
+
+    expect(result).toEqual({ applied: true, audioReady: false });
+    expect(initialize).toHaveBeenCalledOnce();
+    expect(useTablaStore.getState()).toMatchObject({ taalId: 'keherva', tempo: 100, enabled: true });
+    expect(useSessionStore.getState()).toMatchObject({ requested: true, running: true });
+  });
+
+  it('skips initialization while stopped and reports ready', async () => {
+    const initialize = vi.fn(async () => true);
+    const result = await applyPresetWithAudio(keherva(), LOAD_ALL, {
+      sessionActive: false, initialize, isStale: () => false,
+    });
+
+    expect(result).toEqual({ applied: true, audioReady: true });
+    expect(initialize).not.toHaveBeenCalled();
+    expect(useTablaStore.getState()).toMatchObject({ taalId: 'keherva', enabled: true, playing: false });
+  });
+
+  it('drops a load superseded while audio was starting', async () => {
+    runningSession();
+    let stale = false;
+    let release!: (ready: boolean) => void;
+    const initialize = vi.fn(() => new Promise<boolean>((resolve) => { release = resolve; }));
+    const pending = applyPresetWithAudio(keherva(), LOAD_ALL, {
+      sessionActive: true, initialize, isStale: () => stale,
+    });
+    stale = true;
+    release(true);
+    expect(await pending).toEqual({ applied: false, audioReady: true });
+    expect(useTablaStore.getState().taalId).toBe('teentaal');
   });
 });
