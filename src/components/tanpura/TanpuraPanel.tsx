@@ -35,6 +35,9 @@ export function TanpuraPanel() {
           label="Tanpura 1"
           config={tanpura1}
           onToggle={() => handleToggle('tanpura1')}
+          // Re-applying the current selection re-runs preparation, which
+          // retries a failed load without changing the selected tuning.
+          onRetry={() => practiceSession.setEnabled('tanpura1', tanpura1.enabled)}
           onSetTuning={(t) => setTuning('tanpura1', t)}
           onSetEQ={(eq) => setEQ('tanpura1', eq)}
           onSetFinePitch={(c) => setFinePitch('tanpura1', c)}
@@ -46,6 +49,7 @@ export function TanpuraPanel() {
           label="Tanpura 2"
           config={tanpura2}
           onToggle={() => handleToggle('tanpura2')}
+          onRetry={() => practiceSession.setEnabled('tanpura2', tanpura2.enabled)}
           onSetTuning={(t) => setTuning('tanpura2', t)}
           onSetEQ={(eq) => setEQ('tanpura2', eq)}
           onSetFinePitch={(c) => setFinePitch('tanpura2', c)}

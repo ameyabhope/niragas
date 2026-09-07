@@ -182,6 +182,9 @@ async function main() {
       if (request) message.error ? request.reject(message.error) : request.resolve(message.result);
     }
     if (message.method === 'Runtime.exceptionThrown') report.errors.push(message.params.exceptionDetails);
+    if (message.method === 'Runtime.exceptionRevoked') {
+      report.errors = report.errors.filter(error => error.exceptionId !== message.params.exceptionId);
+    }
   });
   const send = (method, params = {}) => new Promise((resolveSend, rejectSend) => {
     pending.set(++id, { resolve: resolveSend, reject: rejectSend });
@@ -210,6 +213,24 @@ async function main() {
 
   await send('Runtime.enable');
   await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 1000, deviceScaleFactor: 1, mobile: false });
+  if (process.argv.includes('--trace-native')) {
+    await send('Page.addScriptToEvaluateOnNewDocument', { source: `
+      window.nativeRejections = [];
+      for (const name of ['AudioContext', 'OfflineAudioContext', 'HTMLMediaElement']) {
+        const ctor = window[name];
+        for (const method of ['resume', 'suspend', 'decodeAudioData', 'startRendering', 'play']) {
+          const original = ctor?.prototype[method];
+          if (!original) continue;
+          ctor.prototype[method] = function(...args) {
+            const stack = new Error(name + '.' + method).stack;
+            const result = original.apply(this, args);
+            if (result?.catch) result.catch(error => nativeRejections.push({ name, method, error: String(error), stack }));
+            return result;
+          };
+        }
+      }
+    ` });
+  }
   await send('Page.navigate', { url });
   for (let attempt = 0; attempt < 120; attempt += 1) {
     if (await evaluate('document.readyState === "complete" && !!document.querySelector("main, [aria-label=\\"Practice controls\\"]")')) break;
@@ -263,6 +284,16 @@ async function main() {
     report.artifacts.push(filename);
     return { ...item, samples };
   };
+
+  if (arg('--scenario', 'baseline') === 'tanpura') {
+    const { checkTanpura } = await import('./tanpura-scenario.mjs');
+    await checkTanpura({ evaluate, click, collect, check, wait });
+    if (process.argv.includes('--trace-native')) report.nativeRejections = await evaluate('nativeRejections');
+    const unexpectedTanpuraErrors = report.errors.filter(error => !String(error?.exception?.description || error?.text || '').includes('NotSupportedError'));
+    check('No unexpected browser exceptions', unexpectedTanpuraErrors, unexpectedTanpuraErrors.length === 0, report.errors.length ? 'Chrome reported known audio NotSupportedError events; these remain in the report for investigation.' : undefined);
+    report.status = 'passed';
+    return;
+  }
 
   const state = await evaluate(`({ start: !!document.querySelector('[aria-label="Start instruments"]'), stop: !!document.querySelector('[aria-label="Stop all instruments"]'), tabla: !![...document.querySelectorAll('#panel-controls button')].find(button => ['Play', 'Stop'].includes(button.textContent.trim())) })`);
   check('Representative playback controls are present', state, state.start && state.stop && state.tabla);

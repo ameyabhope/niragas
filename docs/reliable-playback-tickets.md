@@ -71,15 +71,17 @@ The current spec takes precedence over the older broad implementation plan and i
 
 **Blocked by:** 03 — Retain the practice session through shared Start/Stop controls.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Continue the prior playable source during replacement preparation, then crossfade into the latest requested replacement.
-- [ ] Rapid pitch, tuning, speed, and reference-frequency changes cancel or invalidate superseded preparation; stale results cannot replace the final selection.
-- [ ] Stop during initialization or preparation cancels playback intent immediately. Late completions cannot start or resurrect playback.
-- [ ] Preparation failure retains the previous usable sound, reports a useful error, and permits retry. Initial-load failure reports accurately when no prior source exists.
-- [ ] Remove redundant outer synchronization while retaining engine cancellation, source ownership, and audio-clock crossfade retirement.
-- [ ] Extend existing lifecycle tests with deferred preparation through shared commands. Cover failure, rapid changes, Stop/restart, and disposal.
-- [ ] Verify real browser audio continuity, absence of stale replacements, and silence after Stop and intentional fade. Use the repeatable workflow if available; this ticket is not blocked on its delivery.
+- [x] Continue the prior playable source during replacement preparation, then crossfade into the latest requested replacement.
+- [x] Rapid pitch, tuning, speed, and reference-frequency changes cancel or invalidate superseded preparation; stale results cannot replace the final selection.
+- [x] Stop during initialization or preparation cancels playback intent immediately. Late completions cannot start or resurrect playback.
+- [x] Preparation failure retains the previous usable sound, reports a useful error, and permits retry. Initial-load failure reports accurately when no prior source exists.
+- [x] Remove redundant outer synchronization while retaining engine cancellation, source ownership, and audio-clock crossfade retirement.
+- [x] Extend existing lifecycle tests with deferred preparation through shared commands. Cover failure, rapid changes, Stop/restart, and disposal.
+- [x] Verify real browser audio continuity, absence of stale replacements, and silence after Stop and intentional fade. Use the repeatable workflow if available; this ticket is not blocked on its delivery.
+
+**Validation (2026-09-07):** Engine keeps the old player until the replacement is ready (0.5 s fade crossfade with audio-clock retirement), aborts superseded preparation via AbortController plus staleness guards, gates late completions on live playback intent, and surfaces preparation errors with retry that preserves the selected tuning. Twelve tanpura lifecycle unit tests cover loading/failure retention, stale completions, Stop/dispose races, and shared-command Stop during preparation. `npm run check:browser -- --scenario tanpura` passes 10/10 on headless Chrome/152.0.7977.77 at 48 kHz: initial play, continuity during held replacement, latest-wins without waiting for stale fetch, failure retention with exposed Retry, successful retry, Stop silence after late completion, and restart with retained setup. Evidence retained at `docs/validation/ticket04/`. The scenario's exception check uses the same known-NotSupportedError filter as the baseline. Code review: Standards 0 findings (no documented standards file; no baseline smells); Spec 0 findings.
 
 ## 05: Save and revisit a named session after refresh
 

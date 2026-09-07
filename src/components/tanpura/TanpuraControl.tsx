@@ -27,6 +27,7 @@ interface TanpuraControlProps {
   label: string;
   config: TanpuraConfig;
   onToggle: () => void;
+  onRetry: () => void;
   onSetTuning: (tuning: TanpuraTuning) => void;
   onSetEQ: (eq: TanpuraEQ) => void;
   onSetFinePitch: (cents: number) => void;
@@ -38,6 +39,7 @@ export function TanpuraControl({
   label,
   config,
   onToggle,
+  onRetry,
   onSetTuning,
   onSetEQ,
   onSetFinePitch,
@@ -183,6 +185,9 @@ export function TanpuraControl({
       {status.error && (
         <div className="mt-2 text-xs text-accent" role="alert">
           {status.error}
+          <button type="button" onClick={onRetry} className="ml-2 min-h-11 rounded-lg px-3 font-semibold bg-action text-white" aria-label={`Retry ${label}`}>
+            Retry
+          </button>
         </div>
       )}
     </div>
