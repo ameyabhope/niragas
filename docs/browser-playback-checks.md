@@ -44,3 +44,13 @@ Rerun with `npm run check:browser -- --output <dir>` and diff the new `report.js
 ## Existing harnesses and scope
 
 The earlier temporary smoke runner established the DOM selectors and waveform thresholds. The temporary `audio-runtime*` files and `tabla-playback.js` are useful for offline sample, pitch, and cancellation experiments, but they control Tone and stores directly, so they are not reused for this end-to-end check. This workflow intentionally keeps those experiments separate from evidence that the actual browser controls produce sound.
+
+## Saved-session persistence
+
+Run `node scripts/saved-sessions-check.mjs` to exercise the named-session form, hard refresh, and explicit reload through a real isolated browser profile. A missing browser is reported as `status: skipped`, never as a passing persistence check.
+
+The current exchange format is the versioned `niragas-presets` envelope at schema 3. Imports validate the complete file before writing, reject files over 2 MB, and reject IDs already present in the browser collection; duplicate IDs therefore cannot silently overwrite a saved session. Incompatible stored records are rejected individually when read, while unrelated recording storage remains untouched. The preset database upgrade removes unused collection indexes.
+
+## Interruption and recovery
+
+Run `node scripts/interruption-check.mjs` to suspend the live audio context through real browser controls, verify the interruption status with its explicit Resume action, confirm settings survive interruption, verify Stop-while-interrupted clears intent, and confirm Resume restores audible playback with Media Session metadata intact. A missing browser is reported as `status: skipped`, never as passing. Suspension is triggered through the real `AudioContext.suspend()` path; locked-screen and phone behavior remain manual checks.

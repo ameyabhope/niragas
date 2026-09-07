@@ -45,3 +45,18 @@ export function isAudioEngineReady(): boolean {
   return initialized && Tone.getContext().state === 'running';
 }
 
+export type BrowserAudioContextState = AudioContextState | 'interrupted';
+
+function rawAudioContext(): AudioContext {
+  return (Tone.getContext() as unknown as { rawContext: AudioContext }).rawContext;
+}
+
+export function getAudioContextState(): BrowserAudioContextState {
+  return rawAudioContext().state as BrowserAudioContextState;
+}
+
+export function subscribeAudioContextState(listener: () => void): () => void {
+  const context = rawAudioContext();
+  context.addEventListener('statechange', listener);
+  return () => context.removeEventListener('statechange', listener);
+}

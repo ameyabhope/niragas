@@ -1,0 +1,392 @@
+{
+  "status": "passed",
+  "output": "/tmp/niragas-interruption-evidence",
+  "checks": [
+    {
+      "name": "capture is available",
+      "value": {
+        "state": "running",
+        "sampleRate": 48000
+      },
+      "passed": true
+    },
+    {
+      "name": "accompaniment is audible before interruption",
+      "value": {
+        "rms": 0.02148091008058703
+      },
+      "passed": true
+    },
+    {
+      "name": "Media Session is present",
+      "value": {
+        "hasSession": true,
+        "metadata": {
+          "title": "Sa C#3",
+          "artist": "Niragas"
+        },
+        "playbackState": "playing"
+      },
+      "passed": true
+    },
+    {
+      "name": "Media Session metadata reflects current Sa",
+      "value": {
+        "title": "Sa C#3",
+        "artist": "Niragas"
+      },
+      "passed": true
+    },
+    {
+      "name": "interrupted status with explicit Resume is shown",
+      "value": {
+        "resumeVisible": true
+      },
+      "passed": true
+    },
+    {
+      "name": "settings are preserved through interruption",
+      "value": {
+        "tanpura": true
+      },
+      "passed": true
+    },
+    {
+      "name": "Stop while interrupted clears the interruption status",
+      "value": {
+        "interrupted": false
+      },
+      "passed": true
+    },
+    {
+      "name": "explicit Resume restores audible playback",
+      "value": {
+        "rms": 0.021905149144466077
+      },
+      "passed": true
+    }
+  ],
+  "errors": [
+    {
+      "exceptionId": 1,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "-3644149186940326934.2.1",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 2,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "-3644149186940326934.2.2",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 3,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "-3644149186940326934.2.3",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 4,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "-3644149186940326934.2.4",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 5,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "-3644149186940326934.2.5",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 6,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "-3644149186940326934.2.6",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 7,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "-3644149186940326934.2.7",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    },
+    {
+      "exceptionId": 8,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "scriptId": "1",
+      "url": "http://127.0.0.1:5174/",
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "NotSupportedError",
+        "objectId": "-3644149186940326934.2.8",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "NotSupportedError",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "code",
+              "type": "number",
+              "value": "9"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "NotSupportedError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "executionContextId": 2
+    }
+  ],
+  "artifacts": [],
+  "url": "http://127.0.0.1:5174/",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.77",
+    "revision": "@529d9a34b491745086b59458f58a5aae8292adaa",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.19"
+  }
+}

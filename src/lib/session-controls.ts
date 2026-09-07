@@ -2,10 +2,12 @@ import { useTanpuraStore } from '@/store/tanpura-store';
 import { useTablaStore } from '@/store/tabla-store';
 import { useSurPetiStore } from '@/store/surpeti-store';
 import { useSwarMandalStore } from '@/store/swarmandal-store';
+import { usePitchStore } from '@/store/pitch-store';
 import { stopTanpura } from '@/audio/tanpura';
-import { stopTabla } from '@/audio/tabla';
-import { stopSurPeti } from '@/audio/surpeti';
-import { stopSwarMandalLoop, strumSwarMandal } from '@/audio/swarmandal';
+import { getTanpuraStatus, subscribeTanpuraStatus } from '@/audio/tanpura';
+import { isTablaPlaying, stopTabla } from '@/audio/tabla';
+import { isSurPetiPlaying, stopSurPeti } from '@/audio/surpeti';
+import { isSwarMandalPlaying, stopSwarMandalLoop, strumSwarMandal } from '@/audio/swarmandal';
 
 import type { InstrumentId } from '@/audio/types';
 import { useSessionStore } from '@/store/session-store';
@@ -28,15 +30,24 @@ export function isSessionActive() {
   );
 }
 
+export function isPlayingAccompaniment() {
+  return useSessionStore.getState().running && (
+    getTanpuraStatus('tanpura1').playing || getTanpuraStatus('tanpura2').playing ||
+    isTablaPlaying() || isSurPetiPlaying() || isSwarMandalPlaying()
+  );
+}
+
 export function subscribeSession(listener: () => void) {
-  const unsubscribe = [useSessionStore, useTanpuraStore, useTablaStore, useSurPetiStore, useSwarMandalStore]
+  const unsubscribe = [useSessionStore, useTanpuraStore, useTablaStore, useSurPetiStore, useSwarMandalStore, usePitchStore]
     .map((store) => store.subscribe(listener));
+  unsubscribe.push(subscribeTanpuraStatus('tanpura1', listener), subscribeTanpuraStatus('tanpura2', listener));
   return () => unsubscribe.forEach((stop) => stop());
 }
 
 export function createSessionControls(initialize: () => Promise<boolean>) {
   let generation = 0;
   let starting: Promise<void> | null = null;
+  let resuming: Promise<boolean> | null = null;
   const setEnabled = (id: InstrumentId, enabled: boolean) => {
     switch (id) {
       case 'tanpura1': case 'tanpura2':
@@ -49,6 +60,7 @@ export function createSessionControls(initialize: () => Promise<boolean>) {
   const controls = {
     play(): Promise<void> {
       if (starting) return starting;
+      resuming = null;
       const request = ++generation;
       useSessionStore.setState({ requested: true });
       starting = (async () => {
@@ -66,9 +78,27 @@ export function createSessionControls(initialize: () => Promise<boolean>) {
       })();
       return starting;
     },
+    resume(): Promise<boolean> {
+      if (!useSessionStore.getState().requested) return Promise.resolve(false);
+      if (resuming) return resuming;
+      starting = null;
+      const request = ++generation;
+      resuming = (async () => {
+        try {
+          const ready = await initialize();
+          if (request !== generation || !useSessionStore.getState().requested) return false;
+          if (ready) useSessionStore.setState({ running: true });
+          return ready;
+        } finally {
+          if (request === generation) resuming = null;
+        }
+      })();
+      return resuming;
+    },
     stop() {
       ++generation;
       starting = null;
+      resuming = null;
       useSessionStore.setState({ requested: false, running: false });
       stopTanpura('tanpura1');
       stopTanpura('tanpura2');
@@ -90,7 +120,7 @@ export function createSessionControls(initialize: () => Promise<boolean>) {
       // A running auto-loop owns its initial sweep; manual mode can strum while stopped.
       if (!(useSessionStore.getState().running && useSwarMandalStore.getState().autoLoop)) strumSwarMandal();
     },
-    cancelPending() { ++generation; starting = null; },
+    cancelPending() { ++generation; starting = null; resuming = null; },
   };
   return controls;
 }

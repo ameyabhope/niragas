@@ -193,6 +193,10 @@ export function stopSurPeti(): void {
   log('[SurPeti] Stopped');
 }
 
+export function isSurPetiPlaying(): boolean {
+  return instance?.playing ?? false;
+}
+
 /**
  * Dispose the Sur-Peti and free resources.
  */

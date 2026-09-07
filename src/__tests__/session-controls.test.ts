@@ -101,4 +101,45 @@ describe('practice session commands', () => {
     expect(useRecorderStore.getState()).toMatchObject({ state: 'recording', includeMic: true });
     expect(useTunerStore.getState().micActive).toBe(true);
   });
+
+  it('resumes interrupted requested playback and lets Stop cancel a pending resume', async () => {
+    const requests: ((ready: boolean) => void)[] = [];
+    const controls = createSessionControls(() => new Promise<boolean>(resolve => requests.push(resolve)));
+    useSessionStore.setState({ requested: true, running: true });
+
+    const resume = controls.resume();
+    controls.stop();
+    requests[0](true);
+    await resume;
+
+    expect(useSessionStore.getState()).toMatchObject({ requested: false, running: false });
+  });
+
+  it('retains playback intent after resume failure and permits retry', async () => {
+    let ready = false;
+    const controls = createSessionControls(async () => ready);
+    useSessionStore.setState({ requested: true, running: true });
+
+    expect(await controls.resume()).toBe(false);
+    expect(useSessionStore.getState()).toMatchObject({ requested: true, running: true });
+    ready = true;
+    expect(await controls.resume()).toBe(true);
+  });
+
+  it('does not retain stale command promises when Start and Resume supersede each other', async () => {
+    const requests: ((ready: boolean) => void)[] = [];
+    const controls = createSessionControls(() => new Promise<boolean>(resolve => requests.push(resolve)));
+    useSessionStore.setState({ requested: true, running: true });
+
+    const oldResume = controls.resume();
+    const latestStart = controls.play();
+    requests[0](true);
+    requests[1](true);
+    await Promise.all([oldResume, latestStart]);
+
+    const latestResume = controls.resume();
+    expect(requests).toHaveLength(3);
+    requests[2](true);
+    await latestResume;
+  });
 });

@@ -144,15 +144,17 @@ The current spec takes precedence over the older broad implementation plan and i
 
 **Blocked by:** 03 — Retain the practice session through shared Start/Stop controls.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Observe audio-context state and show suspended/interrupted status with an explicit user-gesture Resume action.
-- [ ] Preserve current settings through interruption. Resume respects the latest playback intent, including a Stop issued while interrupted or while resume is pending.
-- [ ] Do not force audio to resume in the background or start sound after a cancelled resume request.
-- [ ] Supported Media Session play/pause/stop actions use shared commands. Metadata reflects current Sa and sounding taal; playback status accounts for interruption and idle manual selection.
-- [ ] Clean up handlers and stale asynchronous work. Unsupported actions/APIs degrade without breaking ordinary controls; do not add seek controls.
-- [ ] Test suspension, resume failure/retry, Stop during recovery, repeated media commands, unsupported APIs, and cleanup through controlled browser boundaries.
-- [ ] Verify available real-browser interruption/recovery behavior and explicitly record device coverage without claiming locked-screen playback guarantees.
+- [x] Observe audio-context state and show suspended/interrupted status with an explicit user-gesture Resume action.
+- [x] Preserve current settings through interruption. Resume respects the latest playback intent, including a Stop issued while interrupted or while resume is pending.
+- [x] Do not force audio to resume in the background or start sound after a cancelled resume request.
+- [x] Supported Media Session play/pause/stop actions use shared commands. Metadata reflects current Sa and sounding taal; playback status accounts for interruption and idle manual selection.
+- [x] Clean up handlers and stale asynchronous work. Unsupported actions/APIs degrade without breaking ordinary controls; do not add seek controls.
+- [x] Test suspension, resume failure/retry, Stop during recovery, repeated media commands, unsupported APIs, and cleanup through controlled browser boundaries.
+- [x] Verify available real-browser interruption/recovery behavior and explicitly record device coverage without claiming locked-screen playback guarantees.
+
+**Validation (2026-09-07):** Four browser-lifecycle unit tests plus three session resume tests cover interruption reporting, explicit-only resume, media-command routing through shared commands, missing-support degradation, cleanup, resume failure/retry, Stop-during-resume, and Start/Resume supersession. `node scripts/interruption-check.mjs` passes 8/8 on headless Chrome/152.0.7977.77: pre-interruption audibility, Media Session presence with `Sa C#3` metadata and `playing` state, visible interrupted status with Resume action, preserved settings, Stop-while-interrupted clearing intent, and Resume restoring audible playback (RMS 0.022 both before and after). Evidence retained at `docs/validation/ticket08/report.json`. Device coverage: desktop headless Chrome only; physical-phone and locked-screen behavior remain outstanding (ticket 10). Code review: Standards 0 findings (check script follows the isolated server/browser pattern with skipped-never-passing); Spec 0 findings.
 
 ## 09: Keep the screen awake during foreground practice
 
