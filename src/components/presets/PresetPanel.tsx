@@ -72,8 +72,8 @@ export function PresetPanel() {
         (loadOptions.tabla && preset.tabla.enabled) ||
         (loadOptions.surPeti && preset.surPeti.enabled) ||
         (loadOptions.swarMandal && preset.swarMandal.enabled);
-      // Selecting a saved session while stopped only changes configuration.
-      // Ticket 06 extends this boundary for live replacement while running.
+      // Loading applies the requested setup through the shared command
+      // boundary: silent while stopped, live replacement while running.
       if (startsPlayback && isSessionActive() && !(await initialize())) return;
       if (requestId !== applyRequestRef.current) return;
 

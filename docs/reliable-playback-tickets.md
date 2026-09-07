@@ -111,16 +111,18 @@ The current spec takes precedence over the older broad implementation plan and i
 - 04 — Make tanpura changes seamless and cancellation reliable.
 - 05 — Save and revisit a named session after refresh.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Use the same setup-loading rules for factory presets and saved sessions. Loading while stopped stays silent; loading while running applies the new setup without an unnecessary global stop.
-- [ ] Apply related settings coherently so intermediate store updates cannot start stale instruments or schedule transient taal/style combinations.
-- [ ] Retain selective section loading and independent preserve-Sa/preserve-tempo options.
-- [ ] Retain next-sam taal transitions and next-beat style changes, and keep beat/bol display aligned with the sounding selection.
-- [ ] Apply the requested instrument selection; a running session loading a setup with no repeating accompaniment may become silent without inventing a fallback instrument.
-- [ ] Tanpura changes follow the latest-request, continuity, failure, and Stop guarantees from ticket 04.
-- [ ] Test full/partial loads while stopped and running, rapid consecutive loads, Stop during loading, preserved values, and all-instruments-off setups through the shared command boundary.
-- [ ] Demonstrate live loading and sounding-pattern display through actual browser controls and representative audio captures.
+- [x] Use the same setup-loading rules for factory presets and saved sessions. Loading while stopped stays silent; loading while running applies the new setup without an unnecessary global stop.
+- [x] Apply related settings coherently so intermediate store updates cannot start stale instruments or schedule transient taal/style combinations.
+- [x] Retain selective section loading and independent preserve-Sa/preserve-tempo options.
+- [x] Retain next-sam taal transitions and next-beat style changes, and keep beat/bol display aligned with the sounding selection.
+- [x] Apply the requested instrument selection; a running session loading a setup with no repeating accompaniment may become silent without inventing a fallback instrument.
+- [x] Tanpura changes follow the latest-request, continuity, failure, and Stop guarantees from ticket 04.
+- [x] Test full/partial loads while stopped and running, rapid consecutive loads, Stop during loading, preserved values, and all-instruments-off setups through the shared command boundary.
+- [x] Demonstrate live loading and sounding-pattern display through actual browser controls and representative audio captures.
+
+**Validation (2026-09-07):** Tabla setup loads now apply taal/style/tempo/selection in one store transaction, so subscribers never observe a transient pair. Seven live-load unit tests cover stopped silence, running application without touching playback intent, single-notification coherence, rapid-load resolution, retained settings through Stop, all-off silence without fallback, and preserve-tempo with partial sections. `node scripts/live-load-check.mjs` passes 8/8 on headless Chrome/152.0.7977.77: baseline sounding, display alignment, uninterrupted tabla across a tanpura-only partial load (13 attacks, no duplicates), and a full load applying the requested selection while tanpura keeps playing. Evidence retained at `docs/validation/ticket06/`. Code review: Standards 0 findings (shared PCM-metrics helper avoids duplicating analysis code across check scripts); Spec 0 findings.
 
 ## 07: Manage and exchange saved sessions
 

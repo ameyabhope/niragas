@@ -54,3 +54,7 @@ The current exchange format is the versioned `niragas-presets` envelope at schem
 ## Interruption and recovery
 
 Run `node scripts/interruption-check.mjs` to suspend the live audio context through real browser controls, verify the interruption status with its explicit Resume action, confirm settings survive interruption, verify Stop-while-interrupted clears intent, and confirm Resume restores audible playback with Media Session metadata intact. A missing browser is reported as `status: skipped`, never as passing. Suspension is triggered through the real `AudioContext.suspend()` path; locked-screen and phone behavior remain manual checks.
+
+## Live setup loading
+
+Run `node scripts/live-load-check.mjs` to apply factory presets while accompaniment runs: a tanpura-only partial load that must leave the sounding tabla untouched, then a full load that applies the requested selection (including a silent tabla) without a global stop. The runner asserts continued attacks without duplicates across the load, beat-display alignment with the sounding pattern, and continued audibility. A missing browser is reported as `status: skipped`.

@@ -97,12 +97,9 @@ export function applyPresetState(preset: Preset, options: PresetLoadOptions): vo
   if (options.tabla) {
     const tabla = useTablaStore.getState();
     const tempo = options.preserveTempo ? tabla.tempo : preset.tabla.tempo;
-    tabla.setTaalId(preset.tabla.taalId);
-    tabla.setStyleId(preset.tabla.styleId);
-    tabla.setTempo(tempo);
-    tabla.setEnabled(preset.tabla.enabled);
-    // Loading never starts sound; disabling clears stale sounding state.
-    if (!preset.tabla.enabled) tabla.setPlaying(false);
+    // One store update: subscribers never see a transient taal/style pair,
+    // and loading stays silent unless the live session is already running.
+    tabla.applySetup({ taalId: preset.tabla.taalId, styleId: preset.tabla.styleId, tempo, enabled: preset.tabla.enabled });
   }
 
   if (options.surPeti) {

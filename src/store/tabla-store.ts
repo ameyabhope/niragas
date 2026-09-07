@@ -38,6 +38,14 @@ interface TablaState {
   setPlaying: (playing: boolean) => void;
   togglePlaying: () => void;
   setCurrentBeat: (matra: number, divisionLabel: string | null, taalId: string, styleId: string) => void;
+  /**
+   * Apply a saved taal/style/tempo/selection in one store update so
+   * subscribers never observe a transient taal/style combination. Loading
+   * never starts sound: disabling clears stale sounding state, while an
+   * enabled load keeps the current playing state for the live engine to
+   * reconcile through the shared session boundary.
+   */
+  applySetup: (setup: { taalId: string; styleId: string; tempo: number; enabled: boolean }) => void;
 }
 
 export const useTablaStore = create<TablaState>((set, get) => ({
@@ -96,6 +104,31 @@ export const useTablaStore = create<TablaState>((set, get) => ({
   })),
 
   togglePlaying: () => get().setPlaying(!get().playing),
+
+  applySetup: ({ taalId, styleId, tempo, enabled }) =>
+    set((state) => {
+      const taal = getTaal(taalId);
+      const validStyle = taal.styles.some((entry) => entry.id === styleId)
+        ? styleId
+        : taal.styles[0]?.id ?? '';
+      // A sounding cycle keeps its style until the audio draw confirms the
+      // new selection, mirroring the single-field taal update.
+      const nextStyleId = state.playing && taal.id === state.activeTaalId
+        ? state.activeStyleId ?? validStyle
+        : validStyle;
+      const playing = enabled ? state.playing : false;
+      const cleared = state.playing && !playing;
+      return {
+        taalId: taal.id,
+        styleId: nextStyleId,
+        tempo: clampTempo(taal.id, tempo),
+        enabled,
+        playing,
+        ...(!state.playing || cleared
+          ? { activeTaalId: null, activeStyleId: null, currentMatra: 1, currentDivisionLabel: null }
+          : {}),
+      };
+    }),
 
   setCurrentBeat: (matra, divisionLabel, taalId, styleId) =>
     set((state) => state.playing ? {
