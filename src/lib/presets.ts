@@ -233,3 +233,11 @@ export function serializePresetExport(presets: Preset[]): string {
     presets,
   }, null, 2);
 }
+
+/** Collection filtering shared by the saved-session list: name/taal search plus the favorites view. */
+export function filterPresets(presets: Preset[], search: string, favoritesOnly: boolean): Preset[] {
+  const query = search.trim().toLowerCase();
+  return presets.filter((preset) =>
+    (!favoritesOnly || preset.favorite) &&
+    `${preset.name} ${preset.tabla.taalId}`.toLowerCase().includes(query));
+}

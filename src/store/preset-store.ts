@@ -179,9 +179,15 @@ export const usePresetStore = create<PresetState>((set, get) => ({
   toggleFavorite: async (id) => {
     const preset = get().presets.find((p) => p.id === id);
     if (!preset) return;
-    await savePreset({ ...preset, favorite: !preset.favorite, updatedAt: Date.now() });
-    const presets = await getAllPresets();
-    set({ presets, error: null });
+    try {
+      await savePreset({ ...preset, favorite: !preset.favorite, updatedAt: Date.now() });
+      const presets = await getAllPresets();
+      set({ presets, error: null });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not update favorite.';
+      set({ error: message });
+      throw err;
+    }
   },
 
   toggleShowFavorites: () =>
@@ -199,9 +205,15 @@ export const usePresetStore = create<PresetState>((set, get) => ({
   },
 
   importFromJSON: async (json) => {
-    const count = await importPresetsJSON(json);
-    const presets = await getAllPresets();
-    set({ presets });
-    return count;
+    try {
+      const count = await importPresetsJSON(json);
+      const presets = await getAllPresets();
+      set({ presets, error: null });
+      return count;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not import saved sessions.';
+      set({ error: message });
+      throw err;
+    }
   },
 }));

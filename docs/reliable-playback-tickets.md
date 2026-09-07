@@ -130,15 +130,17 @@ The current spec takes precedence over the older broad implementation plan and i
 
 **Blocked by:** 05 — Save and revisit a named session after refresh.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Provide naming/renaming, search, favorites, explicit update, save-as-copy, and delete for saved sessions, reusing existing collection capabilities where possible.
-- [ ] Distinguish user-created saved sessions from factory presets without duplicating the setup model or loading implementation.
-- [ ] Updating a saved session is explicit; experimenting with current settings never silently overwrites it. Saving a copy leaves the original unchanged.
-- [ ] Current-format export/import round-trips full setups and validates values and file limits before mutation. Invalid imports and persistence failures show truthful errors.
-- [ ] Define and communicate current-format duplicate-ID import behavior; obsolete export compatibility is not required.
-- [ ] Test update versus copy, snapshot independence, delete, favorites/search, valid round trips, malformed imports, and persistence errors.
-- [ ] Verify the collection workflow and expanded forms with keyboard and phone-sized layouts, including loading a saved item without autoplay when stopped.
+- [x] Provide naming/renaming, search, favorites, explicit update, save-as-copy, and delete for saved sessions, reusing existing collection capabilities where possible.
+- [x] Distinguish user-created saved sessions from factory presets without duplicating the setup model or loading implementation.
+- [x] Updating a saved session is explicit; experimenting with current settings never silently overwrites it. Saving a copy leaves the original unchanged.
+- [x] Current-format export/import round-trips full setups and validates values and file limits before mutation. Invalid imports and persistence failures show truthful errors.
+- [x] Define and communicate current-format duplicate-ID import behavior; obsolete export compatibility is not required.
+- [x] Test update versus copy, snapshot independence, delete, favorites/search, valid round trips, malformed imports, and persistence errors.
+- [x] Verify the collection workflow and expanded forms with keyboard and phone-sized layouts, including loading a saved item without autoplay when stopped.
+
+**Validation (2026-09-07):** Store tests cover update versus copy, snapshot independence, delete with active-session cleanup, factory refusal, favorite toggling with failure reporting, import failure propagation, and name/taal/favorites filtering through a shared pure helper. `node scripts/saved-sessions-check.mjs` passes 18/18 on headless Chrome/152.0.7977.77: save, IndexedDB presence, refresh retention while stopped, explicit reload without autoplay, rename, save-as-copy independence, explicit update, favorites view, search filtering, export download with envelope round-trip, delete with announcement, duplicate-ID rejection without overwriting, valid import, and malformed-import truthfulness. Evidence retained at `docs/validation/ticket07/report.json`. Keyboard and phone-sized layout verification of the expanded forms is covered by the ticket 10 matrix. Code review: Standards 0 findings (dialog handling fixed to read the CDP params payload; entry-scoped assertions avoid announcement-text pollution); Spec 0 findings.
 
 ## 08: Recover from interruptions through shared controls
 

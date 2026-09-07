@@ -47,7 +47,7 @@ The earlier temporary smoke runner established the DOM selectors and waveform th
 
 ## Saved-session persistence
 
-Run `node scripts/saved-sessions-check.mjs` to exercise the named-session form, hard refresh, and explicit reload through a real isolated browser profile. A missing browser is reported as `status: skipped`, never as a passing persistence check.
+Run `node scripts/saved-sessions-check.mjs` to exercise the named-session form, hard refresh, and explicit reload through a real isolated browser profile, then the full collection workflow: rename, save-as-copy, explicit update, favorites, search, export download with envelope round-trip, delete, duplicate-ID rejection, valid import, and malformed import. Dialogs (rename/copy prompts, delete confirmation) are answered through the DevTools protocol. A missing browser is reported as `status: skipped`, never as a passing persistence check.
 
 The current exchange format is the versioned `niragas-presets` envelope at schema 3. Imports validate the complete file before writing, reject files over 2 MB, and reject IDs already present in the browser collection; duplicate IDs therefore cannot silently overwrite a saved session. Incompatible stored records are rejected individually when read, while unrelated recording storage remains untouched. The preset database upgrade removes unused collection indexes.
 

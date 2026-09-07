@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Preset } from '@/audio/types';
 import { FACTORY_PRESETS } from '@/data/raag-presets';
 import { capturePreset } from '@/lib/preset-state';
+import { filterPresets } from '@/lib/presets';
 import { usePitchStore } from '@/store/pitch-store';
 import { useTablaStore } from '@/store/tabla-store';
 import { useTanpuraStore } from '@/store/tanpura-store';
@@ -122,5 +123,38 @@ describe('saved sessions', () => {
     expect(store.getState().activePresetId).toBe(preset.id);
     await actions.deletePreset(preset.id);
     expect(store.getState()).toMatchObject({ presets: [], activePresetId: null, error: null });
+  });
+
+  it('toggles favorites and reports favorite failures truthfully', async () => {
+    const actions = store.getState();
+    const preset = capturePreset('Favorite candidate');
+    await actions.createPreset(preset);
+
+    await actions.toggleFavorite(preset.id);
+    expect(store.getState().presets.find((item) => item.id === preset.id)?.favorite).toBe(true);
+
+    storageMocks.setFailure(new Error('Storage locked'));
+    await expect(actions.toggleFavorite(preset.id)).rejects.toThrow('Storage locked');
+    expect(store.getState().error).toBe('Storage locked');
+    storageMocks.setFailure(null);
+  });
+
+  it('propagates import failures without changing the collection', async () => {
+    const actions = store.getState();
+    storageMocks.storage.importPresetsJSON.mockRejectedValueOnce(new Error('Preset file is not valid JSON'));
+    await expect(actions.importFromJSON('not json')).rejects.toThrow('not valid JSON');
+    expect(store.getState()).toMatchObject({ error: 'Preset file is not valid JSON', presets: [] });
+  });
+
+  it('filters the collection by name, taal, and favorites', () => {
+    const first = { ...capturePreset('Evening Desh'), favorite: false };
+    first.tabla.taalId = 'keherva';
+    const second = { ...capturePreset('Morning Yaman'), favorite: true };
+    second.tabla.taalId = 'teentaal';
+
+    expect(filterPresets([first, second], 'desh', false).map((item) => item.name)).toEqual(['Evening Desh']);
+    expect(filterPresets([first, second], 'keherva', false).map((item) => item.name)).toEqual(['Evening Desh']);
+    expect(filterPresets([first, second], '', true).map((item) => item.name)).toEqual(['Morning Yaman']);
+    expect(filterPresets([first, second], '  ', false)).toHaveLength(2);
   });
 });

@@ -1,0 +1,103 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "name": "practice UI loaded",
+      "passed": true
+    },
+    {
+      "name": "save reports completion",
+      "passed": true,
+      "detail": {
+        "found": true,
+        "tail": "note set\n\n\u2606\n\nYaman Kalyan\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\nSWAR MANDAL\ni\nOFF\nStrings (3 / 3 enabled)\n\nTune each string for your practice. Octaves are relative to your selected Sa; note sets are starting points, not raag rules.\n\nSa-only tuning: no raag inventory assumed. Add or tune strings as needed.\n\n1: On\nSa (shuddha)\nRe (komal)\nRe (shuddha)\nGa (komal)\nGa (shuddha)\nMa (shuddha)\nMa (tivra)\nPa (shuddha)\nDha (komal)\nDha (shuddha)\nNi (komal)\nNi (shuddha)\nSa -2 oct\nSa -1 oct\nSa +0 oct\nSa +1 oct\nSa +2 oct\nSa +3 oct\nRemove\n2: On\nSa (shuddha)\nRe (komal)\nRe (shuddha)\nGa (komal)\nGa (shuddha)\nMa (shuddha)\nMa (tivra)\nPa (shuddha)\nDha (komal)\nDha (shuddha)\nNi (komal)\nNi (shuddha)\nSa -2 oct\nSa -1 oct\nSa +0 oct\nSa +1 oct\nSa +2 oct\nSa +3 oct\nRemove\n3: On\nSa (shuddha)\nRe (komal)\nRe (shuddha)\nGa (komal)\nGa (shuddha)\nMa (shuddha)\nMa (tivra)\nPa (shuddha)\nDha (komal)\nDha (shuddha)\nNi (komal)\nNi (shuddha)\nSa -2 oct\nSa -1 oct\nSa +0 oct\nSa +1 oct\nSa +2 oct\nSa +3 oct\nRemove\nAdd Sa string\nStrum Once\nAuto Loop\nTUNER\ni\nStart Tuner\n\nApp (Sa)\n\nC#\n\nSa\n\n3\n\n138.6 Hz\n\nMicrophone\n\n--\n\nNot active\n\nRECORDER\ni\nInclude mic\nAudio sample credits and licenses"
+      }
+    },
+    {
+      "name": "saved session is in IndexedDB",
+      "passed": true
+    },
+    {
+      "name": "refresh retains saved collection",
+      "passed": true
+    },
+    {
+      "name": "refresh remains stopped",
+      "passed": true
+    },
+    {
+      "name": "explicit reload finds saved session",
+      "passed": true
+    },
+    {
+      "name": "explicit reload does not autoplay",
+      "passed": true
+    },
+    {
+      "name": "rename updates the saved session",
+      "passed": true
+    },
+    {
+      "name": "save-as-copy leaves the original unchanged",
+      "passed": true
+    },
+    {
+      "name": "explicit update overwrites only on demand",
+      "passed": true
+    },
+    {
+      "name": "favorites view shows only favorited sessions",
+      "passed": true,
+      "detail": {
+        "entries": 1
+      }
+    },
+    {
+      "name": "search filters the collection",
+      "passed": true,
+      "detail": {
+        "entries": 1
+      }
+    },
+    {
+      "name": "export downloads a file",
+      "passed": true,
+      "detail": {
+        "exportedPath": "/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-saved-sessions-4GvNyq/downloads/niragas-presets-2026-09-07.json"
+      }
+    },
+    {
+      "name": "export round-trips the versioned envelope",
+      "passed": true,
+      "detail": true
+    },
+    {
+      "name": "delete removes the session with an announcement",
+      "passed": true,
+      "detail": {
+        "entryGone": true
+      }
+    },
+    {
+      "name": "duplicate IDs are rejected without overwriting",
+      "passed": true
+    },
+    {
+      "name": "valid import adds the session",
+      "passed": true
+    },
+    {
+      "name": "malformed imports fail truthfully without mutation",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.77",
+    "revision": "@529d9a34b491745086b59458f58a5aae8292adaa",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.19"
+  },
+  "url": "http://127.0.0.1:5174/"
+}

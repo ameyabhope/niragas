@@ -7,7 +7,7 @@ import type { Preset } from '@/audio/types';
 import { usePresetStore, type LoadOptions } from '@/store/preset-store';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { applyPresetState, capturePreset } from '@/lib/preset-state';
-import { MAX_PRESET_IMPORT_BYTES } from '@/lib/presets';
+import { filterPresets, MAX_PRESET_IMPORT_BYTES } from '@/lib/presets';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { hasRaagSwarMandal } from '@/data/raag-presets';
 import { isSessionActive } from '@/lib/session-controls';
@@ -58,9 +58,7 @@ export function PresetPanel() {
   }, [loadPresets]);
 
   // Filtered presets
-  const filteredPresets = presets.filter((p) =>
-    (!showFavoritesOnly || p.favorite) &&
-    `${p.name} ${p.tabla.taalId}`.toLowerCase().includes(search.trim().toLowerCase()));
+  const filteredPresets = filterPresets(presets, search, showFavoritesOnly);
 
   // ── Apply preset to app state ──
 
@@ -195,7 +193,7 @@ export function PresetPanel() {
         <h2 className="text-xs text-text-muted uppercase tracking-wider font-semibold">
           Presets
         </h2>
-        <InfoTooltip label="About presets" text="Factory raag presets plus custom presets. Each preset stores pitch, instruments, playback state, mixer, and EQ settings. Use Options to choose which sections to load. Imports are validated before anything is saved." />
+        <InfoTooltip label="About presets" text="Factory raag presets plus your saved sessions. Each setup stores pitch, instrument selection, tabla rhythm, mixer, and EQ settings; loading never starts sound on its own. Use Options to choose which sections to load. Imports are validated before anything is saved." />
       </div>
 
       <div className="rounded-xl border border-white/5 bg-surface-card p-4 flex flex-col gap-3">
