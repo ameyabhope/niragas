@@ -205,6 +205,8 @@ export function parsePreset(value: unknown, path = 'preset'): Preset {
 export function parsePresetExport(value: unknown): Preset[] {
   let values: unknown;
   if (Array.isArray(value)) {
+    // Kept for the capture/load validation seam. File imports enforce the
+    // versioned envelope in storage.ts before calling this parser.
     values = value;
   } else {
     const envelope = record(value, 'preset file');

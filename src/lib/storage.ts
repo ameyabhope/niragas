@@ -13,22 +13,33 @@ import {
 } from '@/lib/presets';
 
 const DB_NAME = 'niragas';
-const DB_VERSION = 1;
+// Version 2 removes the name/favorite/updatedAt indexes. Collection sizes are
+// small and reads are validated and sorted in memory, so these indexes only
+// added upgrade and mutation work without providing a query seam.
+const DB_VERSION = 2;
 const PRESETS_STORE = 'presets';
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 
 function getDB(): Promise<IDBPDatabase> {
   if (!dbPromise) {
-    dbPromise = openDB(DB_NAME, DB_VERSION, {
-      upgrade(db) {
+    const opening = openDB(DB_NAME, DB_VERSION, {
+      upgrade(db, _oldVersion, _newVersion, transaction) {
         if (!db.objectStoreNames.contains(PRESETS_STORE)) {
-          const store = db.createObjectStore(PRESETS_STORE, { keyPath: 'id' });
-          store.createIndex('name', 'name', { unique: false });
-          store.createIndex('favorite', 'favorite', { unique: false });
-          store.createIndex('updatedAt', 'updatedAt', { unique: false });
+          db.createObjectStore(PRESETS_STORE, { keyPath: 'id' });
+        } else {
+          const store = transaction.objectStore(PRESETS_STORE);
+          for (const index of ['name', 'favorite', 'updatedAt']) {
+            if (store.indexNames.contains(index)) store.deleteIndex(index);
+          }
         }
       },
+    });
+    dbPromise = opening.catch((error) => {
+      // A blocked/failed open must be retryable after the user resolves the
+      // browser storage problem; do not cache a rejected promise forever.
+      dbPromise = null;
+      throw error;
     });
   }
   return dbPromise;
@@ -92,13 +103,33 @@ export async function exportPresetsJSON(): Promise<string> {
 
 /**
  * Import presets from a JSON string. Merges with existing presets.
- * Existing presets with the same ID are overwritten.
+ * Existing IDs are rejected so importing cannot silently overwrite a session.
  */
 export async function importPresetsJSON(json: string): Promise<number> {
+  if (typeof json !== 'string') throw new Error('Preset file must be JSON text');
   if (new Blob([json]).size > MAX_PRESET_IMPORT_BYTES) {
     throw new Error('Preset file is larger than 2 MB');
   }
-  const presets = parsePresetExport(JSON.parse(json) as unknown);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json) as unknown;
+  } catch {
+    throw new Error('Preset file is not valid JSON');
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('Preset file format or schema version is not supported');
+  }
+  const envelope = parsed as Record<string, unknown>;
+  if (envelope.format !== 'niragas-presets' || envelope.schemaVersion !== 3) {
+    throw new Error('Preset file format or schema version is not supported');
+  }
+  const presets = parsePresetExport(parsed);
+  const existing = await getAllPresets();
+  const existingIds = new Set(existing.map((preset) => preset.id));
+  const collision = presets.find((preset) => existingIds.has(preset.id));
+  if (collision) {
+    throw new Error(`Preset ID "${collision.id}" already exists; remove it or import with a new ID`);
+  }
   await savePresets(presets);
   return presets.length;
 }

@@ -10,6 +10,7 @@ import { applyPresetState, capturePreset } from '@/lib/preset-state';
 import { MAX_PRESET_IMPORT_BYTES } from '@/lib/presets';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { hasRaagSwarMandal } from '@/data/raag-presets';
+import { isSessionActive } from '@/lib/session-controls';
 
 export function PresetPanel() {
   const {
@@ -21,6 +22,9 @@ export function PresetPanel() {
     loadPresets,
     loadFactoryPresets,
     createPreset,
+    renamePreset,
+    updatePreset,
+    copyPreset,
     deletePreset,
     toggleFavorite,
     toggleShowFavorites,
@@ -28,6 +32,7 @@ export function PresetPanel() {
     setActivePresetId,
     exportAll,
     importFromJSON,
+    error: storeError,
   } = usePresetStore();
 
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -41,6 +46,11 @@ export function PresetPanel() {
   const saveButtonRef = useRef<HTMLButtonElement>(null);
   const applyRequestRef = useRef(0);
   const { initialize } = useAudioEngine();
+
+  // Keep storage failures visible even when they happen during initial load.
+  useEffect(() => {
+    if (storeError) setError(storeError);
+  }, [storeError]);
 
   // Load presets on mount
   useEffect(() => {
@@ -62,7 +72,9 @@ export function PresetPanel() {
         (loadOptions.tabla && preset.tabla.enabled) ||
         (loadOptions.surPeti && preset.surPeti.enabled) ||
         (loadOptions.swarMandal && preset.swarMandal.enabled);
-      if (startsPlayback && !(await initialize())) return;
+      // Selecting a saved session while stopped only changes configuration.
+      // Ticket 06 extends this boundary for live replacement while running.
+      if (startsPlayback && isSessionActive() && !(await initialize())) return;
       if (requestId !== applyRequestRef.current) return;
 
       setActivePresetId(preset.id);
@@ -98,17 +110,57 @@ export function PresetPanel() {
     }
   }, [newPresetName, createPreset, closeSaveDialog]);
 
+  const handleUpdate = useCallback(async (preset: Preset) => {
+    try {
+      setError(null);
+      const current = capturePreset(preset.name);
+      await updatePreset({ ...current, id: preset.id, createdAt: preset.createdAt, favorite: preset.favorite });
+      setActivePresetId(preset.id);
+      setAnnouncement(`Updated saved session ${preset.name}.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update saved session.');
+    }
+  }, [updatePreset, setActivePresetId]);
+
+  const handleRename = useCallback(async (preset: Preset) => {
+    const name = window.prompt('Rename saved session', preset.name)?.trim();
+    if (!name || name === preset.name) return;
+    try {
+      setError(null);
+      await renamePreset(preset.id, name);
+      setAnnouncement(`Renamed saved session to ${name}.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not rename saved session.');
+    }
+  }, [renamePreset]);
+
+  const handleCopy = useCallback(async (preset: Preset) => {
+    const name = window.prompt('Name for the copy', `${preset.name} copy`)?.trim();
+    if (!name) return;
+    try {
+      setError(null);
+      await copyPreset(preset.id, name);
+      setAnnouncement(`Saved copy ${name}.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save a copy.');
+    }
+  }, [copyPreset]);
+
   // ── Export ──
 
   const handleExport = useCallback(async () => {
-    const json = await exportAll();
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `niragas-presets-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const json = await exportAll();
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `niragas-presets-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not export saved sessions.');
+    }
   }, [exportAll]);
 
   // ── Import ──
@@ -124,10 +176,11 @@ export function PresetPanel() {
         }
         const text = await file.text();
         const count = await importFromJSON(text);
-        alert(`Imported ${count} presets successfully.`);
+        setError(null);
+        setAnnouncement(`Imported ${count} saved sessions successfully.`);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown import error';
-        alert(`Failed to import presets: ${message}`);
+        setError(`Could not import saved sessions: ${message}`);
       }
 
       // Reset file input
@@ -344,7 +397,9 @@ export function PresetPanel() {
                 {/* Favorite star */}
                 <button
                   type="button"
-                  onClick={() => toggleFavorite(preset.id)}
+                  onClick={() => void toggleFavorite(preset.id).catch((err) => {
+                    setError(err instanceof Error ? err.message : 'Could not update favorite.');
+                  })}
                   aria-label={`${preset.favorite ? 'Remove' : 'Add'} ${preset.name} ${preset.favorite ? 'from' : 'to'} favorites`}
                   aria-pressed={preset.favorite}
                   className={`w-11 h-11 shrink-0 text-sm ${
@@ -375,13 +430,40 @@ export function PresetPanel() {
                   )}
                 </button>
 
+                {!preset.id.startsWith('factory-') && (
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => void handleUpdate(preset)}
+                      aria-label={`Update saved session ${preset.name} from current settings`}
+                      className="min-h-11 px-2 text-[10px] text-text-muted hover:text-text-primary"
+                    >Update</button>
+                    <button
+                      type="button"
+                      onClick={() => void handleCopy(preset)}
+                      aria-label={`Save a copy of ${preset.name}`}
+                      className="min-h-11 px-2 text-[10px] text-text-muted hover:text-text-primary"
+                    >Copy</button>
+                    <button
+                      type="button"
+                      onClick={() => void handleRename(preset)}
+                      aria-label={`Rename saved session ${preset.name}`}
+                      className="min-h-11 px-2 text-[10px] text-text-muted hover:text-text-primary"
+                    >Rename</button>
+                  </div>
+                )}
+
                 {/* Delete (only custom presets) */}
                 {!preset.id.startsWith('factory-') && (
                   <button
                     type="button"
                     onClick={() => {
                       if (confirm(`Delete "${preset.name}"?`)) {
-                        deletePreset(preset.id);
+                        void deletePreset(preset.id).then(() => {
+                          setAnnouncement(`Deleted saved session ${preset.name}.`);
+                        }).catch((err) => {
+                          setError(err instanceof Error ? err.message : 'Could not delete saved session.');
+                        });
                       }
                     }}
                     aria-label={`Delete preset ${preset.name}`}

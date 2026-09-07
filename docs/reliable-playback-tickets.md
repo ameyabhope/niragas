@@ -89,17 +89,19 @@ The current spec takes precedence over the older broad implementation plan and i
 
 **Blocked by:** 03 — Retain the practice session through shared Start/Stop controls.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Reuse the existing preset capture/load, validation, and IndexedDB capabilities for named saved sessions, rather than adding a parallel persistence system.
-- [ ] Capture pitch/reference frequency, enabled instruments, both tanpura configurations, tabla taal/style/tempo, Swar Mandal strings and loop settings, mixer/master settings, and EQ.
-- [ ] Give volume, pan, and mute one owner in the mixer; eliminate duplicate fields in the saved setup. Store selection independently of historical playback state.
-- [ ] Exclude transport position, pending work, loading/error state, audio resources, microphone permissions, recording state, and wake-lock handles.
-- [ ] Saving creates an independent snapshot; later changes to the current practice session do not mutate it. Report actual save completion or failure and support retry.
-- [ ] A refresh resets current practice settings and remains silent while retaining newly saved sessions. Loading one while stopped restores its configuration without autoplay.
-- [ ] Use one current validated schema. Remove obsolete migrations and unused indexes, with a simple documented reset/rejection policy for incompatible old setup data. Avoid indiscriminate deletion of unrelated storage.
-- [ ] Extend capture/load and validation tests. Verify save, edit, refresh, explicit reload, and save failure/retry against real browser IndexedDB.
-- [ ] Keep the existing setup workflow usable while subsequent tickets extend live loading and collection management.
+- [x] Reuse the existing preset capture/load, validation, and IndexedDB capabilities for named saved sessions, rather than adding a parallel persistence system.
+- [x] Capture pitch/reference frequency, enabled instruments, both tanpura configurations, tabla taal/style/tempo, Swar Mandal strings and loop settings, mixer/master settings, and EQ.
+- [x] Give volume, pan, and mute one owner in the mixer; eliminate duplicate fields in the saved setup. Store selection independently of historical playback state.
+- [x] Exclude transport position, pending work, loading/error state, audio resources, microphone permissions, recording state, and wake-lock handles.
+- [x] Saving creates an independent snapshot; later changes to the current practice session do not mutate it. Report actual save completion or failure and support retry.
+- [x] A refresh resets current practice settings and remains silent while retaining newly saved sessions. Loading one while stopped restores its configuration without autoplay.
+- [x] Use one current validated schema. Remove obsolete migrations and unused indexes, with a simple documented reset/rejection policy for incompatible old setup data. Avoid indiscriminate deletion of unrelated storage.
+- [x] Extend capture/load and validation tests. Verify save, edit, refresh, explicit reload, and save failure/retry against real browser IndexedDB.
+- [x] Keep the existing setup workflow usable while subsequent tickets extend live loading and collection management.
+
+**Validation (2026-09-07):** Capture/load round-trip, validation, explicit update versus copy, snapshot independence, factory guards, and delete covered by unit tests; five new saved-session store tests cover save failure (truthful error, collection preserved) with retry success, snapshot independence, explicit update versus copy, factory refusal, and active-session cleanup. `node scripts/saved-sessions-check.mjs` passes 7/7 on headless Chrome/152.0.7977.77 against real browser IndexedDB: save completion, IndexedDB presence, refresh retaining the collection while stopped, explicit reload finding the session, and no autoplay. Evidence retained at `docs/validation/ticket05/report.json`. Code review: Standards 0 findings (store mutations follow the uniform record-error-and-rethrow pattern; tests follow the repo's mocked-storage-boundary pattern); Spec 0 findings.
 
 ## 06: Load setups consistently during playback
 
