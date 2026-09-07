@@ -63,7 +63,7 @@ describe('Swar Mandal seconds scheduler', () => {
     clock.callback(42.00000000000001, 0);
     expect(audio.attacks[0]).toHaveBeenCalledWith(expect.any(Number), 42);
     expect(audio.attacks[0]).toHaveBeenCalledOnce();
-    expect(audio.attacks[1]).toHaveBeenCalledWith(expect.any(Number), 42.035);
+    expect(audio.attacks[1]).toHaveBeenCalledWith(expect.any(Number), 42.1);
     updateSwarMandal({ loopDuration: 5 });
     expect(clock.dispose).toHaveBeenCalledOnce();
     expect(audio.clocks[1].frequency).toBe(1 / 5);
@@ -80,7 +80,7 @@ describe('Swar Mandal seconds scheduler', () => {
     strumSwarMandal(10);
     strumSwarMandal(10);
     expect(audio.attacks).toHaveLength(64);
-    expect(audio.attacks[63]).toHaveBeenNthCalledWith(1, expect.any(Number), 10 + 63 * 0.035);
+    expect(audio.attacks[63]).toHaveBeenNthCalledWith(1, expect.any(Number), 16.3);
     expect(audio.attacks[63].mock.calls[1][1]).toBeGreaterThan(audio.attacks[63].mock.calls[0][1]);
     updateSwarMandal({ strings: Array.from({ length: 64 }, (_, index) => ({
       note: 'Sa', variant: 'shuddha', octaveOffset: 0, enabled: index === 63,

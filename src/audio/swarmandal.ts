@@ -68,7 +68,7 @@ export function createSwarMandal(): void {
 }
 
 /**
- * Strum all enabled strings in rapid succession.
+ * Sweep through all enabled strings in order.
  */
 export function strumSwarMandal(scheduledTime = Tone.now()): void {
   if (!instance) return;
@@ -78,7 +78,7 @@ export function strumSwarMandal(scheduledTime = Tone.now()): void {
     .filter(({ config }) => config.enabled);
   if (enabledStrings.length === 0) return;
 
-  const staggerMs = 0.035; // 35ms between each string
+  const stringSpacingSeconds = 0.1;
 
   enabledStrings.forEach(({ config: stringConfig, index }, i) => {
     const frequency = swarToFreq(
@@ -91,7 +91,7 @@ export function strumSwarMandal(scheduledTime = Tone.now()): void {
     );
 
     // Rapid strums or changing enabled strings can overlap queued attacks.
-    const time = Math.max(scheduledTime + i * staggerMs, (instance!.lastAttackTimes[index] ?? -Infinity) + 0.01);
+    const time = Math.max(scheduledTime + i * stringSpacingSeconds, (instance!.lastAttackTimes[index] ?? -Infinity) + 0.01);
     instance!.lastAttackTimes[index] = time;
     const synth = instance!.synths[index] ??= new Tone.PluckSynth({
       attackNoise: 1.2,
