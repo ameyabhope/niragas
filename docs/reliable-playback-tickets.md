@@ -166,15 +166,17 @@ The current spec takes precedence over the older broad implementation plan and i
 
 **Blocked by:** 08 — Recover from interruptions through shared controls.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Expose an opt-in control and understandable status for unsupported, idle, requesting, held, released, hidden, and denied conditions as appropriate.
-- [ ] Request a screen wake lock only when requested, visible, and playing accompaniment has a running audio context. Idle manual Swar Mandal alone is ineligible.
-- [ ] Release on Stop, disabling, hiding, loss of eligibility, or unmount. Safely release sentinels delivered after cancellation or cleanup.
-- [ ] Reacquire on visibility return only when still requested and eligible. Handle automatic release without stale status or duplicate ownership.
-- [ ] Keep wake-lock resources out of saved-session data and avoid implying that screen wake lock guarantees locked-screen/background audio.
-- [ ] Test denied/unsupported paths, automatic release, visibility transitions, context interruption, stale acquisition, and cleanup.
-- [ ] Verify the control and truthful status in supporting and non-supporting browser conditions; record actual phone testing when available.
+- [x] Expose an opt-in control and understandable status for unsupported, idle, requesting, held, released, hidden, and denied conditions as appropriate.
+- [x] Request a screen wake lock only when requested, visible, and playing accompaniment has a running audio context. Idle manual Swar Mandal alone is ineligible.
+- [x] Release on Stop, disabling, hiding, loss of eligibility, or unmount. Safely release sentinels delivered after cancellation or cleanup.
+- [x] Reacquire on visibility return only when still requested and eligible. Handle automatic release without stale status or duplicate ownership.
+- [x] Keep wake-lock resources out of saved-session data and avoid implying that screen wake lock guarantees locked-screen/background audio.
+- [x] Test denied/unsupported paths, automatic release, visibility transitions, context interruption, stale acquisition, and cleanup.
+- [x] Verify the control and truthful status in supporting and non-supporting browser conditions; record actual phone testing when available.
+
+**Validation (2026-09-07):** Seven wake-lock unit tests cover opt-in gating, idle ineligibility, stale acquisitions, unsupported/denied reporting, hidden/reacquire/auto-release, cleanup, and newer-request protection. `node scripts/wake-lock-check.mjs` passes 7/7 on headless Chrome/152.0.7977.77 (WakeLock supported): Off → Waiting for accompaniment while idle → Screen will stay awake once eligible → Waiting again on Stop → Off on disable. Evidence retained at `docs/validation/ticket09/report.json`. Non-supporting browsers are covered at the unit boundary only; physical-phone verification remains outstanding (ticket 10). Code review: Standards 0 findings; Spec 0 findings.
 
 ## 10: Complete desktop and phone acceptance
 
