@@ -83,6 +83,8 @@ The current spec takes precedence over the older broad implementation plan and i
 
 **Validation (2026-09-07):** Engine keeps the old player until the replacement is ready (0.5 s fade crossfade with audio-clock retirement), aborts superseded preparation via AbortController plus staleness guards, gates late completions on live playback intent, and surfaces preparation errors with retry that preserves the selected tuning. Twelve tanpura lifecycle unit tests cover loading/failure retention, stale completions, Stop/dispose races, and shared-command Stop during preparation. `npm run check:browser -- --scenario tanpura` passes 10/10 on headless Chrome/152.0.7977.77 at 48 kHz: initial play, continuity during held replacement, latest-wins without waiting for stale fetch, failure retention with exposed Retry, successful retry, Stop silence after late completion, and restart with retained setup. Evidence retained at `docs/validation/ticket04/`. The scenario's exception check uses the same known-NotSupportedError filter as the baseline. Code review: Standards 0 findings (no documented standards file; no baseline smells); Spec 0 findings.
 
+**Revalidation (2026-09-07):** Strict tanpura browser checks pass 10/10 with zero uncaught errors. Debugger tracing identified a test-harness defect: capture occupied Tone's single worklet-module cache, preventing Freeverb processors from registering. Capture now registers through the underlying audio context; no `NotSupportedError` exclusions remain. Raw report and WAVs replace the earlier filtered evidence at `docs/validation/ticket04/`; `diagnosis.json` retains the failing stack. Fourteen existing tanpura lifecycle tests pass.
+
 ## 05: Save and revisit a named session after refresh
 
 **What to build:** Save the current setup under a name, refresh into silent defaults, and explicitly reload the saved session without starting sound.
@@ -102,6 +104,8 @@ The current spec takes precedence over the older broad implementation plan and i
 - [x] Keep the existing setup workflow usable while subsequent tickets extend live loading and collection management.
 
 **Validation (2026-09-07):** Capture/load round-trip, validation, explicit update versus copy, snapshot independence, factory guards, and delete covered by unit tests; five new saved-session store tests cover save failure (truthful error, collection preserved) with retry success, snapshot independence, explicit update versus copy, factory refusal, and active-session cleanup. `node scripts/saved-sessions-check.mjs` passes 7/7 on headless Chrome/152.0.7977.77 against real browser IndexedDB: save completion, IndexedDB presence, refresh retaining the collection while stopped, explicit reload finding the session, and no autoplay. Evidence retained at `docs/validation/ticket05/report.json`. Code review: Standards 0 findings (store mutations follow the uniform record-error-and-rethrow pattern; tests follow the repo's mocked-storage-boundary pattern); Spec 0 findings.
+
+**Revalidation (2026-09-07):** The combined saved-session browser runner passes 24/24 with zero uncaught errors. It checks a nondefault full snapshot through public storage, injects an IndexedDB write failure, verifies absence from storage and the collection, retries, edits without mutating the saved snapshot, refreshes to silent defaults, and explicitly reloads the exact saved configuration without engine playback. Raw evidence at `docs/validation/ticket05/report.json` supersedes the previous text/count-based checks.
 
 ## 06: Load setups consistently during playback
 
@@ -124,6 +128,8 @@ The current spec takes precedence over the older broad implementation plan and i
 
 **Validation (2026-09-07):** Tabla setup loads now apply taal/style/tempo/selection in one store transaction, so subscribers never observe a transient pair. Seven live-load unit tests cover stopped silence, running application without touching playback intent, single-notification coherence, rapid-load resolution, retained settings through Stop, all-off silence without fallback, and preserve-tempo with partial sections. `node scripts/live-load-check.mjs` passes 8/8 on headless Chrome/152.0.7977.77: baseline sounding, display alignment, uninterrupted tabla across a tanpura-only partial load (13 attacks, no duplicates), and a full load applying the requested selection while tanpura keeps playing. Evidence retained at `docs/validation/ticket06/`. Code review: Standards 0 findings (shared PCM-metrics helper avoids duplicating analysis code across check scripts); Spec 0 findings.
 
+**Revalidation (2026-09-07):** Fixed same-taal live loads discarding the saved style: the requested style now changes while `activeStyleId` continues to describe the sounding beat. The new public-load regression fails before the fix and passes afterward. Browser checks pass 12/12 with zero uncaught errors, including saving Variation 1, loading it over sounding Theka, observing the next-beat display transition, and tabla-only PCM capture. Raw report and WAVs at `docs/validation/ticket06/` use the corrected capture loader.
+
 ## 07: Manage and exchange saved sessions
 
 **What to build:** A manageable saved-session collection with explicit editing and validated import/export.
@@ -142,6 +148,8 @@ The current spec takes precedence over the older broad implementation plan and i
 
 **Validation (2026-09-07):** Store tests cover update versus copy, snapshot independence, delete with active-session cleanup, factory refusal, favorite toggling with failure reporting, import failure propagation, and name/taal/favorites filtering through a shared pure helper. `node scripts/saved-sessions-check.mjs` passes 18/18 on headless Chrome/152.0.7977.77: save, IndexedDB presence, refresh retention while stopped, explicit reload without autoplay, rename, save-as-copy independence, explicit update, favorites view, search filtering, export download with envelope round-trip, delete with announcement, duplicate-ID rejection without overwriting, valid import, and malformed-import truthfulness. Evidence retained at `docs/validation/ticket07/report.json`. Keyboard and phone-sized layout verification of the expanded forms is covered by the ticket 10 matrix. Code review: Standards 0 findings (dialog handling fixed to read the CDP params payload; entry-scoped assertions avoid announcement-text pollution); Spec 0 findings.
 
+**Revalidation (2026-09-07):** Combined browser checks pass 24/24. Rename preserves ID/configuration; copy gets an independent ID; experimenting preserves both snapshots; explicit update changes only the original. Export is compared with the complete stored collection, valid import restores full data, and duplicate/malformed imports preserve storage unchanged. CDP evaluation exceptions fail the runner; raw reports are written on pass, failure, or skip, and skipped checks exit nonzero. Evidence: `docs/validation/ticket07/report.json`.
+
 ## 08: Recover from interruptions through shared controls
 
 **What to build:** Clear interruption status and deliberate recovery that retains the current setup, with consistent supported operating-system media controls.
@@ -159,6 +167,8 @@ The current spec takes precedence over the older broad implementation plan and i
 - [x] Verify available real-browser interruption/recovery behavior and explicitly record device coverage without claiming locked-screen playback guarantees.
 
 **Validation (2026-09-07):** Four browser-lifecycle unit tests plus three session resume tests cover interruption reporting, explicit-only resume, media-command routing through shared commands, missing-support degradation, cleanup, resume failure/retry, Stop-during-resume, and Start/Resume supersession. `node scripts/interruption-check.mjs` passes 8/8 on headless Chrome/152.0.7977.77: pre-interruption audibility, Media Session presence with `Sa C#3` metadata and `playing` state, visible interrupted status with Resume action, preserved settings, Stop-while-interrupted clearing intent, and Resume restoring audible playback (RMS 0.022 both before and after). Evidence retained at `docs/validation/ticket08/report.json`. Device coverage: desktop headless Chrome only; physical-phone and locked-screen behavior remain outstanding (ticket 10). Code review: Standards 0 findings (check script follows the isolated server/browser pattern with skipped-never-passing); Spec 0 findings.
+
+**Revalidation (2026-09-07):** Corrected the capture-module loader and added a strict final uncaught-error assertion. The interruption scenario now passes 9/9 with zero errors; updated raw evidence at `docs/validation/ticket08/report.json`.
 
 ## 09: Keep the screen awake during foreground practice
 
@@ -188,7 +198,7 @@ The current spec takes precedence over the older broad implementation plan and i
 - 07 — Manage and exchange saved sessions.
 - 09 — Keep the screen awake during foreground practice.
 
-**Status:** complete
+**Status:** implementation and automated acceptance complete; physical-device acceptance outstanding
 
 - [x] Exercise Start/Stop/restart, edits while stopped, rapid commands, manual/looping Swar Mandal, and tanpura replacement/failure with actual controls and audio capture.
 - [x] Verify save, update/copy, refresh to silent defaults, explicit reload, partial loading, and current-format import/export with real browser persistence.
@@ -197,11 +207,15 @@ The current spec takes precedence over the older broad implementation plan and i
 - [x] Verify recording and microphone capture remain independently controllable and accurately indicated throughout accompaniment actions.
 - [x] Exercise interruption/resume and wake-lock lifecycle without claiming guaranteed background or locked-screen playback.
 - [x] Fix combined-workflow issues in touch sizing, labels, focus visibility, status announcements, keyboard operation, and horizontal overflow at 320px, 390px, and desktop widths, including expanded editors and saved-session forms.
-- [x] Record browser versions and actual physical devices tested. Cover desktop and phone browsers where available; mark missing physical-phone checks outstanding rather than treating viewport emulation as equivalent.
+- [ ] Record browser versions and actual physical devices tested. Cover desktop and phone browsers where available; mark missing physical-phone checks outstanding rather than treating viewport emulation as equivalent.
 - [x] Run production build, lint, relevant automated tests, and the reproducible browser checks. Retain evidence and distinguish automated results from listening/device checks.
 - [x] Update current behavior and developer-workflow documentation, keeping deferred musical review, sample acquisition, profiling, and feature expansion explicitly separate from completed scope.
 
 **Validation (2026-09-07):** 140 unit tests in 19 files, `tsc -b`, lint, and production build all pass. Browser matrix on headless Chrome/152.0.7977.77, all green: baseline playback 21/21 (including a beat-clustering fix so composite-stroke swells are not mistaken for duplicate timing), live loading 8/8, saved sessions 18/18, interruption 8/8, wake lock 7/7, recording/mic 8/8, offline samples 8/8, responsive/keyboard 38/38 across 320/390/desktop widths. Combined-workflow fixes: sub-24px touch targets sized up, setup description corrected, beat-timing measurement made robust to composite articulation. Aggregate suite record at `docs/validation/ticket10/report.json`; workflows documented in [browser playback checks](browser-playback-checks.md). Device coverage is desktop headless Chrome only; physical-phone, Safari, locked-screen behavior, and musician listening review remain explicitly outstanding. Code review: Standards 0 findings; Spec 0 findings.
+
+**Acceptance still required:** Run the [physical-device checklist](browser-playback-checks.md#physical-device-acceptance-outstanding) on a real phone and Safari, recording the browser/OS/device and results. Viewport emulation does not complete this acceptance. Locked-screen/background playback is outside the guarantee; any observations should be recorded separately.
+
+**Final follow-up validation (2026-09-07):** 146 tests in 19 files, production build/typecheck, and lint pass. Strict browser checks, each with zero uncaught errors: baseline 21, tanpura 10, live loading 12, saved sessions 24, interruption 9, wake lock 7, recording 8, offline 8, responsive/keyboard 38. Updated raw reports and audio excerpts supersede earlier filtered evidence. The [follow-up review](validation/reliable-playback-fix-review.md) records Standards and Spec findings and resolutions for each change; no findings remain. Physical-device acceptance is still outstanding.
 
 ## Implementation start prompt
 

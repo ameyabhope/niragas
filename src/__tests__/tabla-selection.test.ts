@@ -55,3 +55,20 @@ it('loads playing presets as pending, saves only selected IDs, and clears active
   applyPresetState(preset, options);
   expect(store.getState()).toMatchObject({ playing: false, activeTaalId: null, currentMatra: 1 });
 });
+
+it('loads a same-taal style change for the next beat while retaining the sounding style', () => {
+  const actions = store.getState();
+  actions.setPlaying(true);
+  actions.setCurrentBeat(5, null, 'teentaal', 'theka');
+  const preset = capturePreset('Tabla style change');
+  preset.tabla = { taalId: 'teentaal', styleId: 'variation1', tempo: 120, enabled: true };
+  const options = { tabla: true, pitch: false, tanpura: false, surPeti: false, swarMandal: false, mixer: false, eq: false };
+
+  applyPresetState(preset, options);
+
+  expect(store.getState()).toMatchObject({
+    taalId: 'teentaal', styleId: 'variation1', activeTaalId: 'teentaal', activeStyleId: 'theka', currentMatra: 5,
+  });
+  actions.setCurrentBeat(6, null, 'teentaal', 'variation1');
+  expect(store.getState()).toMatchObject({ activeTaalId: 'teentaal', activeStyleId: 'variation1', currentMatra: 6 });
+});

@@ -1,40 +1,176 @@
 {
   "status": "passed",
+  "output": "/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-saved-sessions-VqZ8aZ",
   "checks": [
     {
       "name": "practice UI loaded",
       "passed": true
     },
     {
-      "name": "save reports completion",
+      "name": "nondefault setting is applied before save",
       "passed": true,
       "detail": {
-        "found": true,
-        "tail": "note set\n\n\u2606\n\nYaman Kalyan\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\nSWAR MANDAL\ni\nOFF\nStrings (3 / 3 enabled)\n\nTune each string for your practice. Octaves are relative to your selected Sa; note sets are starting points, not raag rules.\n\nSa-only tuning: no raag inventory assumed. Add or tune strings as needed.\n\n1: On\nSa (shuddha)\nRe (komal)\nRe (shuddha)\nGa (komal)\nGa (shuddha)\nMa (shuddha)\nMa (tivra)\nPa (shuddha)\nDha (komal)\nDha (shuddha)\nNi (komal)\nNi (shuddha)\nSa -2 oct\nSa -1 oct\nSa +0 oct\nSa +1 oct\nSa +2 oct\nSa +3 oct\nRemove\n2: On\nSa (shuddha)\nRe (komal)\nRe (shuddha)\nGa (komal)\nGa (shuddha)\nMa (shuddha)\nMa (tivra)\nPa (shuddha)\nDha (komal)\nDha (shuddha)\nNi (komal)\nNi (shuddha)\nSa -2 oct\nSa -1 oct\nSa +0 oct\nSa +1 oct\nSa +2 oct\nSa +3 oct\nRemove\n3: On\nSa (shuddha)\nRe (komal)\nRe (shuddha)\nGa (komal)\nGa (shuddha)\nMa (shuddha)\nMa (tivra)\nPa (shuddha)\nDha (komal)\nDha (shuddha)\nNi (komal)\nNi (shuddha)\nSa -2 oct\nSa -1 oct\nSa +0 oct\nSa +1 oct\nSa +2 oct\nSa +3 oct\nRemove\nAdd Sa string\nStrum Once\nAuto Loop\nTUNER\ni\nStart Tuner\n\nApp (Sa)\n\nC#\n\nSa\n\n3\n\n138.6 Hz\n\nMicrophone\n\n--\n\nNot active\n\nRECORDER\ni\nInclude mic\nAudio sample credits and licenses"
+        "tempo": 119
       }
     },
     {
-      "name": "saved session is in IndexedDB",
-      "passed": true
+      "name": "injected save failure is reported truthfully",
+      "passed": true,
+      "detail": "Niragas\nPractice Companion\nSTART\nSTOP\n☾\n0c\nC#\n3\n\nSelect instruments, then Start. Stop keeps your setup.\n\nKeep screen awake\nOff\nMIXER\ni\nVolume\nPan\nTanp1\nM\n75%\nTanp2\nM\n75%\nTabla\nM\n75%\nSrPti\nM\n75%\nSwMdl\nM\n75%\nMASTER\n80%\nEQUALIZER\ni\nOn\nFlat\nBass Boost\nTreble Boost\nVocal Presence\nWarm\nBright\nTabla Focus\nTanpura Rich\nSmall Speakers\nHeadphones\nV-Shape\nRiyaaz (Practice)\nKhayal Vocal\nSitar / Sarod\nBansuri (Flute)\nSantoor\nDeep Bass\nLo-Fi\nConcert Hall\nLate Night\nTabla + Vocal\nBluetooth Speaker\n0\n60\n0\n150\n0\n400\n0\n1k\n0\n2.5k\n0\n6k\n0\n15k\nReset to Flat\nSA PITCH\n440Hz\n432Hz\n-\nA2\nA#2\nB2\nC3\nC#3\nD3\nD#3\nE3\nF3\nF#3\nG3\nG#3\nA3\nA#3\nB3\nC4\nC#4\nD4\nD#4\nE4\n+\n0c\nC#\n3\nFine tuning (0 cents)\nTABLA\ni\nTaal\nMetronome (1) (1)\nMetronome (2) (2)\nMetronome (3) (3)\nMetronome (4) (4)\nMetronome (5) (5)\nMetronome (6) (6)\nMetronome (7) (7)\nMetronome (8) (8)\nMetronome (9) (9)\nTeentaal (16)\nJhaptaal (10)\nEktaal (12)\nRupak (7)\nDadra (6)\nKeherva (8)\nDeepchandi (14)\nDhamar (14)\nChautaal (12)\nJhoomra (14)\nTilwada (16)\nAda Chautaal (14)\nSooltaal (10)\nPancham Sawari (15)\nMatta Taal (9)\nBhajani (8)\nAddha (8)\nPunjabi (8)\nChartal ki Sawari (11)\nFarodast (14)\nJat (16)\nPashto (7)\nChanchar (14)\nTivra (7)\nDhumali (8)\nSitarkhani (16)\nSawari (15)\nGaj Jhampa (15)\nRudra (11)\nLakshmi (18)\nBrahma (14)\nVishnu (20)\nAshtamangal (22)\nTevra (7)\nKhemta (6)\nKaherva Bhajan (8)\nRoopak Sawari (11)\nYashwant (8)\nIndra (19)\nSurphankhta (10)\nDipak (10)\nMani (11)\nGanesh (10)\nNarayana (10)\nChandrashekhar (17)\nShikar (12)\nBasant (12)\nStyle\nTheka\nVariation 1\nTempo\nBPM\nMadhya\nx/2\n-\nTAP\n+\n2x\nPlay\nTeentaal / Theka\nX Sam\n1\nDha\n2\nDhin\n3\nDhin\n4\nDha\n2 Taali\n5\nDha\n6\nDhin\n7\nDhin\n8\nDha\n0 Khaali\n9\nDha\n10\nTin\n11\nTin\n12\nTa\n3 Taali\n13\nTa\n14\nDhin\n15\nDhin\n16\nDha\nTanpura & Sur-Peti settings\nPRESETS\ni\n\nInjected quota failure\n\nAll\nFavorites\n+ Save Current\nOptions\nExport\nImport\nSave current settings as a preset\nPreset name\nSave\nCancel\nPreserve my Sa\nPreserve my tempo\n☆\n\nYaman\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: starter note set\n\n☆\n\nBhairav\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: starter note set\n\n☆\n\nBilawal\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: starter note set\n\n☆\n\nTodi\n\nC#3 | T1:Pa T2:Ni | jhaptaal @ 60bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nAhir Bhairav\n\nC#3 | T1:Pa T2:Pa | teentaal @ 70bpm\n\nSwar Mandal: starter note set\n\n☆\n\nLalit\n\nC#3 | T1:Ma T2:Ni | teentaal @ 60bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBhatiyar\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBrindavani Sarang\n\nC#3 | T1:Pa T2:Ni | teentaal @ 100bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nDesh\n\nC#3 | T1:Pa T2:Ni | keherva @ 120bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBhimpalasi\n\nC#3 | T1:Pa T2:Pa | teentaal @ 80bpm\n\nSwar Mandal: starter note set\n\n☆\n\nMultani\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nPatdeep\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nMarwa\n\nC#3 | T1:Ni T2:Ni | teentaal @ 60bpm\n\nSwar Mandal: starter note set\n\n☆\n\nPuriya\n\nC#3 | T1:Ni T2:Ni | teentaal @ 60bpm\n\nSwar Mandal: starter note set\n\n☆\n\nPuriya Dhanashree\n\nC#3 | T1:Ni T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nShree\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nMalkauns\n\nC#3 | T1:Ma T2:Ma | teentaal @ 60bpm\n\nSwar Mandal: starter note set\n\n☆\n\nBageshri\n\nC#3 | T1:Ma T2:Ma | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nChandrakauns\n\nC#3 | T1:Ma T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: starter note set\n\n☆\n\nDarbari Kanada\n\nC#3 | T1:Pa T2:Pa | teentaal @ 50bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nKalavati\n\nC#3 | T1:Pa T2:Pa | teentaal @ 100bpm\n\nSwar Mandal: starter note set\n\n☆\n\nYaman Kalyan\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nHindol\n\nC#3 | T1:Ni T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: starter note set\n\n☆\n\nKedar\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nHameer\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nKamod\n\nC#3 | T1:Pa T2:Ni | teentaal @ 100bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBihag\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nRageshree\n\nC#3 | T1:Ma T2:Ma | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nMegh\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nMiyan ki Malhar\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBhairavi\n\nC#3 | T1:Pa T2:Ma | dadra @ 120bpm\n\nSwar Mandal: starter note set\n\n☆\n\nPilu\n\nC#3 | T1:Pa T2:Ni | keherva @ 120bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nKhamaj\n\nC#3 | T1:Pa T2:Ni | teentaal @ 100bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nTilak Kamod\n\nC#3 | T1:Pa T2:Ni | teentaal @ 100bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nDurga\n\nC#3 | T1:Pa T2:Pa | teentaal @ 100bpm\n\nSwar Mandal: starter note set\n\n☆\n\nHamsadhwani\n\nC#3 | T1:Pa T2:Ni | teentaal @ 100bpm\n\nSwar Mandal: starter note set\n\n☆\n\nNat Bhairav\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nGunakali\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nVibhas\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nMiya ki Todi\n\nC#3 | T1:Pa T2:Ni | jhaptaal @ 60bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nGujari Todi\n\nC#3 | T1:Ni T2:Ni | jhaptaal @ 60bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nAhir Lalit\n\nC#3 | T1:Ma T2:Ni | teentaal @ 60bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBasant\n\nC#3 | T1:Ma T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBasant Bahar\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBahar\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nRamkali\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nGaud Sarang\n\nC#3 | T1:Pa T2:Ni | teentaal @ 100bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nShudh Sarang\n\nC#3 | T1:Pa T2:Ni | teentaal @ 100bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nMadhuvanti\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBhupali\n\nC#3 | T1:Pa T2:Pa | teentaal @ 100bpm\n\nSwar Mandal: starter note set\n\n☆\n\nDeshkar\n\nC#3 | T1:Pa T2:Pa | teentaal @ 100bpm\n\nSwar Mandal: starter note set\n\n☆\n\nJaunpuri\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nAsawari\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nKomal Rishabh Asawari\n\nC#3 | T1:Pa T2:Ni | teentaal @ 60bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nPuriya Kalyan\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nGauri\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nShankara\n\nC#3 | T1:Pa T2:Ni | teentaal @ 100bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nChhayanat\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nSohini\n\nC#3 | T1:Ni T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBihagda\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nNandkauns\n\nC#3 | T1:Ma T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nShahana\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nJhinjhoti\n\nC#3 | T1:Pa T2:Ni | teentaal @ 100bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nKaushi Kanada\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nAdana\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nNayaki Kanada\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nSuha Kanada\n\nC#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nGorakh Kalyan\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nJog\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nJayjaywanti\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nKirwani\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nCharukesi\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nTilang\n\nC#3 | T1:Pa T2:Ni | keherva @ 100bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nPahadi\n\nC#3 | T1:Pa T2:Ni | dadra @ 120bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nMand\n\nC#3 | T1:Pa T2:Ni | dadra @ 120bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nKafi\n\nC#3 | T1:Pa T2:Ni | keherva @ 120bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nSindhu Bhairavi\n\nC#3 | T1:Pa T2:Ma | dadra @ 120bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nMadhyamavati\n\nC#3 | T1:Pa T2:Ni | teentaal @ 100bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nDarbari (Ektaal)\n\nC#3 | T1:Pa T2:Pa | ektaal @ 40bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nMiyan ki Malhar (Ektaal)\n\nC#3 | T1:Pa T2:Ni | ektaal @ 50bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nYaman (Ektaal)\n\nC#3 | T1:Pa T2:Ni | ektaal @ 55bpm\n\nSwar Mandal: starter note set\n\n☆\n\nMarwa (Jhaptaal)\n\nC#3 | T1:Ni T2:Ni | jhaptaal @ 55bpm\n\nSwar Mandal: starter note set\n\n☆\n\nMalkauns (Jhaptaal)\n\nC#3 | T1:Ma T2:Ma | jhaptaal @ 55bpm\n\nSwar Mandal: starter note set\n\n☆\n\nBhairav (Jhaptaal)\n\nC#3 | T1:Pa T2:Ni | jhaptaal @ 60bpm\n\nSwar Mandal: starter note set\n\n☆\n\nKedar (Jhaptaal)\n\nC#3 | T1:Pa T2:Ni | jhaptaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nPuriya Dhanashree (Ektaal)\n\nC#3 | T1:Ni T2:Ni | ektaal @ 50bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nTodi (Jhoomra)\n\nC#3 | T1:Pa T2:Ni | jhoomra @ 40bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nDarbari (Jhoomra)\n\nC#3 | T1:Pa T2:Pa | jhoomra @ 35bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nShree (Rupak)\n\nC#3 | T1:Pa T2:Ni | rupak @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBhimpalasi (Rupak)\n\nC#3 | T1:Pa T2:Pa | rupak @ 80bpm\n\nSwar Mandal: starter note set\n\n☆\n\nBasant (Chautaal)\n\nC#3 | T1:Ma T2:Ni | chautaal @ 60bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBhairavi (Deepchandi)\n\nC#3 | T1:Pa T2:Ma | deepchandi @ 100bpm\n\nSwar Mandal: starter note set\n\n☆\n\nKhamaj (Deepchandi)\n\nC#3 | T1:Pa T2:Ni | deepchandi @ 100bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nTilak Kamod (Rupak)\n\nC#3 | T1:Pa T2:Ni | rupak @ 100bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nYaman (Women G#)\n\nG#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: starter note set\n\n☆\n\nBhairav (Women G#)\n\nG#3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: starter note set\n\n☆\n\nBhairavi (Women G#)\n\nG#3 | T1:Pa T2:Ma | dadra @ 120bpm\n\nSwar Mandal: starter note set\n\n☆\n\nTodi (Women G#)\n\nG#3 | T1:Pa T2:Ni | jhaptaal @ 60bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nMalkauns (Women G#)\n\nG#3 | T1:Ma T2:Ma | teentaal @ 60bpm\n\nSwar Mandal: starter note set\n\n☆\n\nDarbari (Women G#)\n\nG#3 | T1:Pa T2:Pa | teentaal @ 50bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nDesh (Women G#)\n\nG#3 | T1:Pa T2:Ni | keherva @ 120bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBageshri (Women G#)\n\nG#3 | T1:Ma T2:Ma | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nKedar (Women G#)\n\nG#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBihag (Women G#)\n\nG#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nMarwa (Women G#)\n\nG#3 | T1:Ni T2:Ni | teentaal @ 60bpm\n\nSwar Mandal: starter note set\n\n☆\n\nPuriya (Women G#)\n\nG#3 | T1:Ni T2:Ni | teentaal @ 60bpm\n\nSwar Mandal: starter note set\n\n☆\n\nKalyani (Carnatic)\n\nC3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nShankarabharanam\n\nC3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nKharaharapriya\n\nC3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nTodi (Carnatic)\n\nD3 | T1:Pa T2:Ni | teentaal @ 70bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\n☆\n\nBhairavi (Carnatic)\n\nD3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\nSWAR MANDAL\ni\nOFF\nStrings (3 / 3 enabled)\n\nTune each string for your practice. Octaves are relative to your selected Sa; note sets are starting points, not raag rules.\n\nSa-only tuning: no raag inventory assumed. Add or tune strings as needed.\n\n1: On\nSa (shuddha)\nRe (komal)\nRe (shuddha)\nGa (komal)\nGa (shuddha)\nMa (shuddha)\nMa (tivra)\nPa (shuddha)\nDha (komal)\nDha (shuddha)\nNi (komal)\nNi (shuddha)\nSa -2 oct\nSa -1 oct\nSa +0 oct\nSa +1 oct\nSa +2 oct\nSa +3 oct\nRemove\n2: On\nSa (shuddha)\nRe (komal)\nRe (shuddha)\nGa (komal)\nGa (shuddha)\nMa (shuddha)\nMa (tivra)\nPa (shuddha)\nDha (komal)\nDha (shuddha)\nNi (komal)\nNi (shuddha)\nSa -2 oct\nSa -1 oct\nSa +0 oct\nSa +1 oct\nSa +2 oct\nSa +3 oct\nRemove\n3: On\nSa (shuddha)\nRe (komal)\nRe (shuddha)\nGa (komal)\nGa (shuddha)\nMa (shuddha)\nMa (tivra)\nPa (shuddha)\nDha (komal)\nDha (shuddha)\nNi (komal)\nNi (shuddha)\nSa -2 oct\nSa -1 oct\nSa +0 oct\nSa +1 oct\nSa +2 oct\nSa +3 oct\nRemove\nAdd Sa string\nStrum Once\nAuto Loop\nTUNER\ni\nStart Tuner\n\nApp (Sa)\n\nC#\n\nSa\n\n3\n\n138.6 Hz\n\nMicrophone\n\n--\n\nNot active\n\nRECORDER\ni\nInclude mic\nAudio sample credits and licenses"
+    },
+    {
+      "name": "failed save leaves no persisted custom session",
+      "passed": true,
+      "detail": {
+        "storeNames": [],
+        "storageNames": []
+      }
+    },
+    {
+      "name": "retry reports save completion",
+      "passed": true,
+      "detail": {
+        "found": true,
+        "tail": "note set\n\n☆\n\nYaman Kalyan\n\nC#3 | T1:Pa T2:Ni | teentaal @ 80bpm\n\nSwar Mandal: Sa-only factory fallback (unreviewed raag)\n\nSWAR MANDAL\ni\nOFF\nStrings (3 / 3 enabled)\n\nTune each string for your practice. Octaves are relative to your selected Sa; note sets are starting points, not raag rules.\n\nSa-only tuning: no raag inventory assumed. Add or tune strings as needed.\n\n1: On\nSa (shuddha)\nRe (komal)\nRe (shuddha)\nGa (komal)\nGa (shuddha)\nMa (shuddha)\nMa (tivra)\nPa (shuddha)\nDha (komal)\nDha (shuddha)\nNi (komal)\nNi (shuddha)\nSa -2 oct\nSa -1 oct\nSa +0 oct\nSa +1 oct\nSa +2 oct\nSa +3 oct\nRemove\n2: On\nSa (shuddha)\nRe (komal)\nRe (shuddha)\nGa (komal)\nGa (shuddha)\nMa (shuddha)\nMa (tivra)\nPa (shuddha)\nDha (komal)\nDha (shuddha)\nNi (komal)\nNi (shuddha)\nSa -2 oct\nSa -1 oct\nSa +0 oct\nSa +1 oct\nSa +2 oct\nSa +3 oct\nRemove\n3: On\nSa (shuddha)\nRe (komal)\nRe (shuddha)\nGa (komal)\nGa (shuddha)\nMa (shuddha)\nMa (tivra)\nPa (shuddha)\nDha (komal)\nDha (shuddha)\nNi (komal)\nNi (shuddha)\nSa -2 oct\nSa -1 oct\nSa +0 oct\nSa +1 oct\nSa +2 oct\nSa +3 oct\nRemove\nAdd Sa string\nStrum Once\nAuto Loop\nTUNER\ni\nStart Tuner\n\nApp (Sa)\n\nC#\n\nSa\n\n3\n\n138.6 Hz\n\nMicrophone\n\n--\n\nNot active\n\nRECORDER\ni\nInclude mic\nAudio sample credits and licenses",
+        "value": "Browser persistence check"
+      }
+    },
+    {
+      "name": "saved session is an exact nondefault snapshot in public storage",
+      "passed": true,
+      "detail": {
+        "persistedTempo": 119,
+        "expectedTempo": 119
+      }
+    },
+    {
+      "name": "editing current setup does not mutate saved snapshot",
+      "passed": true,
+      "detail": {
+        "currentTempo": 111,
+        "persistedTempo": 119
+      }
     },
     {
       "name": "refresh retains saved collection",
       "passed": true
     },
     {
-      "name": "refresh remains stopped",
-      "passed": true
+      "name": "refresh restores default stopped public state",
+      "passed": true,
+      "detail": {
+        "session": {
+          "requested": false,
+          "running": false
+        },
+        "tempo": 120,
+        "actual": {
+          "tanpura1": false,
+          "tanpura2": false,
+          "tabla": false,
+          "surpeti": false,
+          "swarmandal": false
+        }
+      }
     },
     {
       "name": "explicit reload finds saved session",
       "passed": true
     },
     {
-      "name": "explicit reload does not autoplay",
+      "name": "explicit load restores saved settings while remaining silent",
+      "passed": true,
+      "detail": {
+        "tempo": 119,
+        "session": {
+          "requested": false,
+          "running": false
+        },
+        "tablaPlaying": false,
+        "actual": {
+          "tanpura1": false,
+          "tanpura2": false,
+          "tabla": false,
+          "surpeti": false,
+          "swarmandal": false
+        }
+      }
+    },
+    {
+      "name": "rename retains the saved configuration and ID",
       "passed": true
+    },
+    {
+      "name": "save-as-copy creates an independent ID with the same settings",
+      "passed": true
+    },
+    {
+      "name": "experimenting leaves both saved snapshots unchanged",
+      "passed": true
+    },
+    {
+      "name": "explicit update changes original without changing copy",
+      "passed": true
+    },
+    {
+      "name": "favorites view shows only favorited sessions",
+      "passed": true,
+      "detail": {
+        "entries": 1
+      }
+    },
+    {
+      "name": "search filters the collection",
+      "passed": true,
+      "detail": {
+        "entries": 1
+      }
+    },
+    {
+      "name": "export downloads a file",
+      "passed": true,
+      "detail": {
+        "exportedPath": "/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-saved-sessions-VqZ8aZ/downloads/niragas-presets-2026-09-07.json"
+      }
+    },
+    {
+      "name": "export contains the complete stored collection",
+      "passed": true,
+      "detail": {
+        "format": "niragas-presets",
+        "schemaVersion": 3,
+        "count": 113
+      }
+    },
+    {
+      "name": "delete removes the session from UI and storage",
+      "passed": true
+    },
+    {
+      "name": "duplicate IDs are rejected without any storage mutation",
+      "passed": true
+    },
+    {
+      "name": "valid import restores the full exported setup",
+      "passed": true
+    },
+    {
+      "name": "malformed imports fail truthfully without mutation",
+      "passed": true
+    },
+    {
+      "name": "browser runtime has no uncaught exceptions",
+      "passed": true,
+      "detail": {
+        "errors": []
+      }
     }
   ],
   "errors": [],
+  "runtime": {
+    "exceptionThrown": [],
+    "exceptionRevoked": []
+  },
   "browser": {
     "protocolVersion": "1.3",
     "product": "Chrome/152.0.7977.77",
@@ -42,5 +178,5 @@
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
     "jsVersion": "15.2.124.19"
   },
-  "url": "http://127.0.0.1:5174/"
+  "url": "http://127.0.0.1:5176/"
 }

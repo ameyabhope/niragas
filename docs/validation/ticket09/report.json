@@ -1,6 +1,6 @@
 {
   "status": "passed",
-  "output": "/tmp/niragas-wake-lock-evidence",
+  "output": "/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-wake-lock-xlxjMc",
   "checks": [
     {
       "name": "opt-in control with truthful status is present",
@@ -57,7 +57,7 @@
       "passed": true
     },
     {
-      "name": "No unexpected browser exceptions",
+      "name": "No uncaught browser exceptions",
       "value": [],
       "passed": true
     }

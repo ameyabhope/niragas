@@ -111,16 +111,13 @@ export const useTablaStore = create<TablaState>((set, get) => ({
       const validStyle = taal.styles.some((entry) => entry.id === styleId)
         ? styleId
         : taal.styles[0]?.id ?? '';
-      // A sounding cycle keeps its style until the audio draw confirms the
-      // new selection, mirroring the single-field taal update.
-      const nextStyleId = state.playing && taal.id === state.activeTaalId
-        ? state.activeStyleId ?? validStyle
-        : validStyle;
       const playing = enabled ? state.playing : false;
       const cleared = state.playing && !playing;
       return {
         taalId: taal.id,
-        styleId: nextStyleId,
+        // Keep the requested style as the selected setup while activeStyleId
+        // continues to describe the cycle that is currently sounding.
+        styleId: validStyle,
         tempo: clampTempo(taal.id, tempo),
         enabled,
         playing,

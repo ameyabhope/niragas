@@ -1,6 +1,6 @@
 {
   "status": "passed",
-  "output": "/tmp/niragas-live-load-evidence",
+  "output": "/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-live-load-tj3dzY",
   "checks": [
     {
       "name": "capture is available",
@@ -10,10 +10,35 @@
       "passed": true
     },
     {
+      "name": "same-taal baseline is sounding theka",
+      "value": "Playing Teentaal / Theka.",
+      "passed": true
+    },
+    {
+      "name": "same-taal load selects saved style",
+      "value": {
+        "selected": "variation1"
+      },
+      "passed": true
+    },
+    {
+      "name": "same-taal load displays saved style after next beat",
+      "value": "Playing Teentaal / Variation 1.",
+      "passed": true
+    },
+    {
+      "name": "same-taal style load keeps tabla sounding",
+      "value": {
+        "attacks": 7,
+        "rms": 0.09340647564796715
+      },
+      "passed": true
+    },
+    {
       "name": "tabla sounds before live loading",
       "value": {
-        "attacks": 8,
-        "rms": 0.11138807488253852
+        "attacks": 6,
+        "rms": 0.10829831848197653
       },
       "passed": true
     },
@@ -25,14 +50,12 @@
     {
       "name": "partial live load keeps tabla sounding without duplicates",
       "value": {
-        "attacks": 12,
+        "attacks": 11,
         "duplicates": [],
         "cadence": [
-          0.35,
-          0.5,
-          0.3650000000000001,
-          0.365,
-          0.5,
+          0.39,
+          0.4999999999999999,
+          0.3899999999999999,
           0.5,
           0.5
         ]
@@ -48,655 +71,31 @@
       "name": "full live load applies the requested selection without a global stop",
       "value": {
         "tablaPlayAvailable": true,
-        "rms": 0.03192498611949947
+        "rms": 0.0347695112446305
       },
       "passed": true
     },
     {
       "name": "tanpura keeps playing after the full load",
       "value": {
-        "rms": 0.03192498611949947
+        "rms": 0.0347695112446305
       },
       "passed": true
     },
     {
-      "name": "No unexpected browser exceptions",
+      "name": "No uncaught browser exceptions",
       "value": [],
       "passed": true
     }
   ],
-  "errors": [
-    {
-      "exceptionId": 1,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.1",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 2,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.2",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 3,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.3",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 4,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.4",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 5,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.5",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 6,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.6",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 7,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.7",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 8,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.8",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 9,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.9",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 10,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.10",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 11,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.11",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 12,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.12",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 13,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.13",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 14,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.14",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 15,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.15",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 16,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "-499347361965789091.2.16",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    }
-  ],
+  "errors": [],
   "artifacts": [
+    "same-taal-style-load.wav",
     "tabla-baseline.wav",
     "partial-load.wav",
     "full-load.wav"
   ],
-  "url": "http://127.0.0.1:5174/",
+  "url": "http://127.0.0.1:5175/",
   "browser": {
     "protocolVersion": "1.3",
     "product": "Chrome/152.0.7977.77",

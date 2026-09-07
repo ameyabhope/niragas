@@ -1,0 +1,648 @@
+{
+  "diagnosis": "Capture registered through Tone.Context.addAudioWorkletModule occupied the single _workletPromise cache; subsequent Tone Freeverb comb filters failed to register their processor. Capture now uses rawContext.audioWorklet.addModule.",
+  "uncaughtRejections": 8,
+  "firstRejection": {
+    "callFrames": [
+      {
+        "callFrameId": "-6433168868646436475.2.0",
+        "functionName": "",
+        "functionLocation": {
+          "scriptId": "33",
+          "lineNumber": 4527,
+          "columnNumber": 9
+        },
+        "location": {
+          "scriptId": "33",
+          "lineNumber": 4619,
+          "columnNumber": 10
+        },
+        "url": "",
+        "scopeChain": [
+          {
+            "type": "catch",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.258"
+            },
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 4617,
+              "columnNumber": 14
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 4622,
+              "columnNumber": 7
+            }
+          },
+          {
+            "type": "local",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.259"
+            },
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 4527,
+              "columnNumber": 9
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 4629,
+              "columnNumber": 3
+            }
+          },
+          {
+            "type": "closure",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.260"
+            },
+            "name": "createNativeAudioWorkletNodeFactory",
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 4526,
+              "columnNumber": 42
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 4630,
+              "columnNumber": 1
+            }
+          },
+          {
+            "type": "module",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.261"
+            },
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 0,
+              "columnNumber": 0
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 24968,
+              "columnNumber": 0
+            }
+          },
+          {
+            "type": "global",
+            "object": {
+              "type": "object",
+              "className": "Window",
+              "description": "Window",
+              "objectId": "-6433168868646436475.2.262"
+            }
+          }
+        ],
+        "this": {
+          "type": "undefined"
+        },
+        "canBeRestarted": true
+      },
+      {
+        "callFrameId": "-6433168868646436475.2.1",
+        "functionName": "AudioWorkletNode",
+        "functionLocation": {
+          "scriptId": "33",
+          "lineNumber": 2131,
+          "columnNumber": 15
+        },
+        "location": {
+          "scriptId": "33",
+          "lineNumber": 2140,
+          "columnNumber": 37
+        },
+        "url": "",
+        "scopeChain": [
+          {
+            "type": "local",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.263"
+            },
+            "name": "AudioWorkletNode",
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 2131,
+              "columnNumber": 15
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 2156,
+              "columnNumber": 5
+            }
+          },
+          {
+            "type": "closure",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.264"
+            },
+            "name": "createAudioWorkletNodeConstructor",
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 2129,
+              "columnNumber": 40
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 2176,
+              "columnNumber": 1
+            }
+          },
+          {
+            "type": "module",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.265"
+            },
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 0,
+              "columnNumber": 0
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 24968,
+              "columnNumber": 0
+            }
+          },
+          {
+            "type": "global",
+            "object": {
+              "type": "object",
+              "className": "Window",
+              "description": "Window",
+              "objectId": "-6433168868646436475.2.266"
+            }
+          }
+        ],
+        "this": {
+          "type": "undefined"
+        },
+        "canBeRestarted": true
+      },
+      {
+        "callFrameId": "-6433168868646436475.2.2",
+        "functionName": "createAudioWorkletNode",
+        "functionLocation": {
+          "scriptId": "33",
+          "lineNumber": 7959,
+          "columnNumber": 31
+        },
+        "location": {
+          "scriptId": "33",
+          "lineNumber": 7961,
+          "columnNumber": 9
+        },
+        "url": "",
+        "scopeChain": [
+          {
+            "type": "local",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.267"
+            },
+            "name": "createAudioWorkletNode",
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 7959,
+              "columnNumber": 31
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 7962,
+              "columnNumber": 1
+            }
+          },
+          {
+            "type": "module",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.268"
+            },
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 0,
+              "columnNumber": 0
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 24968,
+              "columnNumber": 0
+            }
+          },
+          {
+            "type": "global",
+            "object": {
+              "type": "object",
+              "className": "Window",
+              "description": "Window",
+              "objectId": "-6433168868646436475.2.269"
+            }
+          }
+        ],
+        "this": {
+          "type": "undefined"
+        },
+        "canBeRestarted": true
+      },
+      {
+        "callFrameId": "-6433168868646436475.2.3",
+        "functionName": "createAudioWorkletNode",
+        "functionLocation": {
+          "scriptId": "33",
+          "lineNumber": 8895,
+          "columnNumber": 24
+        },
+        "location": {
+          "scriptId": "33",
+          "lineNumber": 8896,
+          "columnNumber": 11
+        },
+        "url": "",
+        "scopeChain": [
+          {
+            "type": "local",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.270"
+            },
+            "name": "createAudioWorkletNode",
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 8895,
+              "columnNumber": 24
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 8897,
+              "columnNumber": 3
+            }
+          },
+          {
+            "type": "block",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.271"
+            },
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 0,
+              "columnNumber": 0
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 24968,
+              "columnNumber": 0
+            }
+          },
+          {
+            "type": "module",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.272"
+            },
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 0,
+              "columnNumber": 0
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 24968,
+              "columnNumber": 0
+            }
+          },
+          {
+            "type": "global",
+            "object": {
+              "type": "object",
+              "className": "Window",
+              "description": "Window",
+              "objectId": "-6433168868646436475.2.273"
+            }
+          }
+        ],
+        "this": {
+          "type": "object",
+          "className": "_Context",
+          "description": "_Context",
+          "objectId": "-6433168868646436475.2.274"
+        },
+        "canBeRestarted": true
+      },
+      {
+        "callFrameId": "-6433168868646436475.2.4",
+        "functionName": "",
+        "functionLocation": {
+          "scriptId": "33",
+          "lineNumber": 19389,
+          "columnNumber": 53
+        },
+        "location": {
+          "scriptId": "33",
+          "lineNumber": 19391,
+          "columnNumber": 37
+        },
+        "url": "",
+        "scopeChain": [
+          {
+            "type": "local",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.275"
+            },
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 19389,
+              "columnNumber": 53
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 19395,
+              "columnNumber": 5
+            }
+          },
+          {
+            "type": "closure",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.276"
+            },
+            "name": "ToneAudioWorklet",
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 19380,
+              "columnNumber": 13
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 19396,
+              "columnNumber": 3
+            }
+          },
+          {
+            "type": "module",
+            "object": {
+              "type": "object",
+              "className": "Object",
+              "description": "Object",
+              "objectId": "-6433168868646436475.2.277"
+            },
+            "startLocation": {
+              "scriptId": "33",
+              "lineNumber": 0,
+              "columnNumber": 0
+            },
+            "endLocation": {
+              "scriptId": "33",
+              "lineNumber": 24968,
+              "columnNumber": 0
+            }
+          },
+          {
+            "type": "global",
+            "object": {
+              "type": "object",
+              "className": "Window",
+              "description": "Window",
+              "objectId": "-6433168868646436475.2.278"
+            }
+          }
+        ],
+        "this": {
+          "type": "object",
+          "className": "_FeedbackCombFilter",
+          "description": "_FeedbackCombFilter",
+          "objectId": "-6433168868646436475.2.279"
+        },
+        "canBeRestarted": true
+      }
+    ],
+    "reason": "promiseRejection",
+    "data": {
+      "type": "object",
+      "subtype": "error",
+      "className": "DOMException",
+      "description": "NotSupportedError",
+      "objectId": "-6433168868646436475.2.257",
+      "uncaught": true
+    },
+    "hitBreakpoints": [],
+    "asyncStackTrace": {
+      "description": "Promise.then",
+      "callFrames": [
+        {
+          "functionName": "ToneAudioWorklet",
+          "scriptId": "33",
+          "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/tone.js?v=9a122de0",
+          "lineNumber": 19389,
+          "columnNumber": 48
+        },
+        {
+          "functionName": "_FeedbackCombFilter",
+          "scriptId": "33",
+          "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/tone.js?v=9a122de0",
+          "lineNumber": 19612,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "_LowpassCombFilter",
+          "scriptId": "33",
+          "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/tone.js?v=9a122de0",
+          "lineNumber": 19759,
+          "columnNumber": 37
+        },
+        {
+          "functionName": "",
+          "scriptId": "33",
+          "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/tone.js?v=9a122de0",
+          "lineNumber": 22608,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "_Freeverb",
+          "scriptId": "33",
+          "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/tone.js?v=9a122de0",
+          "lineNumber": 22607,
+          "columnNumber": 42
+        },
+        {
+          "functionName": "loadSampleForInstance",
+          "scriptId": "43",
+          "url": "http://127.0.0.1:5174/src/audio/tanpura.ts",
+          "lineNumber": 141,
+          "columnNumber": 19
+        }
+      ],
+      "parent": {
+        "description": "await",
+        "callFrames": [
+          {
+            "functionName": "createTanpura",
+            "scriptId": "43",
+            "url": "http://127.0.0.1:5174/src/audio/tanpura.ts",
+            "lineNumber": 85,
+            "columnNumber": 8
+          },
+          {
+            "functionName": "syncTanpura",
+            "scriptId": "19",
+            "url": "http://127.0.0.1:5174/src/audio/subscriptions.ts",
+            "lineNumber": 101,
+            "columnNumber": 120
+          },
+          {
+            "functionName": "syncTanpuras",
+            "scriptId": "19",
+            "url": "http://127.0.0.1:5174/src/audio/subscriptions.ts",
+            "lineNumber": 152,
+            "columnNumber": 6
+          },
+          {
+            "functionName": "syncPlayback",
+            "scriptId": "19",
+            "url": "http://127.0.0.1:5174/src/audio/subscriptions.ts",
+            "lineNumber": 158,
+            "columnNumber": 4
+          },
+          {
+            "functionName": "",
+            "scriptId": "19",
+            "url": "http://127.0.0.1:5174/src/audio/subscriptions.ts",
+            "lineNumber": 163,
+            "columnNumber": 44
+          },
+          {
+            "functionName": "",
+            "scriptId": "71",
+            "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/zustand.js?v=98171385",
+            "lineNumber": 16,
+            "columnNumber": 38
+          },
+          {
+            "functionName": "setState",
+            "scriptId": "71",
+            "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/zustand.js?v=98171385",
+            "lineNumber": 16,
+            "columnNumber": 16
+          },
+          {
+            "functionName": "",
+            "scriptId": "83",
+            "url": "http://127.0.0.1:5174/src/lib/session-controls.ts",
+            "lineNumber": 66,
+            "columnNumber": 26
+          }
+        ],
+        "parent": {
+          "description": "await",
+          "callFrames": [
+            {
+              "functionName": "play",
+              "scriptId": "83",
+              "url": "http://127.0.0.1:5174/src/lib/session-controls.ts",
+              "lineNumber": 70,
+              "columnNumber": 8
+            },
+            {
+              "functionName": "onClick",
+              "scriptId": "20",
+              "url": "http://127.0.0.1:5174/src/components/layout/Header.tsx",
+              "lineNumber": 50,
+              "columnNumber": 33
+            },
+            {
+              "functionName": "executeDispatch",
+              "scriptId": "8",
+              "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/react-dom_client.js?v=b05b2e8b",
+              "lineNumber": 13621,
+              "columnNumber": 10
+            },
+            {
+              "functionName": "runWithFiberInDEV",
+              "scriptId": "8",
+              "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/react-dom_client.js?v=b05b2e8b",
+              "lineNumber": 996,
+              "columnNumber": 71
+            },
+            {
+              "functionName": "processDispatchQueue",
+              "scriptId": "8",
+              "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/react-dom_client.js?v=b05b2e8b",
+              "lineNumber": 13657,
+              "columnNumber": 36
+            },
+            {
+              "functionName": "",
+              "scriptId": "8",
+              "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/react-dom_client.js?v=b05b2e8b",
+              "lineNumber": 14070,
+              "columnNumber": 10
+            },
+            {
+              "functionName": "batchedUpdates$1",
+              "scriptId": "8",
+              "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/react-dom_client.js?v=b05b2e8b",
+              "lineNumber": 2625,
+              "columnNumber": 41
+            },
+            {
+              "functionName": "dispatchEventForPluginEventSystem",
+              "scriptId": "8",
+              "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/react-dom_client.js?v=b05b2e8b",
+              "lineNumber": 13762,
+              "columnNumber": 8
+            },
+            {
+              "functionName": "dispatchEvent",
+              "scriptId": "8",
+              "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/react-dom_client.js?v=b05b2e8b",
+              "lineNumber": 16783,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "dispatchDiscreteEvent",
+              "scriptId": "8",
+              "url": "http://127.0.0.1:5174/@fs/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-y1MQ9H/vite-cache/deps/react-dom_client.js?v=b05b2e8b",
+              "lineNumber": 16764,
+              "columnNumber": 61
+            }
+          ]
+        }
+      }
+    }
+  }
+}

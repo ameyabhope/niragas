@@ -102,7 +102,8 @@ async function main() {
     window.__ticket08Context = raw;
     const workletCode = "class Ticket08Capture extends AudioWorkletProcessor { process(inputs) { const input = inputs[0]?.[0]; if (input) this.port.postMessage(input.slice()); return true; } } registerProcessor('ticket08-capture', Ticket08Capture);";
     const moduleUrl = URL.createObjectURL(new Blob([workletCode], { type: 'application/javascript' }));
-    await context.addAudioWorkletModule(moduleUrl);
+    // Tone caches its own worklet bundle as one promise; capture must not occupy that cache.
+    await raw.audioWorklet.addModule(moduleUrl);
     URL.revokeObjectURL(moduleUrl);
     const captureNode = context.createAudioWorkletNode('ticket08-capture', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1 });
     const sink = context.createGain();
@@ -159,6 +160,7 @@ async function main() {
   check('explicit Resume restores audible playback', { rms: resumedRms }, resumedRms > 0.0001);
 
   await click('STOP');
+  check('No uncaught browser exceptions', report.errors, report.errors.length === 0);
   report.status = 'passed';
 }
 

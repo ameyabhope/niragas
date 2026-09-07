@@ -197,8 +197,7 @@ async function main() {
   check('recovery succeeds after reconnect', await tanpuraPlaying(), true);
 
   await clickText('STOP');
-  const unexpectedErrors = report.errors.filter((error) => !String(error?.exception?.description || error?.text || '').includes('NotSupportedError'));
-  check('No unexpected browser exceptions', unexpectedErrors, unexpectedErrors.length === 0, report.errors.length ? 'Chrome reported known audio NotSupportedError events; these remain in the report for investigation.' : undefined);
+  check('No uncaught browser exceptions', report.errors, report.errors.length === 0);
   report.status = 'passed';
 }
 

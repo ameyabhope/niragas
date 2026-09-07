@@ -212,25 +212,8 @@ async function main() {
   const openInstrumentDetails = async () => evaluate(`(() => { for (const details of document.querySelectorAll('details')) details.open = true; return true; })()`);
 
   await send('Runtime.enable');
+  await send('Page.enable');
   await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 1000, deviceScaleFactor: 1, mobile: false });
-  if (process.argv.includes('--trace-native')) {
-    await send('Page.addScriptToEvaluateOnNewDocument', { source: `
-      window.nativeRejections = [];
-      for (const name of ['AudioContext', 'OfflineAudioContext', 'HTMLMediaElement']) {
-        const ctor = window[name];
-        for (const method of ['resume', 'suspend', 'decodeAudioData', 'startRendering', 'play']) {
-          const original = ctor?.prototype[method];
-          if (!original) continue;
-          ctor.prototype[method] = function(...args) {
-            const stack = new Error(name + '.' + method).stack;
-            const result = original.apply(this, args);
-            if (result?.catch) result.catch(error => nativeRejections.push({ name, method, error: String(error), stack }));
-            return result;
-          };
-        }
-      }
-    ` });
-  }
   await send('Page.navigate', { url });
   for (let attempt = 0; attempt < 120; attempt += 1) {
     if (await evaluate('document.readyState === "complete" && !!document.querySelector("main, [aria-label=\\"Practice controls\\"]")')) break;
@@ -251,7 +234,8 @@ async function main() {
     if (!raw.audioWorklet) throw new Error('AudioWorklet is unavailable; cannot capture contiguous browser PCM');
     const workletCode = "class Ticket02Capture extends AudioWorkletProcessor { process(inputs) { const input = inputs[0]?.[0]; if (input) this.port.postMessage(input.slice()); return true; } } registerProcessor('ticket02-capture', Ticket02Capture);";
     const moduleUrl = URL.createObjectURL(new Blob([workletCode], { type: 'application/javascript' }));
-    await context.addAudioWorkletModule(moduleUrl);
+    // Tone caches its own worklet bundle as one promise; capture must not occupy that cache.
+    await raw.audioWorklet.addModule(moduleUrl);
     URL.revokeObjectURL(moduleUrl);
     const captureNode = context.createAudioWorkletNode('ticket02-capture', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1 });
     const sink = context.createGain();
@@ -288,9 +272,7 @@ async function main() {
   if (arg('--scenario', 'baseline') === 'tanpura') {
     const { checkTanpura } = await import('./tanpura-scenario.mjs');
     await checkTanpura({ evaluate, click, collect, check, wait });
-    if (process.argv.includes('--trace-native')) report.nativeRejections = await evaluate('nativeRejections');
-    const unexpectedTanpuraErrors = report.errors.filter(error => !String(error?.exception?.description || error?.text || '').includes('NotSupportedError'));
-    check('No unexpected browser exceptions', unexpectedTanpuraErrors, unexpectedTanpuraErrors.length === 0, report.errors.length ? 'Chrome reported known audio NotSupportedError events; these remain in the report for investigation.' : undefined);
+    check('No uncaught browser exceptions', report.errors, report.errors.length === 0);
     report.status = 'passed';
     return;
   }
@@ -355,8 +337,6 @@ async function main() {
   const mixedStopped = await collect('mixed-after-stop', 2400);
   const mixedStopLimit = Math.max(0.0001, mixed.peak * 0.01);
   check('Mixed output stops without a later attack', { peak: mixedStopped.peak, tailPeak: mixedStopped.tailPeak, limit: mixedStopLimit, attacks: mixedStopped.attackCount }, mixedStopped.tailPeak <= mixedStopLimit);
-  const unexpectedErrors = report.errors.filter(error => !String(error?.exception?.description || error?.text || '').includes('NotSupportedError'));
-  check('No unexpected browser exceptions', unexpectedErrors, unexpectedErrors.length === 0, report.errors.length ? 'Chrome reported known audio NotSupportedError events; these remain in the report for investigation.' : undefined);
   const retained = await evaluate(`({ tanpura: !!document.querySelector('[aria-label="Disable Tanpura 1"]'), tabla: !!document.querySelector('[aria-label="Disable Tabla"]') })`);
   check('Stop retains selected instruments', retained, retained.tanpura && retained.tabla);
   const tempoBefore = await evaluate(`document.querySelector('[aria-label="Tempo"]')?.value`);
@@ -381,13 +361,21 @@ async function main() {
     check('Fresh load capture contains the requested interval', { frames: freshCapture.frames, seconds: freshCapture.seconds }, true);
     check('Fresh load is silent', { peak: freshCapture.peak, rms: freshCapture.rms }, freshCapture.peak < 0.0001);
   } else {
-    const freshPlaybackState = await evaluate(`({ tablaPlaying: !![...document.querySelectorAll('#panel-controls button[aria-pressed]')].find(button => button.textContent.trim() === 'Stop' && button.getAttribute('aria-pressed') === 'true'), tanpuraPlaying: [...document.querySelectorAll('body *')].some(node => node.textContent?.trim() === 'Playing') })`);
+    const freshPlaybackState = await evaluate(`(async () => {
+      const [{ useSessionStore }, { isTablaPlaying }, tanpura, surpeti, swarmandal] = await Promise.all([
+        import('/src/store/session-store.ts'), import('/src/audio/tabla.ts'), import('/src/audio/tanpura.ts'),
+        import('/src/audio/surpeti.ts'), import('/src/audio/swarmandal.ts')
+      ]);
+      return { ...useSessionStore.getState(), tabla: isTablaPlaying(), tanpura1: tanpura.getTanpuraStatus('tanpura1').playing,
+        tanpura2: tanpura.getTanpuraStatus('tanpura2').playing, surpeti: surpeti.isSurPetiPlaying(), swarmandal: swarmandal.isSwarMandalPlaying() };
+    })()`);
     report.freshLoadCapture = 'state-only: no active source produced worklet frames after reload';
-    check('Fresh load has no playback intent when PCM is unavailable', freshPlaybackState, !freshPlaybackState.tablaPlaying && !freshPlaybackState.tanpuraPlaying);
+    check('Fresh load has no playback intent when PCM is unavailable', freshPlaybackState, Object.values(freshPlaybackState).every(value => value === false));
   }
   const freshDefaults = await evaluate(`({ tanpura: !!document.querySelector('[aria-label="Disable Tanpura 1"]'), tabla: !!document.querySelector('[aria-label="Disable Tabla"]') })`);
   check('Fresh load restores selected defaults without autoplay', freshDefaults, freshDefaults.tanpura && !freshDefaults.tabla);
   await evaluate(`(() => { const c = window.__ticket02Capture; c.captureNode.disconnect(); c.sink.disconnect(); return true; })()`);
+  check('No uncaught browser exceptions', report.errors, report.errors.length === 0);
   report.status = 'passed';
 }
 

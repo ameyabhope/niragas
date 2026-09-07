@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "output": "/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-recording-B8F3Py",
+  "checks": [
+    {
+      "name": "mix recording starts during accompaniment with an accurate indicator",
+      "value": true,
+      "passed": true
+    },
+    {
+      "name": "global Stop leaves the take recording",
+      "value": true,
+      "passed": true
+    },
+    {
+      "name": "accompaniment stopped while recording",
+      "value": true,
+      "passed": true
+    },
+    {
+      "name": "stopped take is saved in the browser collection",
+      "value": {
+        "saved": true
+      },
+      "passed": true
+    },
+    {
+      "name": "recording indicator clears after stop",
+      "value": true,
+      "passed": true
+    },
+    {
+      "name": "microphone tuner starts with a fake device",
+      "value": true,
+      "passed": true
+    },
+    {
+      "name": "microphone capture survives accompaniment Stop",
+      "value": {
+        "tunerSurvives": true
+      },
+      "passed": true
+    },
+    {
+      "name": "No uncaught browser exceptions",
+      "value": [],
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "artifacts": [],
+  "url": "http://127.0.0.1:5174/",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.77",
+    "revision": "@529d9a34b491745086b59458f58a5aae8292adaa",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.19"
+  }
+}

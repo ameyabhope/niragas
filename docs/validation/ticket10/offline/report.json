@@ -1,0 +1,66 @@
+{
+  "status": "passed",
+  "output": "/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-offline-mLobFf",
+  "checks": [
+    {
+      "name": "service worker controls the page",
+      "value": {
+        "controlled": true
+      },
+      "passed": true
+    },
+    {
+      "name": "sample cache exists after online playback",
+      "value": {
+        "cacheCount": "workbox-precache-v2-http://127.0.0.1:56892/,audio-samples"
+      },
+      "passed": true
+    },
+    {
+      "name": "app shell loads offline from precache",
+      "value": true,
+      "passed": true
+    },
+    {
+      "name": "cached selection plays offline",
+      "value": true,
+      "passed": true
+    },
+    {
+      "name": "offline sound is served from the sample cache without network hits",
+      "value": {
+        "hits": []
+      },
+      "passed": true
+    },
+    {
+      "name": "uncached selection fails truthfully while retaining the old sound",
+      "value": {
+        "error": "Tanpura sample preparation failed (Ni_D_neutral): HTTP 500Retry",
+        "playing": true,
+        "retry": true
+      },
+      "passed": true
+    },
+    {
+      "name": "recovery succeeds after reconnect",
+      "value": true,
+      "passed": true
+    },
+    {
+      "name": "No uncaught browser exceptions",
+      "value": [],
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "artifacts": [],
+  "url": "http://127.0.0.1:56892/",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.77",
+    "revision": "@529d9a34b491745086b59458f58a5aae8292adaa",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.19"
+  }
+}

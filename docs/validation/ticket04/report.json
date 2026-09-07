@@ -1,6 +1,6 @@
 {
   "status": "passed",
-  "output": "/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-Sg8cb1",
+  "output": "/var/folders/rk/bxm9n82s3wsd_hlflmrtw5lc0000gn/T/niragas-ticket02-Z1glma",
   "checks": [
     {
       "name": "Browser PCM capture is available",
@@ -12,7 +12,7 @@
     {
       "name": "Initial tanpura plays",
       "value": {
-        "rms": 0.018113930113561428,
+        "rms": 0.018676366811644078,
         "frames": 57600
       },
       "passed": true
@@ -20,7 +20,7 @@
     {
       "name": "Old source continues during held replacement",
       "value": {
-        "rms": 0.024479416524388543,
+        "rms": 0.02255939749203705,
         "loading": true
       },
       "passed": true
@@ -37,15 +37,15 @@
     {
       "name": "Replacement remains audible",
       "value": {
-        "rms": 0.02165066711762091,
-        "peak": 0.09355126321315765
+        "rms": 0.021179732478448635,
+        "peak": 0.09180034697055817
       },
       "passed": true
     },
     {
       "name": "Preparation failure retains the old source and exposes Retry",
       "value": {
-        "rms": 0.019873173137866375,
+        "rms": 0.021758469065850522,
         "error": "Tanpura sample preparation failed (Pa_D_neutral): Simulated sample outage"
       },
       "passed": true
@@ -62,7 +62,7 @@
     {
       "name": "Stop remains silent after delayed preparation completes",
       "value": {
-        "peak": 0,
+        "peak": 2.683246402845896e-10,
         "status": {
           "loading": false,
           "playing": false,
@@ -74,331 +74,17 @@
     {
       "name": "Restart uses the retained latest setup",
       "value": {
-        "rms": 0.018728281430256528
+        "rms": 0.020758207482330267
       },
       "passed": true
     },
     {
       "name": "No unexpected browser exceptions",
       "value": [],
-      "passed": true,
-      "detail": "Chrome reported known audio NotSupportedError events; these remain in the report for investigation."
+      "passed": true
     }
   ],
-  "errors": [
-    {
-      "exceptionId": 1,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "3561292880217322923.2.1",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 2,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "3561292880217322923.2.2",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 3,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "3561292880217322923.2.3",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 4,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "3561292880217322923.2.4",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 5,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "3561292880217322923.2.5",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 6,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "3561292880217322923.2.6",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 7,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "3561292880217322923.2.7",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    },
-    {
-      "exceptionId": 8,
-      "text": "Uncaught (in promise)",
-      "lineNumber": 0,
-      "columnNumber": 0,
-      "scriptId": "1",
-      "url": "http://127.0.0.1:5174/",
-      "exception": {
-        "type": "object",
-        "subtype": "error",
-        "className": "DOMException",
-        "description": "NotSupportedError",
-        "objectId": "3561292880217322923.2.8",
-        "preview": {
-          "type": "object",
-          "subtype": "error",
-          "description": "NotSupportedError",
-          "overflow": false,
-          "properties": [
-            {
-              "name": "code",
-              "type": "number",
-              "value": "9"
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "value": "NotSupportedError"
-            },
-            {
-              "name": "message",
-              "type": "string",
-              "value": ""
-            }
-          ]
-        }
-      },
-      "executionContextId": 2
-    }
-  ],
+  "errors": [],
   "artifacts": [
     "tanpura-initial.wav",
     "tanpura-during-held-replacement.wav",
@@ -412,7 +98,7 @@
     "vite": true
   },
   "url": "http://127.0.0.1:5174/",
-  "chromeLog": "yLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181256.059444:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513155:0906/181256.063717:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181256.063813:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513155:0906/181256.064921:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181256.065120:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513155:0906/181256.065261:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181256.065335:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513155:0906/181256.065477:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181256.065537:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513155:0906/181256.083901:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181256.083971:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513155:0906/181258.199243:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181258.199351:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513155:0906/181258.289444:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181258.289535:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513155:0906/181258.323180:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181258.323264:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9083:3513141:0906/181258.371740:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[9089:3513155:0906/181258.380416:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181258.380495:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513155:0906/181258.414992:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181258.415074:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513155:0906/181258.486729:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181258.486847:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513155:0906/181258.521976:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181258.522076:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513155:0906/181258.649069:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[9089:3513224:0906/181258.649174:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\nCreated TensorFlow Lite XNNPACK delegate for CPU.\n",
+  "chromeLog": "led. CVReturn: -6670\n[37066:3780861:0906/233532.106573:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780794:0906/233532.106847:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780861:0906/233532.106922:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780794:0906/233532.107045:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780861:0906/233532.107112:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780794:0906/233532.107232:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780861:0906/233532.107291:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780794:0906/233532.107412:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780861:0906/233532.107465:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780794:0906/233532.168503:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780861:0906/233532.168582:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780794:0906/233534.316855:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780861:0906/233534.316926:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780794:0906/233534.399895:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780861:0906/233534.399971:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780794:0906/233534.432447:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780861:0906/233534.432499:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37060:3780778:0906/233534.479633:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[37066:3780794:0906/233534.480407:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780861:0906/233534.480531:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780794:0906/233534.511264:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780861:0906/233534.511340:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780794:0906/233534.569856:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780861:0906/233534.569968:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780794:0906/233534.604654:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780861:0906/233534.605398:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780794:0906/233534.814458:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[37066:3780861:0906/233534.814549:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\nCreated TensorFlow Lite XNNPACK delegate for CPU.\n",
   "browser": {
     "protocolVersion": "1.3",
     "product": "Chrome/152.0.7977.77",

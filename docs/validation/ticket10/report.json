@@ -1,8 +1,8 @@
 {
   "date": "2026-09-07",
   "automated": {
-    "tests": "140 passed in 19 files",
-    "typecheck": "tsc -b clean",
+    "tests": "146 passed in 19 files",
+    "typecheck": "tsc -b clean (production build)",
     "lint": "eslint clean",
     "build": "production build clean"
   },
@@ -10,61 +10,56 @@
     "baseline": {
       "status": "passed",
       "checks": 21,
-      "failed": [],
-      "browser": "Chrome/152.0.7977.77"
+      "errors": 0,
+      "report": "../ticket02/report.json"
     },
     "responsive": {
       "status": "passed",
       "checks": 38,
-      "failed": [],
-      "browser": "Chrome/152.0.7977.77"
+      "errors": 0,
+      "report": "../ticket10/responsive/report.json"
     },
     "recording": {
       "status": "passed",
       "checks": 8,
-      "failed": [],
-      "browser": "Chrome/152.0.7977.77"
+      "errors": 0,
+      "report": "../ticket10/recording/report.json"
     },
     "offline": {
       "status": "passed",
       "checks": 8,
-      "failed": [],
-      "browser": "Chrome/152.0.7977.77"
+      "errors": 0,
+      "report": "offline/report.json"
     },
-    "ticket02": {
+    "live-loading": {
       "status": "passed",
-      "checks": 21,
-      "failed": []
+      "checks": 12,
+      "errors": 0,
+      "report": "../ticket06/report.json"
     },
-    "ticket04": {
+    "saved-sessions": {
+      "status": "passed",
+      "checks": 24,
+      "errors": 0,
+      "report": "../ticket07/report.json"
+    },
+    "tanpura": {
       "status": "passed",
       "checks": 10,
-      "failed": []
+      "errors": 0,
+      "report": "../ticket04/report.json"
     },
-    "ticket05": {
+    "interruption": {
+      "status": "passed",
+      "checks": 9,
+      "errors": 0,
+      "report": "../ticket08/report.json"
+    },
+    "wake-lock": {
       "status": "passed",
       "checks": 7,
-      "failed": []
-    },
-    "ticket07": {
-      "status": "passed",
-      "checks": 18,
-      "failed": []
-    },
-    "ticket08": {
-      "status": "passed",
-      "checks": 8,
-      "failed": []
-    },
-    "ticket09": {
-      "status": "passed",
-      "checks": 7,
-      "failed": []
-    },
-    "ticket06": {
-      "status": "passed",
-      "checks": 8,
-      "failed": []
+      "errors": 0,
+      "report": "../ticket09/report.json"
     }
   },
   "deviceCoverage": "Desktop headless Chrome/152.0.7977.77 only. Physical-phone, Safari, and locked-screen behavior remain outstanding and must not be assumed from viewport emulation.",
@@ -73,5 +68,7 @@
     "locked-screen/background audio (out of scope by design)",
     "non-supporting-browser wake-lock UI (unit-covered only)",
     "musician listening review of excerpts"
-  ]
+  ],
+  "review": "../reliable-playback-fix-review.md",
+  "status": "automated checks passed; physical-device acceptance outstanding"
 }

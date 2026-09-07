@@ -104,7 +104,8 @@ async function main() {
     const raw = context.rawContext;
     const workletCode = "class LiveLoadCapture extends AudioWorkletProcessor { process(inputs) { const input = inputs[0]?.[0]; if (input) this.port.postMessage(input.slice()); return true; } } registerProcessor('live-load-capture', LiveLoadCapture);";
     const moduleUrl = URL.createObjectURL(new Blob([workletCode], { type: 'application/javascript' }));
-    await context.addAudioWorkletModule(moduleUrl);
+    // Tone caches its own worklet bundle as one promise; capture must not occupy that cache.
+    await raw.audioWorklet.addModule(moduleUrl);
     URL.revokeObjectURL(moduleUrl);
     const captureNode = context.createAudioWorkletNode('live-load-capture', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1 });
     const sink = context.createGain();
@@ -169,21 +170,73 @@ async function main() {
     button.click();
     return true;
   })()`);
+  const setSelect = async (selector, value) => evaluate(`(() => {
+    const select = document.querySelector(${JSON.stringify(selector)});
+    if (!select) throw new Error('Missing select: ' + ${JSON.stringify(selector)});
+    select.value = ${JSON.stringify(value)};
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    return select.value;
+  })()`);
+  const tablaStatus = async () => evaluate(`document.querySelector('#panel-controls [role="status"]')?.textContent?.trim() ?? null`);
   const beatDisplayLabel = async () => evaluate(`document.querySelector('[aria-label$="beat cycle, grouped by vibhag"]')?.getAttribute('aria-label') ?? null`);
 
   await clickButton('START');
+  await setSelect('#tabla-taal', 'teentaal');
+  await until('document.querySelector("#tabla-style")?.value === "theka"', 'Teentaal style selector');
+  await clickButton('Play');
+  await wait(1200);
+  check('same-taal baseline is sounding theka', await tablaStatus(), (await tablaStatus())?.includes('Teentaal / Theka'));
+  await clickButton('STOP');
+  await setSelect('#tabla-style', 'variation1');
+  await clickButton('+ Save Current');
+  await evaluate(`(() => {
+    const input = document.querySelector('#preset-name');
+    if (!input) throw new Error('Save preset dialog is missing');
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+    setter.call(input, 'Live same taal variation');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  })()`);
+  await clickButton('Save', 'document.querySelector("#save-preset-dialog")');
+  await wait(500);
+  await setSelect('#tabla-style', 'theka');
+  await clickButton('Play');
+  await wait(1000);
+  await evaluate(`(() => {
+    for (const label of ['Disable Tanpura 1', 'Disable Tanpura 2']) {
+      const button = document.querySelector('[aria-label="' + label + '"]');
+      if (button) button.click();
+    }
+    return true;
+  })()`);
+  await clickButton('Options');
+  await setSections(['tabla']);
+  await searchPresets('Live same taal variation');
+  await wait(300);
+  const sameTaalLoad = await collectAcross('same-taal-style-load', 2400, async () => {
+    await applyPresetCalled('Live same taal variation');
+    const selected = await evaluate('document.querySelector("#tabla-style")?.value ?? null');
+    check('same-taal load selects saved style', { selected }, selected === 'variation1');
+    await until('(() => { const text = document.querySelector("#panel-controls [role=\\"status\\"]")?.textContent ?? ""; return text.includes("Playing Teentaal / Variation 1.") && !text.includes("Selected"); })()', 'next-beat style display');
+    const nextBeat = await tablaStatus();
+    check('same-taal load displays saved style after next beat', nextBeat, nextBeat?.includes('Teentaal / Variation 1'));
+  });
+  check('same-taal style load keeps tabla sounding', { attacks: sameTaalLoad.attackCount, rms: sameTaalLoad.rms }, sameTaalLoad.attackCount >= 4 && sameTaalLoad.rms > 0.0001);
+
+  await clickButton('STOP');
   await evaluate(`(() => {
     const taal = document.querySelector('#tabla-taal');
     if (taal) { taal.value = 'metronome-1'; taal.dispatchEvent(new Event('change', { bubbles: true })); }
     return true;
   })()`);
-  await clickButton('Play');
+  await clickButton('START');
   await wait(1500);
+  if (await evaluate('!![...document.querySelectorAll("#panel-controls button")].find((node) => node.textContent.trim() === "Play" && !node.disabled)')) await clickButton('Play');
   const baseline = await collectAcross('tabla-baseline', 3000, null);
   check('tabla sounds before live loading', { attacks: baseline.attackCount, rms: baseline.rms }, baseline.attackCount >= 4 && baseline.rms > 0.0001);
   check('display follows the sounding pattern', await beatDisplayLabel(), (await beatDisplayLabel())?.toLowerCase().includes('metronome'));
 
-  await clickButton('Options');
   await setSections(['tanpura']);
   await searchPresets('Malkauns');
   await wait(400);
@@ -206,8 +259,7 @@ async function main() {
   check('tanpura keeps playing after the full load', { rms: afterFull.rms }, afterFull.rms > 0.005);
 
   await clickButton('STOP');
-  const unexpectedErrors = report.errors.filter((error) => !String(error?.exception?.description || error?.text || '').includes('NotSupportedError'));
-  check('No unexpected browser exceptions', unexpectedErrors, unexpectedErrors.length === 0, report.errors.length ? 'Chrome reported known audio NotSupportedError events; these remain in the report for investigation.' : undefined);
+  check('No uncaught browser exceptions', report.errors, report.errors.length === 0);
   report.status = 'passed';
 }
 
