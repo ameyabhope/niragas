@@ -27,7 +27,7 @@ export function PitchControl() {
               key={freq}
               onClick={() => setA4Freq(freq)}
               aria-pressed={a4Freq === freq}
-              className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
+              className={`px-2 py-0.5 min-h-7 rounded text-[10px] font-semibold transition-colors ${
                 a4Freq === freq
                   ? 'bg-action text-white'
                   : 'bg-surface-lighter text-text-muted hover:text-text-primary'

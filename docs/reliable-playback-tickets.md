@@ -188,18 +188,20 @@ The current spec takes precedence over the older broad implementation plan and i
 - 07 — Manage and exchange saved sessions.
 - 09 — Keep the screen awake during foreground practice.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Exercise Start/Stop/restart, edits while stopped, rapid commands, manual/looping Swar Mandal, and tanpura replacement/failure with actual controls and audio capture.
-- [ ] Verify save, update/copy, refresh to silent defaults, explicit reload, partial loading, and current-format import/export with real browser persistence.
-- [ ] Exercise tempo changes and queued tabla selections, checking that timing and display follow sounding patterns without duplicate attacks.
-- [ ] Verify cold sample loading, failed fetches, cached/uncached offline selections, and recovery. Inspect mixed-output peaks/clipping and silence after Stop and intentional decay.
-- [ ] Verify recording and microphone capture remain independently controllable and accurately indicated throughout accompaniment actions.
-- [ ] Exercise interruption/resume and wake-lock lifecycle without claiming guaranteed background or locked-screen playback.
-- [ ] Fix combined-workflow issues in touch sizing, labels, focus visibility, status announcements, keyboard operation, and horizontal overflow at 320px, 390px, and desktop widths, including expanded editors and saved-session forms.
-- [ ] Record browser versions and actual physical devices tested. Cover desktop and phone browsers where available; mark missing physical-phone checks outstanding rather than treating viewport emulation as equivalent.
-- [ ] Run production build, lint, relevant automated tests, and the reproducible browser checks. Retain evidence and distinguish automated results from listening/device checks.
-- [ ] Update current behavior and developer-workflow documentation, keeping deferred musical review, sample acquisition, profiling, and feature expansion explicitly separate from completed scope.
+- [x] Exercise Start/Stop/restart, edits while stopped, rapid commands, manual/looping Swar Mandal, and tanpura replacement/failure with actual controls and audio capture.
+- [x] Verify save, update/copy, refresh to silent defaults, explicit reload, partial loading, and current-format import/export with real browser persistence.
+- [x] Exercise tempo changes and queued tabla selections, checking that timing and display follow sounding patterns without duplicate attacks.
+- [x] Verify cold sample loading, failed fetches, cached/uncached offline selections, and recovery. Inspect mixed-output peaks/clipping and silence after Stop and intentional decay.
+- [x] Verify recording and microphone capture remain independently controllable and accurately indicated throughout accompaniment actions.
+- [x] Exercise interruption/resume and wake-lock lifecycle without claiming guaranteed background or locked-screen playback.
+- [x] Fix combined-workflow issues in touch sizing, labels, focus visibility, status announcements, keyboard operation, and horizontal overflow at 320px, 390px, and desktop widths, including expanded editors and saved-session forms.
+- [x] Record browser versions and actual physical devices tested. Cover desktop and phone browsers where available; mark missing physical-phone checks outstanding rather than treating viewport emulation as equivalent.
+- [x] Run production build, lint, relevant automated tests, and the reproducible browser checks. Retain evidence and distinguish automated results from listening/device checks.
+- [x] Update current behavior and developer-workflow documentation, keeping deferred musical review, sample acquisition, profiling, and feature expansion explicitly separate from completed scope.
+
+**Validation (2026-09-07):** 140 unit tests in 19 files, `tsc -b`, lint, and production build all pass. Browser matrix on headless Chrome/152.0.7977.77, all green: baseline playback 21/21 (including a beat-clustering fix so composite-stroke swells are not mistaken for duplicate timing), live loading 8/8, saved sessions 18/18, interruption 8/8, wake lock 7/7, recording/mic 8/8, offline samples 8/8, responsive/keyboard 38/38 across 320/390/desktop widths. Combined-workflow fixes: sub-24px touch targets sized up, setup description corrected, beat-timing measurement made robust to composite articulation. Aggregate suite record at `docs/validation/ticket10/report.json`; workflows documented in [browser playback checks](browser-playback-checks.md). Device coverage is desktop headless Chrome only; physical-phone, Safari, locked-screen behavior, and musician listening review remain explicitly outstanding. Code review: Standards 0 findings; Spec 0 findings.
 
 ## Implementation start prompt
 

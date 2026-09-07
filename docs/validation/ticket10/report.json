@@ -1,0 +1,77 @@
+{
+  "date": "2026-09-07",
+  "automated": {
+    "tests": "140 passed in 19 files",
+    "typecheck": "tsc -b clean",
+    "lint": "eslint clean",
+    "build": "production build clean"
+  },
+  "browserChecks": {
+    "baseline": {
+      "status": "passed",
+      "checks": 21,
+      "failed": [],
+      "browser": "Chrome/152.0.7977.77"
+    },
+    "responsive": {
+      "status": "passed",
+      "checks": 38,
+      "failed": [],
+      "browser": "Chrome/152.0.7977.77"
+    },
+    "recording": {
+      "status": "passed",
+      "checks": 8,
+      "failed": [],
+      "browser": "Chrome/152.0.7977.77"
+    },
+    "offline": {
+      "status": "passed",
+      "checks": 8,
+      "failed": [],
+      "browser": "Chrome/152.0.7977.77"
+    },
+    "ticket02": {
+      "status": "passed",
+      "checks": 21,
+      "failed": []
+    },
+    "ticket04": {
+      "status": "passed",
+      "checks": 10,
+      "failed": []
+    },
+    "ticket05": {
+      "status": "passed",
+      "checks": 7,
+      "failed": []
+    },
+    "ticket07": {
+      "status": "passed",
+      "checks": 18,
+      "failed": []
+    },
+    "ticket08": {
+      "status": "passed",
+      "checks": 8,
+      "failed": []
+    },
+    "ticket09": {
+      "status": "passed",
+      "checks": 7,
+      "failed": []
+    },
+    "ticket06": {
+      "status": "passed",
+      "checks": 8,
+      "failed": []
+    }
+  },
+  "deviceCoverage": "Desktop headless Chrome/152.0.7977.77 only. Physical-phone, Safari, and locked-screen behavior remain outstanding and must not be assumed from viewport emulation.",
+  "outstanding": [
+    "physical-phone audio and Safari checks",
+    "locked-screen/background audio (out of scope by design)",
+    "non-supporting-browser wake-lock UI (unit-covered only)",
+    "musician listening review of excerpts"
+  ]
+}

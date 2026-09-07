@@ -115,7 +115,7 @@ export function EQPanel() {
           type="button"
           onClick={resetToFlat}
           disabled={!enabled}
-          className="mt-2 w-full text-xs text-text-muted hover:text-text-primary
+          className="mt-2 w-full min-h-11 text-xs text-text-muted hover:text-text-primary
                      disabled:opacity-30 transition-colors"
         >
           Reset to Flat

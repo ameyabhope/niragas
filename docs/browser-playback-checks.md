@@ -58,3 +58,17 @@ Run `node scripts/interruption-check.mjs` to suspend the live audio context thro
 ## Live setup loading
 
 Run `node scripts/live-load-check.mjs` to apply factory presets while accompaniment runs: a tanpura-only partial load that must leave the sounding tabla untouched, then a full load that applies the requested selection (including a silent tabla) without a global stop. The runner asserts continued attacks without duplicates across the load, beat-display alignment with the sounding pattern, and continued audibility. A missing browser is reported as `status: skipped`.
+
+## Interruption, wake lock, and recording
+
+- `node scripts/interruption-check.mjs` suspends the live audio context, verifies the interruption status with its explicit Resume action, confirms settings survive, verifies Stop-while-interrupted, and confirms Resume restores audible playback with Media Session metadata intact.
+- `node scripts/wake-lock-check.mjs` walks the opt-in keep-screen-awake control through Off, Waiting, Held, release on Stop, and back to Off.
+- `node scripts/recording-check.mjs` records the live mix during accompaniment, verifies the take survives global Stop, verifies the saved collection entry, and verifies microphone tuner capture stays independent (headless runs use a fake media device).
+
+## Offline samples
+
+Run `node scripts/offline-check.mjs` against a production build (`npm run build` first). It verifies the service worker controls the page, the app shell loads offline from precache, a cached tanpura selection plays offline with zero sample-network hits, an uncached selection fails truthfully while retaining the old sound with Retry, and recovery succeeds. The uncached outage is injected at the static server because page-level network emulation does not reach the worker's own requests; this is recorded in the report.
+
+## Responsive and keyboard operation
+
+Run `node scripts/responsive-check.mjs` to audit 320px, 390px, and desktop widths (every mobile tab at phone widths): no horizontal overflow, every control labelled, 24px minimum touch targets, live-region announcements, Tab focus movement with visible focus indication, and Space operating tabla. It also fixed sub-24px targets (master mute, EQ reset, A4 toggle, string add/remove) and corrected the setup description copy.

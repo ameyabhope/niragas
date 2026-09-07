@@ -315,9 +315,15 @@ async function main() {
   check('Tabla produces audible PCM', { peak: tabla.peak, rms: tabla.rms }, tabla.rms > 0.0001 && tabla.peak > 0.01);
   check('Tabla has no duplicate attacks', tabla.duplicateAttackIntervals, tabla.duplicateAttackIntervals.length === 0);
   check('Tabla has at least one attack', tabla.attackCount, tabla.attackCount > 0);
-  const cadence = tabla.attackIntervals.filter(interval => interval > 0.25 && interval < 0.8);
+  // Composite strokes (e.g. Dha = Ge + Na) can produce a secondary swell
+  // ~100-150 ms after the main transient. Cluster sub-200 ms followers so
+  // beat timing is measured on beats; true duplicate scheduling (<40 ms)
+  // remains covered by the check above.
+  const beats = tabla.attackTimes.filter((time, index, times) => index === 0 || time - times[index - 1] >= 0.2);
+  const beatIntervals = beats.slice(1).map((time, index) => time - beats[index]);
+  const cadence = beatIntervals.filter(interval => interval > 0.25 && interval < 0.8);
   const cadenceMedian = cadence.length ? cadence.slice().sort((a, b) => a - b)[Math.floor(cadence.length / 2)] : 0;
-  check('Metronome-1 attacks follow the 120 BPM beat', { attackCount: tabla.attackCount, cadence, medianSeconds: cadenceMedian }, tabla.attackCount >= 6 && tabla.attackCount <= 13 && cadence.length >= 4 && Math.abs(cadenceMedian - 0.5) < 0.12);
+  check('Metronome-1 attacks follow the 120 BPM beat', { attackCount: tabla.attackCount, beats: beats.length, cadence, medianSeconds: cadenceMedian }, beats.length >= 6 && beats.length <= 13 && cadence.length >= 4 && Math.abs(cadenceMedian - 0.5) < 0.12);
 
   await click('[aria-label="Stop all instruments"]');
   const stopped = await collect('tabla-after-stop', 2400);

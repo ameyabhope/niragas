@@ -115,11 +115,11 @@ export function SwarMandalPanel() {
                   <option key={octave} value={octave}>Sa {octave >= 0 ? '+' : ''}{octave} oct</option>
                 ))}
               </select>
-              <button type="button" onClick={() => removeString(i)} aria-label={`Remove string ${i + 1}`} className="text-xs text-text-muted">Remove</button>
+              <button type="button" onClick={() => removeString(i)} aria-label={`Remove string ${i + 1}`} className="text-xs text-text-muted min-h-7 px-2">Remove</button>
               </div>
             ))}
           </div>
-          <button type="button" onClick={addString} disabled={strings.length >= 64} className="mt-2 text-xs text-text-secondary disabled:opacity-40">Add Sa string</button>
+          <button type="button" onClick={addString} disabled={strings.length >= 64} className="mt-2 min-h-7 px-2 text-xs text-text-secondary disabled:opacity-40">Add Sa string</button>
         </fieldset>
 
         {/* Play once button */}

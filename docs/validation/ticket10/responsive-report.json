@@ -1,0 +1,292 @@
+{
+  "status": "passed",
+  "output": "/tmp/niragas-responsive-evidence2",
+  "checks": [
+    {
+      "name": "status announcements have live regions",
+      "value": {
+        "liveRegions": 3
+      },
+      "passed": true
+    },
+    {
+      "name": "no horizontal overflow at 1280px",
+      "value": {
+        "overflow": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "controls are labelled at 1280px",
+      "value": {
+        "unnamed": []
+      },
+      "passed": true
+    },
+    {
+      "name": "touch targets meet the 24px minimum at 1280px",
+      "value": {
+        "tiny": [],
+        "under44": 57
+      },
+      "passed": true
+    },
+    {
+      "name": "no horizontal overflow at 390px/Mixer",
+      "value": {
+        "overflow": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "controls are labelled at 390px/Mixer",
+      "value": {
+        "unnamed": []
+      },
+      "passed": true
+    },
+    {
+      "name": "touch targets meet the 24px minimum at 390px/Mixer",
+      "value": {
+        "tiny": [],
+        "under44": 14
+      },
+      "passed": true
+    },
+    {
+      "name": "no horizontal overflow at 390px/Practice",
+      "value": {
+        "overflow": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "controls are labelled at 390px/Practice",
+      "value": {
+        "unnamed": []
+      },
+      "passed": true
+    },
+    {
+      "name": "touch targets meet the 24px minimum at 390px/Practice",
+      "value": {
+        "tiny": [],
+        "under44": 27
+      },
+      "passed": true
+    },
+    {
+      "name": "no horizontal overflow at 390px/Presets",
+      "value": {
+        "overflow": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "controls are labelled at 390px/Presets",
+      "value": {
+        "unnamed": []
+      },
+      "passed": true
+    },
+    {
+      "name": "touch targets meet the 24px minimum at 390px/Presets",
+      "value": {
+        "tiny": [],
+        "under44": 7
+      },
+      "passed": true
+    },
+    {
+      "name": "no horizontal overflow at 390px/Swar Mdl",
+      "value": {
+        "overflow": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "controls are labelled at 390px/Swar Mdl",
+      "value": {
+        "unnamed": []
+      },
+      "passed": true
+    },
+    {
+      "name": "touch targets meet the 24px minimum at 390px/Swar Mdl",
+      "value": {
+        "tiny": [],
+        "under44": 9
+      },
+      "passed": true
+    },
+    {
+      "name": "no horizontal overflow at 390px/More",
+      "value": {
+        "overflow": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "controls are labelled at 390px/More",
+      "value": {
+        "unnamed": []
+      },
+      "passed": true
+    },
+    {
+      "name": "touch targets meet the 24px minimum at 390px/More",
+      "value": {
+        "tiny": [],
+        "under44": 1
+      },
+      "passed": true
+    },
+    {
+      "name": "no horizontal overflow at 320px/Mixer",
+      "value": {
+        "overflow": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "controls are labelled at 320px/Mixer",
+      "value": {
+        "unnamed": []
+      },
+      "passed": true
+    },
+    {
+      "name": "touch targets meet the 24px minimum at 320px/Mixer",
+      "value": {
+        "tiny": [],
+        "under44": 14
+      },
+      "passed": true
+    },
+    {
+      "name": "no horizontal overflow at 320px/Practice",
+      "value": {
+        "overflow": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "controls are labelled at 320px/Practice",
+      "value": {
+        "unnamed": []
+      },
+      "passed": true
+    },
+    {
+      "name": "touch targets meet the 24px minimum at 320px/Practice",
+      "value": {
+        "tiny": [],
+        "under44": 21
+      },
+      "passed": true
+    },
+    {
+      "name": "no horizontal overflow at 320px/Presets",
+      "value": {
+        "overflow": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "controls are labelled at 320px/Presets",
+      "value": {
+        "unnamed": []
+      },
+      "passed": true
+    },
+    {
+      "name": "touch targets meet the 24px minimum at 320px/Presets",
+      "value": {
+        "tiny": [],
+        "under44": 7
+      },
+      "passed": true
+    },
+    {
+      "name": "no horizontal overflow at 320px/Swar Mdl",
+      "value": {
+        "overflow": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "controls are labelled at 320px/Swar Mdl",
+      "value": {
+        "unnamed": []
+      },
+      "passed": true
+    },
+    {
+      "name": "touch targets meet the 24px minimum at 320px/Swar Mdl",
+      "value": {
+        "tiny": [],
+        "under44": 9
+      },
+      "passed": true
+    },
+    {
+      "name": "no horizontal overflow at 320px/More",
+      "value": {
+        "overflow": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "controls are labelled at 320px/More",
+      "value": {
+        "unnamed": []
+      },
+      "passed": true
+    },
+    {
+      "name": "touch targets meet the 24px minimum at 320px/More",
+      "value": {
+        "tiny": [],
+        "under44": 1
+      },
+      "passed": true
+    },
+    {
+      "name": "Space operates tabla from the keyboard",
+      "value": {
+        "tablaEnabled": true
+      },
+      "passed": true
+    },
+    {
+      "name": "Tab moves keyboard focus into controls",
+      "value": {
+        "focusLanded": "BUTTON"
+      },
+      "passed": true
+    },
+    {
+      "name": "keyboard focus is visibly indicated",
+      "value": {
+        "width": "2px",
+        "style": "solid"
+      },
+      "passed": true
+    },
+    {
+      "name": "No unexpected browser exceptions",
+      "value": [],
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "artifacts": [],
+  "url": "http://127.0.0.1:5174/",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.77",
+    "revision": "@529d9a34b491745086b59458f58a5aae8292adaa",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.19"
+  }
+}

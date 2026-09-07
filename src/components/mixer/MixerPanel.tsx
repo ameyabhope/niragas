@@ -104,7 +104,7 @@ export function MixerPanel() {
             aria-label={masterMuted ? 'Unmute master output' : 'Mute master output'}
             aria-pressed={masterMuted}
             aria-keyshortcuts="Alt+M"
-            className={`text-[10px] px-2 py-0.5 rounded font-semibold flex-shrink-0 ${
+            className={`text-[10px] px-2 py-0.5 min-h-7 rounded font-semibold flex-shrink-0 ${
               masterMuted
                 ? 'bg-accent-control text-white'
                 : 'bg-action text-white'
